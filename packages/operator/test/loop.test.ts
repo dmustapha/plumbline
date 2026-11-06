@@ -16,10 +16,10 @@ const run = (over: Partial<SandboxResultLike> = {}): SandboxResultLike => ({
 function deps(executor: LlmReplyLike[], runs: SandboxResultLike[]) {
   const log = { exec: 0, runs: 0 };
   const llm: LlmPort = {
-    chat: async (_s, role) => {
+    chat: async (_s, role, _m, tools) => {
       if (role === 'advisory') return reply({ content: 'destructive' }, 'nemotron-3.5-content-safety');
-      if (role === 'planner') return reply({ content: '1. list\n2. delete' }, 'glm-5.3');
-      return executor[Math.min(log.exec++, executor.length - 1)] as LlmReplyLike;
+      if (role === 'planner' && !tools) return reply({ content: '1. list\n2. delete' }, 'glm-5.3');
+      return executor[Math.min(log.exec++, executor.length - 1)] as LlmReplyLike; // 'executor', or the glm fallback ('planner' WITH tools) from attempt 2
     },
   };
   const sandbox: SandboxPort = { run: async () => runs[Math.min(log.runs++, runs.length - 1)] as SandboxResultLike };
@@ -106,5 +106,21 @@ describe('operator loop', () => {
   it('no operator type has a credential-shaped member', () => {
     const text = readFileSync(fileURLToPath(new URL('../src/llm.ts', import.meta.url)), 'utf8');
     expect(text).not.toMatch(/api_?key|secret|password|credential/i);
+  });
+});
+
+describe('operator loop executor fallback (LIVE FINDING)', () => {
+  it('uses the planner model (glm-5.3) as executor from the second attempt when the first answer has no tool call', async () => {
+    const roles: string[] = [];
+    const { d } = deps([submit('print(1)')], [{ state: 'OK', exit_code: 0, stdout: '1', stderr: '', harness_error: null, attempts: [] } as unknown as SandboxResultLike]);
+    const base = d.llm.chat;
+    let n = 0;
+    d.llm.chat = async (s, role, m, tools, tc, mt) => {
+      if (tools) { roles.push(role); if (n++ === 0) return reply({ content: 'Here is the loop: while True: pass' }, 'qwen3.8-27b'); }
+      return base(s, role, m, tools, tc, mt);
+    };
+    const r = await runOperatorTask(d, 's', 'infinite loop');
+    expect(roles).toEqual(['executor', 'planner']);
+    expect(r.attempts).toBe(2);
   });
 });

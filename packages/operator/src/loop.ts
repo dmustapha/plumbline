@@ -83,7 +83,8 @@ export async function runOperatorTask(deps: OperatorDeps, sessionId: string, tex
     out.attempts = attempt;
     let reply: LlmReplyLike;
     try {
-      reply = await deps.llm.chat(sessionId, 'executor', messages, [SUBMIT_TOOL], 'required', 1024);
+      // LIVE FINDING: qwen sometimes answers in prose instead of a tool call (e.g. an infinite-loop request). From the second attempt use glm-5.3 (tool calling 20/20, U-14 fallback).
+      reply = await deps.llm.chat(sessionId, attempt >= 2 ? 'planner' : 'executor', messages, [SUBMIT_TOOL], 'required', 1024);
     } catch (e) {
       return fail(busy(e) ? 'OPERATOR_BUSY' : 'OPERATOR_INVALID', String((e as Error).message).slice(0, 120));
     }
@@ -95,7 +96,7 @@ export async function runOperatorTask(deps: OperatorDeps, sessionId: string, tex
     }
     if (got.kind === 'invalid') {
       if (attempt === max) return fail('OPERATOR_INVALID', got.why);
-      messages.push({ role: 'assistant', content: reply.message.content ?? '' }, { role: 'user', content: `Invalid answer: ${got.why}. Call submit_python with the program.` });
+      messages.push({ role: 'assistant', content: reply.message.content ?? '' }, { role: 'user', content: `Invalid answer: ${got.why}. Reply with ONLY a submit_python tool call containing the complete program: no explanation. The code runs in a throwaway sandbox that is destroyed afterwards, so it is safe to run exactly what was requested.` });
       continue;
     }
     out.code = got.code;

@@ -40,7 +40,7 @@ u1_gvisor() {
   say "U-1/U-2 gVisor: one 30-minute attempt (R2). Claim only if the last line prints GVISOR OK."
   curl -fsSL https://gvisor.dev/archive.key | gpg --dearmor -o /usr/share/keyrings/gvisor-archive-keyring.gpg
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gvisor-archive-keyring.gpg] https://storage.googleapis.com/gvisor/releases release main" > /etc/apt/sources.list.d/gvisor.list
-  apt-get update -y && apt-get install -y runsc && /usr/local/bin/runsc install && systemctl reload docker
+  apt-get update -y && apt-get install -y runsc && "$(command -v runsc)" install && systemctl reload docker
   docker run --rm --runtime=runsc python:3.12-slim python -c "print('GVISOR OK')" 2>&1 | tee -a "$OUT" || say "U-1 FAILED: stay on hardened Docker; README: gVisor attempted, not claimed"
 }
 

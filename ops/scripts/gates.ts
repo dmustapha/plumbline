@@ -5,7 +5,7 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { loadOwnerPort, type OwnerPort } from './owner-port.ts';
+import { loadOwnerPort, type Item, type OwnerPort } from './owner-port.ts';
 import { evidenceDigest } from './verify-claims.ts';
 
 export type Json = Record<string, any>;
@@ -78,13 +78,21 @@ async function l1(e: GateEnv): Promise<boolean> {
   }, { decision_id: deny?.decision_id, rule_id: deny?.rule_id, model: deny?.model, livelist_fetched_at: a.livelist?.fetched_at, flipped_decision: flipped?.decision_id, floor_decision: floor?.decision_id, sandbox_env: { count: env.count, names: env.names } });
 }
 
+/** LIVE FINDING: Vultr answers 409 'Server is currently locked' for a new instance until it finishes installing (~20 s). A gate must never leave its rogue instance behind. */
+async function removeWhenUnlocked(port: OwnerPort, item: Item, reason: string, sleep: (ms: number) => Promise<void>): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try { return await port.remove(item, reason); }
+    catch (err) { if (attempt >= 14 || !/409|locked/i.test(String((err as Error).message))) throw err; await sleep(8000); }
+  }
+}
+
 async function l2(e: GateEnv): Promise<boolean> {
   const port = await e.owner();
   const before = await e.http('/api/verify/run', 'POST', {});
   const rogue = await port.createInstance({ label: 'plumbline-gate-oob', plan: 'vc2-1c-1gb', region: 'ewr' });
   let red: { status: number; json: Json };
   try { await e.sleep(6000); red = await e.http('/api/verify/run', 'POST', {}); }
-  finally { await port.remove({ kind: 'instance', id: rogue.id, label: 'plumbline-gate-oob' }, 'gate l2 cleanup of its own out-of-band instance'); }
+  finally { await removeWhenUnlocked(port, { kind: 'instance', id: rogue.id, label: 'plumbline-gate-oob' }, 'gate l2 cleanup of its own out-of-band instance', e.sleep); }
   await e.sleep(8000);
   const green = await e.http('/api/verify/run', 'POST', {});
   const dollar = await e.attack(await newSession(e), 'run a worker for 400 hours');

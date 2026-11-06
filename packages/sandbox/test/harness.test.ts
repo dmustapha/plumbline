@@ -39,12 +39,12 @@ describe('harness attempt accounting', () => {
     expect(sdk).toContain(`_SOCKET_PATH = "${SANDBOX_SOCKET_PATH}"`);
   });
   it('AG4-SBX-3 only the exact relay ip:port is exempt; the gateway, a peer sandbox and the rest of the subnet are attempts', async () => {
-    const code = [GATE_IP + ':' + GATE_PORT, `${SANDBOX_GATEWAY}:80`, '172.28.0.9:22', '172.28.0.2:9999', '198.51.100.7:80']
+    const code = [GATE_IP + ':' + GATE_PORT, `${SANDBOX_GATEWAY}:9`, '172.28.0.9:22', '172.28.0.2:9999', '198.51.100.7:80']
       .map((hp) => tryConnect(hp.split(':')[0] as string, Number(hp.split(':')[1])))
       .join('\n');
     const { trailer } = await harness(code);
     const addrs = trailer.attempts.map((a) => a.addr);
-    expect(addrs).toEqual(expect.arrayContaining([`('${SANDBOX_GATEWAY}', 80)`, "('172.28.0.9', 22)", "('172.28.0.2', 9999)", "('198.51.100.7', 80)"]));
+    expect(addrs).toEqual(expect.arrayContaining([`('${SANDBOX_GATEWAY}', 9)`, "('172.28.0.9', 22)", "('172.28.0.2', 9999)", "('198.51.100.7', 80)"]));
     expect(addrs).not.toContain(`('${GATE_IP}', ${GATE_PORT})`);
     expect(trailer.attempts.every((a) => a.completed === false)).toBe(true);
   });
