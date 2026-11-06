@@ -4,3 +4,4 @@
 - 2026-11-06T13:58:05Z: broker.env SESSION_IDLE_MIN now 10 + playground regions/cap lines (this is the intended public value now). api.env SESSIONS_PER_IP=30 still a rehearsal override: revert before public window.
 - 2026-11-06T15:20:44Z: broker.env PLUMBLINE_BOND_ENABLED=1 set on VM1 for GATE-L7 (L7 ships if the gate passes).
 - 2026-11-06T15:22:07Z: watchdog.env PLUMBLINE_WATCHDOG_DRY_RUN=0 (LIVE) on VM2 for GATE-L3.
+- 2026-11-06T15:58:37Z: api.env PLUMBLINE_LIVE_SESSIONS_PER_IP=10 (rehearsal override; default 2 for judging) next to SESSIONS_PER_IP=30. REVERT BOTH before the public window.

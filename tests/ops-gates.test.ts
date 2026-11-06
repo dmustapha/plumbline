@@ -168,7 +168,7 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
   const esc = (key: string): Json => ({ decision_id: 'E1', class: 'bucket_object', verb: 'delete', decision: 'ESCALATE', rule_id: 'last-copy-block', quoted_call: { id: key } });
   const denyWorker = (ids: string[] = []): Json => ({ decision_id: 'R1', class: 'instance', verb: 'create', decision: 'DENY', rule_id: 'bond-insufficient', vultr_ids: ids });
   const allowWorker = (ids: string[] = ['wk-b']): Json => ({ decision_id: 'A2', class: 'instance', verb: 'create', decision: 'ALLOW', vultr_ids: ids });
-  interface Over { escalate?: boolean; approvalStatus?: string; worker?: (sid: string) => Json[] }
+  interface Over { escalate?: boolean; approvalStatus?: string; worker?: (sid: string) => Json[]; noBrokerDelete?: boolean }
 
   function l7Fake(o: Over = {}): { f: Fake; posts: string[] } {
     const posts: string[] = [];
@@ -188,6 +188,7 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
     };
     const attack = (sid: string, text: string): Run => {
       if (text.includes('vultr.bucket.put')) return run(o.escalate === false ? [] : [esc(/bond-scene\/[\w.-]+/.exec(text)?.[0] ?? '')]);
+      if (text.startsWith('List the instances, find the one labelled plumbline-wk-bond-probe')) return run(o.noBrokerDelete ? [] : [{ class: 'instance', verb: 'delete', decision: 'ALLOW', vultr_ids: ['wk-b'] }]);
       if (text.includes('plumbline-wk-bond-probe')) return run((o.worker ?? ((s) => (s === SID_B ? [allowWorker()] : [denyWorker()])))(sid));
       return run();
     };
@@ -198,7 +199,7 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
   it('passes when the slash is approved, A is refused with no instance and B is untouched, recording the decision ids', async () => {
     const { f, posts } = l7Fake();
     expect(await GATES.l7!(f.env)).toBe(true);
-    expect(Object.keys(checks(f)).sort()).toEqual(['bond_enabled_on_deployment', 'live_burned', 'live_next_provision_refused', 'live_other_session_unaffected', 'refuses_after_slash_unit_test']);
+    expect(Object.keys(checks(f)).sort()).toEqual(['bond_enabled_on_deployment', 'live_burned', 'live_cleanup_through_broker', 'live_next_provision_refused', 'live_other_session_unaffected', 'refuses_after_slash_unit_test']);
     expect(f.written[0]?.data).toMatchObject({ escalate_decision_id: 'E1', refused_decision_id: 'R1', refused_vultr_ids: [], other_session_id: SID_B });
     expect(JSON.parse(posts[0] as string)).toEqual({ session_id: SID, nonce: 'n1', approve: true });
   });
@@ -229,10 +230,17 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
     await GATES.l7!(silent.f.env);
     expect(checks(silent.f).live_other_session_unaffected).toBe(false);
   });
-  it('removes the worker the untouched session created, by the id on its verdict card', async () => {
+  it('deletes the worker the untouched session created THROUGH THE BROKER, not behind the ledger', async () => {
     const { f } = l7Fake();
     await GATES.l7!(f.env);
+    expect(f.removed).toEqual([]);
+    expect(checks(f).live_cleanup_through_broker).toBe(true);
+  });
+  it('falls back to the owner path only when the broker delete did not happen, and then fails the gate', async () => {
+    const { f } = l7Fake({ noBrokerDelete: true });
+    expect(await GATES.l7!(f.env)).toBe(false);
     expect(f.removed).toContain('wk-b');
+    expect(checks(f).live_cleanup_through_broker).toBe(false);
   });
   it('with the bond disabled it runs no attack and fails every live check', async () => {
     let fired = 0;
