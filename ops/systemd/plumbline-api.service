@@ -1,0 +1,23 @@
+# File: ops/systemd/plumbline-api.service
+[Unit]
+Description=Plumbline range API and UI (public, no credentials)
+After=plumbline-broker.service plumbline-runner.service
+Wants=plumbline-broker.service plumbline-runner.service
+
+[Service]
+User=plumbline-api
+Group=plumbline-api
+SupplementaryGroups=plumbline-ipc
+EnvironmentFile=/etc/plumbline/api.env
+WorkingDirectory=/opt/plumbline/app
+ExecStart=/usr/bin/node --import tsx /opt/plumbline/app/apps/range-api/src/main.ts
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadOnlyPaths=/opt/plumbline/app
+
+[Install]
+WantedBy=multi-user.target

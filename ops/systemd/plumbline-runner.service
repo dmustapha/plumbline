@@ -1,0 +1,45 @@
+# File: ops/systemd/plumbline-runner.service
+# AG4-OPS-3: membership of the docker group is root-equivalent on this host (a process that can talk to dockerd can start a privileged
+# container). These directives limit what a BUG in the runner can do; they do NOT make a compromised runner harmless. See
+# evidence/sandbox-residual-risk.md. The runner holds no Vultr credential, and the env-file mode 0600 of broker.env protects it from
+# the api user, not from the runner.
+[Unit]
+Description=Plumbline sandbox runner (docker access, no credentials)
+After=docker.service plumbline-firewall.service plumbline-broker.service
+Requires=docker.service plumbline-firewall.service
+
+[Service]
+User=plumbline-runner
+Group=plumbline-runner
+SupplementaryGroups=docker plumbline-ipc
+EnvironmentFile=/etc/plumbline/runner.env
+WorkingDirectory=/opt/plumbline/app
+ExecStartPre=+/usr/local/sbin/plb-firewall-rules --check
+ExecStart=/usr/bin/node --import tsx /opt/plumbline/app/apps/runner/src/main.ts
+Restart=always
+RestartSec=2
+UMask=0117
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX
+SystemCallArchitectures=native
+ReadOnlyPaths=/opt/plumbline/app
+ReadWritePaths=/run/plumbline
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,26 @@
+# File: ops/systemd/plumbline-broker.service
+[Unit]
+Description=Plumbline broker (the only credential holder)
+After=network-online.target docker.service plumbline-firewall.service
+Wants=network-online.target
+Requires=plumbline-firewall.service
+
+[Service]
+User=plumbline-broker
+Group=plumbline-broker
+SupplementaryGroups=plumbline-ipc
+EnvironmentFile=/etc/plumbline/broker.env
+WorkingDirectory=/opt/plumbline/app
+ExecStartPre=+/usr/local/sbin/plb-firewall-rules --check
+ExecStart=/usr/bin/node --import tsx /opt/plumbline/app/apps/broker/src/main.ts
+Restart=always
+RestartSec=2
+NoNewPrivileges=false
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/plumbline /run/plumbline
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

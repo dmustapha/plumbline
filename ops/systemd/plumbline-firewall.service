@@ -1,0 +1,18 @@
+# File: ops/systemd/plumbline-firewall.service
+# AG4-OPS-2: the sandbox firewall is persisted. It is applied at every boot BEFORE docker.service (so no container, including the
+# plb-gate relay that Docker restarts by itself, ever runs without it), and docker.service fails if this unit fails.
+[Unit]
+Description=Plumbline sandbox firewall rules (DOCKER-USER chain PLB-SBX and INPUT drops for br-plb)
+DefaultDependencies=no
+After=network-pre.target
+Wants=network-pre.target
+Before=network.target docker.service plumbline-broker.service plumbline-runner.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/plb-firewall-rules apply
+
+[Install]
+WantedBy=multi-user.target
+RequiredBy=docker.service
