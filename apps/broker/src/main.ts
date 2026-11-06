@@ -3,7 +3,7 @@ import { chmodSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import Fastify from 'fastify';
 import { Bond, Ledger, openDb, type Db } from '@plumbline/ledger';
-import { RateCardCache, S3Store, TierKeys, VsiClient, VultrHttp } from '@plumbline/vultr-adapter';
+import { RateCardCache, S3Store, TierKeys, VsiClient, VultrHttp, Vpcs } from '@plumbline/vultr-adapter';
 import { brokerKeyGuard } from './canary.ts';
 import { ApprovalAuthority, Approvals } from './approvals.ts';
 import { loadConfig, type Config, type Secrets } from './config.ts';
@@ -74,12 +74,30 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
       policies.reset(s.id);
       sessions.drop(s.id);
     }
+    await sweepOrphanPlaygrounds();
+  };
+
+  /**
+   * LIVE FINDING: sessions live in memory, so a broker restart orphans their playground VPCs and the ledger rows stay "active" for ever,
+   * eating the 5-VPCs-per-location capacity. Reconcile on every reap: a protected playground row whose session is gone is deleted through the
+   * audited cleanup path, or marked destroyed when Vultr no longer has it.
+   */
+  const sweepOrphanPlaygrounds = async (): Promise<void> => {
+    const rows = db.prepare("SELECT id, session_id FROM resources WHERE destroyed_at_ms IS NULL AND class='vpc' AND protected = 1").all() as { id: string; session_id: string }[];
+    const orphans = rows.filter((r) => !sessions.get(r.session_id));
+    if (orphans.length === 0) return;
+    const live = new Set((await new Vpcs(tiers.http('observer')).list({ session_id: 'system' })).map((v) => v.id));
+    for (const r of orphans) {
+      if (!live.has(r.id)) ledger.markDestroyed(r.id);
+      else await pipeline.cleanup(r.session_id, 'vpc', r.id);
+    }
   };
 
   return {
     internal, sandbox, ledger, db, pipeline, reap, tokens, kill, lease, policies, sessions, rate, tiers,
     async start(): Promise<void> {
       await rate.refresh();
+      await sweepOrphanPlaygrounds().catch((e: unknown) => console.error(JSON.stringify({ evt: 'orphan-sweep-error', msg: String((e as Error).message) })));
       every(60_000, () => rate.refresh());
       every(60_000, reap);
       lease.start();
