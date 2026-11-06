@@ -3,7 +3,7 @@
 // The VM-2 processes have no dollar ledger, so they use a call-count budget gate that implements the same SpendGate interface as the
 // broker's ledger; it is not a bypass: it refuses above 600 calls per minute. No create/update/delete constructor is used here.
 import type { SpendGate, SpendResult } from '@plumbline/ledger';
-import { Registries, TIER_ACL, VultrHttp, Vpcs } from '@plumbline/vultr-adapter';
+import { Registries, TIER_ACL, VultrError, VultrHttp, Vpcs } from '@plumbline/vultr-adapter';
 
 export class CallBudgetGate implements SpendGate {
   #window: number[] = [];
@@ -66,6 +66,20 @@ export async function snapshot(http: VultrHttp, clock: () => number = Date.now):
   }
 }
 
+
+/**
+ * LIVE FINDING (2026-11-06): a view-only service key gets 403 on GET /account, so its ACL list cannot be read with its own key.
+ * Fallback, still fail closed and read-only: prove the key's shape by status codes. Every path in `ok` must answer 2xx and every
+ * path in `forbidden` must answer exactly 403. The exact ACL set is asserted owner-side at bootstrap (G1d re-creates a user whose ACLs differ).
+ */
+export async function probeAclBehaviour(http: VultrHttp, ctx: { session_id: string }, who: string, ok: string[], forbidden: string[]): Promise<void> {
+  const status = async (path: string): Promise<number> => {
+    try { await http.request('GET', path, ctx); return 200; } catch (e) { return e instanceof VultrError ? e.status : -1; }
+  };
+  for (const p of ok) { const st = await status(p); if (st !== 200) throw new Error(`BOOT_REFUSED: the ${who} key must be able to GET ${p} (got ${st})`); }
+  for (const p of forbidden) { const st = await status(p); if (st !== 403) throw new Error(`BOOT_REFUSED: the ${who} key is over-scoped: GET ${p} answered ${st}, expected 403`); }
+}
+
 /** AG4-VER-7: the verifier key may carry the observer-tier ACL (and billing at most); the string lives only in the adapter */
 export const VIEW_ONLY_ACLS: readonly string[] = [TIER_ACL.observer, 'billing'];
 
@@ -81,6 +95,10 @@ export async function assertViewOnlyKey(http: VultrHttp): Promise<string[]> {
     if (!Array.isArray(raw)) throw new Error('response carries no acls array');
     acls = raw.map(String);
   } catch (e) {
+    if (e instanceof VultrError && e.status === 403) {
+      await probeAclBehaviour(http, CTX, 'verifier', ['/instances', '/vpcs'], ['/account', '/firewalls', '/users', '/object-storage']);
+      return [TIER_ACL.observer];
+    }
     throw new Error(`BOOT_REFUSED: cannot read the verifier key's ACLs (fail closed): ${String((e as Error).message).slice(0, 100)}`);
   }
   const extra = acls.filter((a) => !VIEW_ONLY_ACLS.includes(a));

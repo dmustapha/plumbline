@@ -1,0 +1,10 @@
+# VM 1 bootstrap-vm.sh sandbox net self-check (real Vultr VM 108.61.70.169, 2026-11-06T13:00:04Z)
+docker 29.9.3 ok (>= 26.0)
+relay CONNECTED
+external FAILED
+gateway22 FAILED
+gateway80 FAILED
+docker0_7443 FAILED
+peer FAILED
+dns_example_com FAILED
+dns_one_one_one_one FAILED

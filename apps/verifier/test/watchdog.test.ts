@@ -396,7 +396,8 @@ describe('AG4-VER-7: the watchdog key must carry exactly provisioning + firewall
   it('refuses when the ACLs cannot be read (403 or no acls array)', async () => {
     const r = rig();
     r.f.accountAcls = 'forbidden';
-    await expect(assertWatchdogKey(r.http)).rejects.toThrow('BOOT_REFUSED: cannot read');
+    // LIVE FINDING: 403 on /account falls back to the behavioral check; this rig answers 200 on the paths that must be 403, so it is refused as over-scoped (never accepted)
+    await expect(assertWatchdogKey(r.http)).rejects.toThrow(/BOOT_REFUSED: the watchdog key is over-scoped: GET \/users answered 404, expected 403/);
     r.f.accountAcls = 'no-acls';
     await expect(assertWatchdogKey(r.http)).rejects.toThrow('BOOT_REFUSED: cannot read');
   });

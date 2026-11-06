@@ -180,7 +180,7 @@ if [ "$ROLE" = "broker" ]; then
   CADDYFILE="$APP/ops/Caddyfile.broker"; UNITS="broker runner api"
 else
   chown root:plumbline-vm2 /var/lib/plumbline-shared && chmod 3770 /var/lib/plumbline-shared  # CR-G1b-3/G1c-2: setgid+sticky so lease.json is group-readable by the watchdog
-  usermod -aG plumbline-vm2 plumbline-watchdog plumbline-verifier
+  for u in watchdog verifier; do usermod -aG plumbline-vm2 "plumbline-$u"; done
   SITE_ENV="PLUMBLINE_VERIFIER_HOST_PUBLIC=$(curl -fsS https://api.ipify.org | tr . -).sslip.io"
   CADDYFILE="$APP/ops/Caddyfile.verifier"; UNITS="verifier watchdog"
 fi

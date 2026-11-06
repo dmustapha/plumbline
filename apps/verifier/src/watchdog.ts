@@ -12,7 +12,8 @@ import {
   PLAYGROUND_LABEL_RE, evaluate, parsePolicy,
   type CallRequest, type Decision, type EngineState, type PolicyDoc, type ResourceClass,
 } from '@plumbline/policy-engine';
-import { Firewalls, Instances, OutcomeUnknown, TIER_ACL, Vpcs, type VultrHttp } from '@plumbline/vultr-adapter';
+import { Firewalls, Instances, OutcomeUnknown, TIER_ACL, VultrError, Vpcs, type VultrHttp } from '@plumbline/vultr-adapter';
+import { probeAclBehaviour } from './vultr-lite.ts';
 import { DEFAULT_LEASE_MAX_TTL_S, DEFAULT_GRACE_MS, leaseState, readLease, type LeaseState } from './lease.ts';
 
 export const WORKER_PREFIX = 'plumbline-wk-';
@@ -97,6 +98,10 @@ export async function assertWatchdogKey(http: VultrHttp): Promise<string[]> {
     if (!Array.isArray(raw)) throw new Error('response carries no acls array');
     acls = raw.map(String);
   } catch (e) {
+    if (e instanceof VultrError && e.status === 403) {
+      await probeAclBehaviour(http, { session_id: 'watchdog' }, 'watchdog', ['/instances', '/firewalls'], ['/account', '/users', '/object-storage', '/billing/pending-charges']);
+      return [...WATCHDOG_ACLS];
+    }
     throw new Error(`BOOT_REFUSED: cannot read the watchdog key's ACLs (fail closed): ${String((e as Error).message).slice(0, 100)}`);
   }
   const extra = acls.filter((a) => !WATCHDOG_ACLS.includes(a));

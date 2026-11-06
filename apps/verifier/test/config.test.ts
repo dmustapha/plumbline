@@ -99,3 +99,18 @@ describe('snapshot', () => {
     expect(s.error).toContain('LIST_TRUNCATED');
   });
 });
+
+// LIVE FINDING 2026-11-06: a view-only key answers 403 on GET /account, so the ACL list is unreadable; the check falls back to status codes.
+const routed = (table: Record<string, number>): typeof fetch => (async (url: string | URL | Request) => {
+  const path = new URL(String(url)).pathname.replace(/^\/v2/, '');
+  return new Response(JSON.stringify({ instances: [], vpcs: [], meta: { links: { next: '' } } }), { status: table[path] ?? 403 });
+}) as typeof fetch;
+describe('LIVE: behavioral ACL check when /account is 403', () => {
+  it('accepts a key that lists instances and VPCs but is forbidden everywhere else', async () => {
+    await expect(assertViewOnlyKey(makeHttp('k', routed({ '/instances': 200, '/vpcs': 200 })))).resolves.toEqual(['subscriptions_view']);
+  });
+  it('refuses an over-scoped key (firewalls readable), and a key that cannot list instances', async () => {
+    await expect(assertViewOnlyKey(makeHttp('k', routed({ '/instances': 200, '/vpcs': 200, '/firewalls': 200 })))).rejects.toThrow(/over-scoped: GET \/firewalls answered 200/);
+    await expect(assertViewOnlyKey(makeHttp('k', routed({ '/vpcs': 200 })))).rejects.toThrow(/must be able to GET \/instances/);
+  });
+});
