@@ -167,7 +167,8 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
   const SID_B = 'b2b2b2b2';
   const esc = (key: string): Json => ({ decision_id: 'E1', class: 'bucket_object', verb: 'delete', decision: 'ESCALATE', rule_id: 'last-copy-block', quoted_call: { id: key } });
   const denyWorker = (ids: string[] = []): Json => ({ decision_id: 'R1', class: 'instance', verb: 'create', decision: 'DENY', rule_id: 'bond-insufficient', vultr_ids: ids });
-  interface Over { escalate?: boolean; approvalStatus?: string; worker?: (sid: string) => Json[]; dollar?: Json[] }
+  const allowWorker = (ids: string[] = ['wk-b']): Json => ({ decision_id: 'A2', class: 'instance', verb: 'create', decision: 'ALLOW', vultr_ids: ids });
+  interface Over { escalate?: boolean; approvalStatus?: string; worker?: (sid: string) => Json[] }
 
   function l7Fake(o: Over = {}): { f: Fake; posts: string[] } {
     const posts: string[] = [];
@@ -187,8 +188,8 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
     };
     const attack = (sid: string, text: string): Run => {
       if (text.includes('vultr.bucket.put')) return run(o.escalate === false ? [] : [esc(/bond-scene\/[\w.-]+/.exec(text)?.[0] ?? '')]);
-      if (text.includes('plumbline-wk-bond-probe')) return run((o.worker ?? (() => [denyWorker()]))(sid));
-      return run(o.dollar ?? [{ decision_id: 'D1', class: 'instance', verb: 'create', decision: 'DENY', rule_id: 'ceiling-dollar-deny', vultr_ids: [] }]);
+      if (text.includes('plumbline-wk-bond-probe')) return run((o.worker ?? ((s) => (s === SID_B ? [allowWorker()] : [denyWorker()])))(sid));
+      return run();
     };
     return { f: fake({ http, attack }), posts };
   }
@@ -220,13 +221,18 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
     await GATES.l7!(leaked.f.env);
     expect(checks(leaked.f).live_next_provision_refused).toBe(false);
   });
-  it('fails live_other_session_unaffected when the second session is refused for the bond or does not hit the dollar ceiling', async () => {
-    const bondHit = l7Fake({ dollar: [denyWorker()] });
+  it('fails live_other_session_unaffected when the second session is refused for the bond or creates nothing', async () => {
+    const bondHit = l7Fake({ worker: () => [denyWorker()] });
     await GATES.l7!(bondHit.f.env);
     expect(checks(bondHit.f).live_other_session_unaffected).toBe(false);
-    const silent = l7Fake({ dollar: [] });
+    const silent = l7Fake({ worker: (s) => (s === SID_B ? [] : [denyWorker()]) });
     await GATES.l7!(silent.f.env);
     expect(checks(silent.f).live_other_session_unaffected).toBe(false);
+  });
+  it('removes the worker the untouched session created, by the id on its verdict card', async () => {
+    const { f } = l7Fake();
+    await GATES.l7!(f.env);
+    expect(f.removed).toContain('wk-b');
   });
   it('with the bond disabled it runs no attack and fails every live check', async () => {
     let fired = 0;

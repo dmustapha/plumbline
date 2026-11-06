@@ -248,13 +248,20 @@ async function liveBondSequence(e: GateEnv, sid: string, before: Json): Promise<
   const after = await bondOf(e, sid);
   const refused = bondRefused(await e.attack(sid, WORKER_ATTACK));
   const sid2 = await newSession(e);
-  const other = await e.attack(sid2, 'run a worker for 400 hours');
+  // The same affordable request that session A was refused (0.007 > A's free 0.005) must succeed in B (0.007 <= B's untouched 0.05).
+  // The worker B creates is real: the gate removes it by the id on the verdict card.
+  const other = await e.attack(sid2, WORKER_ATTACK);
   const otherBond = await bondOf(e, sid2);
+  const otherIds = other.verdicts.filter((v) => v.class === 'instance' && v.verb === 'create' && v.decision === 'ALLOW').flatMap((v) => (Array.isArray(v.vultr_ids) ? v.vultr_ids.map(String) : []));
+  if (otherIds.length > 0) {
+    const port = await e.owner();
+    for (const id of otherIds) await removeWhenUnlocked(port, { kind: 'instance', id, label: 'plumbline-wk-bond-probe' }, 'gate l7 cleanup of the worker created in the untouched session', e.sleep);
+  }
   const checks = {
     live_burned: Boolean(esc) && approval.approved && Number(after.burned) > 0 && Number(after.free) < Number(before.free),
     live_next_provision_refused: Boolean(refused) && noInstanceCreated(refused as Json),
-    live_other_session_unaffected: other.verdicts.some((v) => v.rule_id === 'ceiling-dollar-deny') && !other.verdicts.some((v) => v.rule_id === 'bond-insufficient')
-      && !other.verdicts.some((v) => v.class === 'instance' && v.decision === 'ALLOW') && otherBond.burned === 0 && otherBond.free === before.free,
+    live_other_session_unaffected: otherIds.length > 0 && !other.verdicts.some((v) => v.rule_id === 'bond-insufficient')
+      && otherBond.burned === 0 && otherBond.free === before.free,
   };
   const data = { session_id: sid, scene_key: key, escalate_decision_id: esc?.decision_id ?? null, escalate_rule: esc?.rule_id ?? null, approval, bond_before: before, bond_after: after,
     refused_decision_id: refused?.decision_id ?? null, refused_vultr_ids: refused?.vultr_ids ?? null, other_session_id: sid2, other_verdicts: other.verdicts.map((v) => ({ decision_id: v.decision_id, rule_id: v.rule_id, decision: v.decision })), other_bond: otherBond };
