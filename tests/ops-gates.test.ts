@@ -236,10 +236,10 @@ describe('GATE-L7 live bond sequence (per-session bond)', () => {
     expect(f.removed).toEqual([]);
     expect(checks(f).live_cleanup_through_broker).toBe(true);
   });
-  it('falls back to the owner path only when the broker delete did not happen, and then fails the gate', async () => {
+  it('never deletes behind the ledger: when the broker delete did not happen the worker is left to the TTL reaper and the gate fails', async () => {
     const { f } = l7Fake({ noBrokerDelete: true });
     expect(await GATES.l7!(f.env)).toBe(false);
-    expect(f.removed).toContain('wk-b');
+    expect(f.removed).toEqual([]);
     expect(checks(f).live_cleanup_through_broker).toBe(false);
   });
   it('with the bond disabled it runs no attack and fails every live check', async () => {
