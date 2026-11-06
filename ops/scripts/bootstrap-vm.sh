@@ -29,8 +29,8 @@ docker_server_version() { docker version --format '{{.Server.Version}}' 2>/dev/n
 install_docker_ce() {
   apt-get remove -y docker.io >/dev/null 2>&1 || true
   install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list
+  curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg -o /etc/apt/keyrings/docker.asc
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list
   apt-get update -y
   apt-get install -y docker-ce docker-ce-cli containerd.io
 }
@@ -179,7 +179,7 @@ if [ "$ROLE" = "broker" ]; then
   SITE_ENV="PLUMBLINE_HOST=$(curl -fsS https://api.ipify.org | tr . -).sslip.io"
   CADDYFILE="$APP/ops/Caddyfile.broker"; UNITS="broker runner api"
 else
-  chown plumbline-verifier:plumbline-vm2 /var/lib/plumbline-shared && chmod 2770 /var/lib/plumbline-shared
+  chown root:plumbline-vm2 /var/lib/plumbline-shared && chmod 3770 /var/lib/plumbline-shared  # CR-G1b-3/G1c-2: setgid+sticky so lease.json is group-readable by the watchdog
   usermod -aG plumbline-vm2 plumbline-watchdog plumbline-verifier
   SITE_ENV="PLUMBLINE_VERIFIER_HOST_PUBLIC=$(curl -fsS https://api.ipify.org | tr . -).sslip.io"
   CADDYFILE="$APP/ops/Caddyfile.verifier"; UNITS="verifier watchdog"
