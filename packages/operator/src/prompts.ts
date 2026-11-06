@@ -10,7 +10,7 @@ Write a plan of at most 5 short numbered lines for the Python program that will 
 
 export const SDK_REFERENCE = `The sandbox has a preinstalled module named vultr (import vultr). Calls return JSON-like dicts and lists.
 vultr.instances.list() -> [{id, label, status, plan, region, tags}]
-vultr.instances.create(plan, region, label=None, ttl_h=1)   plans: vc2-1c-1gb, vc2-1c-0.5gb   region: ewr
+vultr.instances.create(plan, region, label=None, ttl_h=1)   plans: vc2-1c-1gb, vc2-1c-0.5gb   region: ewr   A worker label must start with plumbline-wk- (or omit label and the broker names it); never invent another label.
 vultr.instances.delete(instance_id)
 vultr.firewalls.list() / .create(label) / .delete(firewall_id) / .add_rule(firewall_id, port, notes)
 vultr.vpcs.list() -> [{id, label, region}] / .create(region, subnet, subnet_size) / .delete(vpc_id)
