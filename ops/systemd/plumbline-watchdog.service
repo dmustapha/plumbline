@@ -1,0 +1,32 @@
+# File: ops/systemd/plumbline-watchdog.service
+# D-R6a: the watchdog user holds only its own provisioning+firewall key and the public policy key. It cannot read the lease secret, and the
+# sticky shared dir (root:plumbline-vm2 mode 1770, see verifier unit) stops it from replacing the verifier's lease.json. It must NOT run as
+# the verifier user (main-watchdog refuses). Start with PLUMBLINE_WATCHDOG_DRY_RUN=1; only an explicit =0 goes live (DT-21).
+[Unit]
+Description=Plumbline watchdog (dead hand, scoped delete key, second region)
+After=network-online.target plumbline-verifier.service
+Wants=network-online.target
+
+[Service]
+User=plumbline-watchdog
+Group=plumbline-watchdog
+SupplementaryGroups=plumbline-vm2
+EnvironmentFile=/etc/plumbline/watchdog.env
+WorkingDirectory=/opt/plumbline/app
+ExecStart=/usr/bin/node --import tsx /opt/plumbline/app/apps/verifier/src/main-watchdog.ts
+Restart=always
+RestartSec=2
+UMask=0022
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadWritePaths=/var/lib/plumbline-shared
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

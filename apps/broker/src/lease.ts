@@ -5,6 +5,17 @@ export function leaseSignature(secret: string, ts: number, nonce: string, ttlS: 
   return createHmac('sha256', secret).update(`${ts}.${nonce}.${ttlS}`).digest('hex');
 }
 
+/** CR-G1b-2: the verifier refuses a heartbeat above its bound (recommended 60 s). A refused heartbeat reads as a lapsed lease and the
+ * watchdog would sweep the workers, so the emitter never asks for more than the verifier's recommended maximum, whatever the config says. */
+export const LEASE_EMITTER_MAX_TTL_S = 60;
+/** the recommended broker setting for the live stack; used when the configured value is unusable */
+export const LEASE_EMITTER_DEFAULT_TTL_S = 45;
+
+export function clampLeaseTtl(ttlS: number): number {
+  if (!Number.isFinite(ttlS) || ttlS < 1) return LEASE_EMITTER_DEFAULT_TTL_S;
+  return Math.min(LEASE_EMITTER_MAX_TTL_S, Math.floor(ttlS));
+}
+
 export class LeaseEmitter {
   #timer: NodeJS.Timeout | null = null;
   #lastOk = 0;
@@ -18,7 +29,7 @@ export class LeaseEmitter {
     private readonly fetchImpl: typeof fetch = fetch,
     private readonly clock: () => number = Date.now,
   ) {
-    this.#ttlS = ttlS;
+    this.#ttlS = clampLeaseTtl(ttlS);
   }
 
   start(intervalMs = 5000): void {
@@ -34,11 +45,14 @@ export class LeaseEmitter {
   }
 
   setTtl(ttlS: number): void {
-    this.#ttlS = ttlS;
+    this.#ttlS = clampLeaseTtl(ttlS);
   }
 
   async beat(): Promise<boolean> {
-    if (!this.url) return false;
+    if (!this.url) {
+      this.#lastError = 'no verifier configured: no lease is being renewed';
+      return false;
+    }
     const ts = this.clock();
     const nonce = randomBytes(8).toString('hex');
     try {
