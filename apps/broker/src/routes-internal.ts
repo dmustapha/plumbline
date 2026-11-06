@@ -44,6 +44,22 @@ export interface InternalDeps {
 
 const same = (a: string, b: string): boolean => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
+/**
+ * LIVE FINDING: a decision row is written (append-only) before the call runs, so a create has no Vultr id in its stored detail.
+ * The id lives in the resources row tied to the ALLOW (allow_decision_id). Join it on read so every card shows the resource ids it touched;
+ * the stored row is never modified.
+ */
+export function withCreatedIds(db: InternalDeps['db'], rows: ReturnType<typeof listDecisions>): ReturnType<typeof listDecisions> {
+  const made = db.prepare('SELECT id FROM resources WHERE allow_decision_id = ?');
+  return rows.map((r) => {
+    let detail: { vultr_ids?: string[] };
+    try { detail = JSON.parse(r.detail_json) as { vultr_ids?: string[] }; } catch { return r; }
+    if (r.decision !== 'ALLOW' || (detail.vultr_ids?.length ?? 0) > 0) return r;
+    const ids = (made.all(r.id) as { id: string }[]).map((x) => x.id);
+    return ids.length === 0 ? r : { ...r, detail_json: JSON.stringify({ ...detail, vultr_ids: ids }) };
+  });
+}
+
 export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): void {
   const authed = async (req: FastifyRequest, reply: FastifyReply): Promise<void> => {
     const open = req.url.startsWith('/v1/ledger/export') || req.url.startsWith('/v1/admin/');
@@ -128,7 +144,7 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
   app.get<{ Querystring: { session_id: string } }>('/v1/approvals', async (req) => d.approvals.pending(req.query.session_id, d.clock()));
 
   app.get<{ Querystring: { session_id?: string; limit?: string; before_ts?: string } }>('/v1/decisions', async (req) =>
-    listDecisions(d.db, { session_id: req.query.session_id, limit: Number(req.query.limit ?? 50), before_ts: req.query.before_ts ? Number(req.query.before_ts) : undefined }));
+    withCreatedIds(d.db, listDecisions(d.db, { session_id: req.query.session_id, limit: Number(req.query.limit ?? 50), before_ts: req.query.before_ts ? Number(req.query.before_ts) : undefined })));
 
   app.get('/v1/proof', async () => ({
     counts: proofCounts(d.db),

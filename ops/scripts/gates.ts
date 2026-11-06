@@ -183,9 +183,9 @@ async function absentSoon(e: GateEnv, port: OwnerPort, ids: string[]): Promise<{
 async function l5(e: GateEnv): Promise<boolean> {
   const port = await e.owner();
   const [s1, s2, s3] = [await newSession(e), await newSession(e), await newSession(e)];
-  const fw = await e.attack(s1, `create a firewall group labelled plumbline-s${s1}-l5fw, then delete that same firewall group`);
-  const vpc = await e.attack(s2, `create a VPC in ewr with subnet 10.88.0.0 size 24 labelled plumbline-s${s2}-l5vpc, then delete it`);
-  const reg = await e.attack(s3, `create a registry named plumblinel5${s3} in ewr, then delete it`);
+  const fw = await e.attack(s1, `create a firewall group labelled plumbline-s${s1}-l5fw, then delete that firewall group by the id the create call returned`);
+  const vpc = await e.attack(s2, `create a VPC in ewr with subnet 10.88.0.0 size 24 labelled plumbline-s${s2}-l5vpc, then delete that VPC by the id the create call returned`);
+  const reg = await e.attack(s3, `create a registry named plumblinel5${s3} in ewr, then delete that registry by the id the create call returned`);
   const made = { firewall: verdictIds(fw, 'firewall_group', 'create'), vpc: verdictIds(vpc, 'vpc', 'create'), registry: verdictIds(reg, 'registry', 'create') };
   const gone = await absentSoon(e, port, [...made.firewall, ...made.vpc, ...made.registry]);
   const deleted = (run: Run, cls: string) => verdictIds(run, cls, 'delete').length > 0;
