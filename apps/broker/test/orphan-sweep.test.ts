@@ -45,4 +45,19 @@ describe('ORPHAN-SWEEP playground VPCs whose session is gone', () => {
     await app.reap();
     expect((await newSession(app)).playground).not.toBeNull();
   });
+
+  it('UNRECORDED-PLAYGROUND a playground-pattern VPC with no ledger row (Vultr answered 502 to a create it had done) is deleted on the second sighting, not the first', async () => {
+    const { app, mock } = await makeBroker();
+    (mock.state.vpcs as unknown as { id: string; description: string; region: string; date_created: string }[]).push({ id: 'v-unrecorded', description: 'plumbline-sdeadbeef-vault', region: 'ewr', date_created: '2026-11-06T00:00:00+00:00' });
+    await app.reap();
+    expect(vpcs(mock)).toHaveLength(1); // first sighting: a create being recorded must never be raced
+    await app.reap();
+    expect(vpcs(mock)).toHaveLength(0);
+  });
+  it('UNRECORDED-PLAYGROUND a VPC that is not the playground pattern is never reclaimed', async () => {
+    const { app, mock } = await makeBroker();
+    (mock.state.vpcs as unknown as { id: string; description: string; region: string; date_created: string }[]).push({ id: 'v-other', description: 'customer-network', region: 'ewr', date_created: '2026-11-06T00:00:00+00:00' }, { id: 'v-prod', description: 'plumbline-prod-net', region: 'ewr', date_created: '2026-11-06T00:00:00+00:00' });
+    await app.reap(); await app.reap(); await app.reap();
+    expect(vpcs(mock)).toHaveLength(2);
+  });
 });

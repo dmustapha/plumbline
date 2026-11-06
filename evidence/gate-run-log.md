@@ -31,3 +31,11 @@ The operator is an LLM, so a scene can miss because the model did not attempt th
 | 2026-11-06 18:04 | l7 | attempt 2: FAIL {"refuses_after_slash_unit_test":true,"bond_enabled_on_deployment":true,"live_burned":true,"live_next_provision_refused":true,"live_other_session_unaffected":false,"live_cleanup_through_broker":true} | verifier after: RED |
 | 2026-11-06 18:05 | l7 | attempt 3: FAIL {"refuses_after_slash_unit_test":true,"bond_enabled_on_deployment":true,"live_burned":true,"live_next_provision_refused":true,"live_other_session_unaffected":false,"live_cleanup_through_broker":true} | verifier after: RED |
 | 2026-11-06 18:09 | l3 | attempt 1: PASS {"control_broker_alive":true,"control_worker_survives_while_lease_alive":true,"worker_destroyed_after_broker_kill":true,"prod_survives":true,"infra_survives":true} | verifier after: RED |
+| 2026-11-06 18:26 | l1 | NOT RUN: verifier RED at start |
+| 2026-11-06 18:27 | l2 | NOT RUN: verifier RED at start |
+| 2026-11-06 18:28 | l2 | NOT RUN: verifier RED at start |
+| 2026-11-06 18:29 | l4 | NOT RUN: verifier RED at start |
+| 2026-11-06 18:30 | l5 | NOT RUN: verifier RED at start |
+| 2026-11-06 18:31 | l6 | NOT RUN: verifier RED at start |
+| 2026-11-06 18:32 | l7 | NOT RUN: verifier RED at start |
+| 2026-11-06 18:33 | l3 | NOT RUN: verifier RED at start |

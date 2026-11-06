@@ -96,7 +96,27 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
    * audited cleanup path, or marked destroyed when Vultr no longer has it.
    * SEC-F1: the existence check is sessions.has(), which never refreshes last_seen (get() did, so playground sessions never expired).
    */
+
+  /**
+   * LIVE FINDING: Vultr answered 502 to a playground create that it had in fact carried out, so the VPC exists with no ledger row (the verifier
+   * rightly reports RECONCILE_RED_UNLOGGED). A VPC whose label is exactly the playground pattern and that has no ledger row is ours by construction;
+   * delete it through the audited cleanup path. It must be seen in TWO consecutive sweeps first, so a create still being recorded is never raced.
+   */
+  let seenUnrecorded = new Set<string>();
+  const reclaimUnrecordedPlaygrounds = async (): Promise<void> => {
+    const known = new Set((db.prepare("SELECT id FROM resources WHERE class='vpc'").all() as { id: string }[]).map((r) => r.id));
+    const now = new Set<string>();
+    const list = await new Vpcs(tiers.http('observer')).list({ session_id: 'system' });
+    for (const v of list) {
+      if (known.has(v.id) || !PLAYGROUND_LABEL_RE.test(v.label)) continue;
+      now.add(v.id);
+      if (seenUnrecorded.has(v.id)) await pipeline.cleanup('system', 'vpc', v.id);
+    }
+    seenUnrecorded = new Set([...now].filter((id) => !seenUnrecorded.has(id)));
+  };
+
   const sweepOrphanPlaygrounds = async (): Promise<void> => {
+    await reclaimUnrecordedPlaygrounds();
     const orphans = playgroundRows().filter((r) => !sessions.has(r.session_id));
     if (orphans.length === 0) return;
     const ids = async (cls: 'vpc' | 'firewall_group'): Promise<Set<string>> => {

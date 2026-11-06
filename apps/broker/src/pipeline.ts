@@ -270,7 +270,8 @@ export class Pipeline {
     // Floor-owned labels (prod, infra, shared registry) stay as they are so the floor's own rule names the denial.
     const scoped = label.startsWith(WORKER_PREFIX) || label.startsWith(SESSION_PREFIX);
     const foreignOwner = owner !== null && owner !== sid && !isFloorOwned(label);
-    if (!['update', 'delete'].includes(verb) || owner === sid || !(scoped || foreignOwner)) return withOwner;
+    // The broker's own system cleanup (sid 'system', never a session id) may remove a playground-pattern resource that has no ledger owner (a create Vultr carried out while answering 5xx).
+    if (!['update', 'delete'].includes(verb) || owner === sid || sid === 'system' || !(scoped || foreignOwner)) return withOwner;
     return { ...withOwner, label: FOREIGN_LABEL, tags: [...(target.tags ?? []), 'foreign-session'] };
   }
 
