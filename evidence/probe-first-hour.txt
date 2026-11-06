@@ -1,0 +1,39 @@
+2026-11-06T14:24:45Z U-4 egress shape: sandbox -> relay must work, sandbox -> 1.1.1.1 and -> host bridge gateway must fail
+Traceback (most recent call last):
+  File "/opt/plb/harness.py", line 99, in <module>
+    main()
+  File "/opt/plb/harness.py", line 82, in main
+    job = json.loads(sys.stdin.read())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/decoder.py", line 338, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/decoder.py", line 356, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2026-11-06T14:24:46Z U-4 expected: relay CONNECTED, all others FAILED. Anything else means the fallback (--network none + unix socket) is required.
+2026-11-06T14:24:46Z H-4 getaddrinfo from the sandbox network must FAIL (DNS exfiltration test)
+Traceback (most recent call last):
+  File "/opt/plb/harness.py", line 99, in <module>
+    main()
+  File "/opt/plb/harness.py", line 82, in main
+    job = json.loads(sys.stdin.read())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/decoder.py", line 338, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/json/decoder.py", line 356, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2026-11-06T14:24:47Z H-4 docker server 29.9.3 >= 26.0 (H-4 PASSED)
+2026-11-06T14:24:47Z U-3 /dev/kvm absent (microVM dropped by R2 anyway)
+2026-11-06T14:24:47Z U-9 Caddy certificate: expect HTTP/2 200 over TLS on the sslip.io host
+U-9 https status 200 verify 0
+2026-11-06T14:24:47Z U-1/U-2 gVisor: one 30-minute attempt (R2). Claim only if the last line prints GVISOR OK.
+GVISOR OK

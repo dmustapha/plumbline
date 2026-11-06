@@ -1,6 +1,8 @@
 # File: ops/Caddyfile.broker
 {$PLUMBLINE_HOST} {
-	encode zstd gzip
+	# LIVE FINDING: compressing text/event-stream makes Caddy buffer the stream; browsers and Node fetch send Accept-Encoding, so SSE must not be encoded.
+	@notsse not path /api/stream/*
+	encode @notsse zstd gzip
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
