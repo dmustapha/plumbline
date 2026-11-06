@@ -64,7 +64,8 @@ export interface RuleMatch {
   label_not_prefix?: string[];
   tags_any?: string[];
   plan_not_in?: string[];
-  region_not_in?: string[];
+  /** A flat list applies to every matched class; a per-class map applies only to the classes it names. */
+  region_not_in?: string[] | Partial<Record<ResourceClass, string[]>>;
 }
 
 export type CostRef = 'ceiling_remaining' | 'cap_remaining' | 'bond_free' | number;

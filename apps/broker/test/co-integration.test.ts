@@ -38,8 +38,8 @@ describe('CO-A: the session playground is a VPC', () => {
     const s = await newSession(app);
     expect(PLAYGROUND_LABEL_RE.test(s.playground.label)).toBe(true);
   });
-  it('CO-A the region comes from the broker config', async () => {
-    const { app, mock } = await makeBroker({ config: { region: 'ams' } });
+  it('CO-A the region comes from the broker config (playgroundRegions)', async () => {
+    const { app, mock } = await makeBroker({ config: { playgroundRegions: ['ams'] } });
     const s = await newSession(app);
     expect(s.playground).toBeNull();
     expect(vpcs(mock)).toHaveLength(0);
@@ -132,8 +132,8 @@ describe('CO-C: lease ttl default', () => {
     const text = readFileSync(new URL('../../../ops/env/broker.env.example', import.meta.url), 'utf8');
     expect(text).toMatch(/^PLUMBLINE_LEASE_TTL_S=45$/m);
   });
-  it('CO-C the region default is ewr', () => {
-    expect(loadConfig(ENV).config.region).toBe('ewr');
+  it('CO-C the playground region default list starts with ewr (superseded region: see CO-F)', () => {
+    expect(loadConfig(ENV).config.playgroundRegions[0]).toBe('ewr');
   });
 });
 

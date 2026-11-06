@@ -39,11 +39,15 @@ function sessionRefusal(r) {
   return 'Could not start a session (' + (s || 'HTTP ' + r.status) + ').';
 }
 
+// The account allows few VPCs per location, so a session can start without a playground; attacks do not need one.
+const CAPACITY_NOTICE = 'The hot-edit playground is at capacity right now. Your attacks still run, but the flip scene needs a free playground. See /replay for a recorded real run.';
+
 // The server reuses the session named by the cookie, or creates one (rate limited per address) and sets the cookie.
 async function ensureSession() {
   const r = await api('/api/session', { body: {} });
   if (!r.ok || !r.json || !r.json.session_id) { showBanner(sessionRefusal(r)); return null; }
   state.sid = r.json.session_id; state.fresh = !r.json.reused;
+  if (r.json.playground_error && r.json.playground_error.code === 'PLAYGROUND_CAPACITY') showBanner(CAPACITY_NOTICE);
   return state.sid;
 }
 

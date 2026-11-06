@@ -15,7 +15,8 @@ import type { LiveList } from './liveList.ts';
 import type { LlmProxy, Role } from './llmProxy.ts';
 import type { Pipeline, S3Port } from './pipeline.ts';
 import type { PolicyStore } from './policyStore.ts';
-import { PLAYGROUND_SUBNET_SIZE, playgroundSubnet, type SessionRegistry } from './sessions.ts';
+import { capacityError, pickPlaygroundRegion, Serial } from './playground.ts';
+import { PLAYGROUND_SUBNET_SIZE, playgroundSubnet, type Session, type SessionRegistry } from './sessions.ts';
 import type { TokenService } from './tokens.ts';
 
 export interface InternalDeps {
@@ -51,19 +52,30 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
   };
   app.addHook('onRequest', authed);
 
-  app.post('/v1/session', async () => {
-    const s = d.sessions.create();
-    const label = `plumbline-s${s.id}-vault`;
+  const playgroundLock = new Serial();
+
+  /** Creates the session's playground VPC in the first region with room; null playground + a typed error when there is none. */
+  const createPlayground = (sid: string): Promise<{ playground: Session['playground']; error: unknown }> => playgroundLock.run(async () => {
+    const { playgroundRegions: regions, playgroundCapPerRegion: cap } = d.config;
+    const region = pickPlaygroundRegion(d.db, regions, cap);
+    if (!region) return { playground: null, error: capacityError(regions, cap) };
+    const label = `plumbline-s${sid}-vault`;
     // CO-2 E-2: the playground is a VPC (a firewall group is invisible to the verifier).
-    const out = await d.pipeline.runSystem(s.id, {
+    const out = await d.pipeline.runSystem(sid, {
       verb: 'create', class: 'vpc',
-      params: { label, region: d.config.region, subnet: playgroundSubnet(s.id), subnet_size: PLAYGROUND_SUBNET_SIZE },
-      extra: { protectedPlayground: true, ownerSession: s.id },
+      params: { label, region, subnet: playgroundSubnet(sid), subnet_size: PLAYGROUND_SUBNET_SIZE },
+      extra: { protectedPlayground: true, ownerSession: sid },
     });
     const created = out.status === 'DECIDED' ? (out.result as { id?: string } | undefined) : undefined;
-    if (created?.id) s.playground = { id: created.id, label };
+    return created?.id ? { playground: { id: created.id, label }, error: null } : { playground: null, error: out };
+  });
+
+  app.post('/v1/session', async () => {
+    const s = d.sessions.create();
+    const made = await createPlayground(s.id);
+    s.playground = made.playground;
     const canary = await d.pipeline.seedCanary(s.id).then((c) => ({ ...c, error: null }), (e: unknown) => ({ key: null, versions: null, error: String((e as Error).message).slice(0, 160) }));
-    return { session_id: s.id, tier: s.tier, playground: s.playground, playground_error: s.playground ? null : out, canary };
+    return { session_id: s.id, tier: s.tier, playground: s.playground, playground_error: made.error, canary };
   });
 
   app.post<{ Params: { sid: string }; Body: { tier: 'observer' | 'standard' } }>('/v1/session/:sid/tier', async (req, reply) => {

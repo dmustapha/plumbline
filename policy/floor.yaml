@@ -94,7 +94,8 @@ rules:
   - id: region-not-allowed
     effect: deny
     priority: 80
-    match: { verb: [create], class: [instance, vpc, registry], region_not_in: [ewr] }
+    # PLAYGROUND-CAP: the account allows 5 VPCs per location, so playground VPCs may also live in ord; workers and the registry stay in ewr.
+    match: { verb: [create], class: [instance, vpc, registry], region_not_in: { instance: [ewr], registry: [ewr], vpc: [ewr, ord] } }
     reason: "region outside the range allow-list"
   - id: max-instances
     effect: deny

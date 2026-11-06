@@ -1,4 +1,5 @@
 // File: apps/range-api/test/session.test.ts
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { cfg, fakeBroker, makeApi, openSession } from './support.ts';
 
@@ -303,5 +304,24 @@ describe('AG4-PRD-6 / AG4-BRK-3: approvals and mutations belong to the session t
     const { app } = await makeApi(fakeBroker());
     expect((await app.inject({ method: 'GET', url: '/api/stream/not-a-session' })).statusCode).toBe(404);
     expect((await app.inject({ method: 'GET', url: '/api/stream/deadbeef' })).statusCode).toBe(404);
+  });
+});
+
+describe('PLAYGROUND-CAP the capacity answer reaches the page unchanged', () => {
+  const error = { code: 'PLAYGROUND_CAPACITY', detail: 'every playground region (ewr, ord) already holds 4 live playgrounds; no VPC was requested' };
+  it('PLAYGROUND-CAP /api/session passes playground and playground_error through unchanged', async () => {
+    const f = fakeBroker({ sessionExtra: { playground_error: error } });
+    const { app } = await makeApi(f);
+    const r = await app.inject({ method: 'POST', url: '/api/session', payload: {} });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toMatchObject({ playground: null, playground_error: error });
+  });
+  it('PLAYGROUND-CAP app.js shows a plain notice for PLAYGROUND_CAPACITY with textContent only and points at /replay', () => {
+    const js = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
+    expect(js).toContain('PLAYGROUND_CAPACITY');
+    expect(js).toMatch(/hot-edit playground is at capacity/);
+    expect(js).toMatch(/attacks still run/);
+    expect(js).toMatch(/\/replay/);
+    expect(js).not.toMatch(/innerHTML/);
   });
 });

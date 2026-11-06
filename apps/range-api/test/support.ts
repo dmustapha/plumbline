@@ -16,11 +16,13 @@ export interface BrokerState {
   approvals: Record<string, { decision_id: string; nonce: string; call: { verb: string; class: string; id?: string } }[]>;
   approvalStatus: string;
   created: string[];
+  /** Extra fields the scripted /v1/session answer carries (e.g. playground_error). */
+  sessionExtra: Record<string, unknown>;
 }
 
 /** A scripted stand-in for the broker socket client: records every call, answers by path. */
 export function fakeBroker(init: Partial<BrokerState> = {}) {
-  const state: BrokerState = { sessions: 0, killed: false, spend: {}, approvals: {}, approvalStatus: 'DECIDED', created: [], ...init };
+  const state: BrokerState = { sessions: 0, killed: false, spend: {}, approvals: {}, approvalStatus: 'DECIDED', created: [], sessionExtra: {}, ...init };
   const calls: { method: string; path: string; body?: unknown }[] = [];
   const call = async (method: string, path: string, body?: unknown): Promise<{ status: number; json: unknown }> => {
     calls.push({ method, path, body });
@@ -28,7 +30,7 @@ export function fakeBroker(init: Partial<BrokerState> = {}) {
     if (path === '/v1/session') {
       const sid = (0x1000 + state.created.length).toString(16).padStart(8, '0');
       state.created.push(sid);
-      return { status: 200, json: { session_id: sid, tier: 'standard', playground: null } };
+      return { status: 200, json: { session_id: sid, tier: 'standard', playground: null, ...state.sessionExtra } };
     }
     if (path.startsWith('/v1/spend/')) return { status: 200, json: { session_usd: state.spend[path.slice('/v1/spend/'.length)] ?? 0 } };
     if (path.startsWith('/v1/approvals')) {

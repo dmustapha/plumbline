@@ -423,3 +423,28 @@ describe('hot-edit flip (F2) and signed approval', () => {
     });
   });
 });
+
+describe('PLAYGROUND-CAP region allow-list is per class', () => {
+  const vpc = (region: string) => req({ verb: 'create', class: 'vpc', params: { region, label: 'plumbline-s1a2b3c4d-vault', subnet: '10.9.0.0', subnet_size: 24 } });
+  const inst = (region: string) => req({ verb: 'create', class: 'instance', params: { plan: 'vc2-1c-1gb', region, ttl_h: 1, label: 'plumbline-wk-1' } });
+  const reg = (region: string) => req({ verb: 'create', class: 'registry', params: { region, label: 'plumbline-s1a2b3c4d-reg', name: 'plumblines1a2b3c4dreg' } });
+  it('PLAYGROUND-CAP a vpc in ord is allowed by the floor and in ewr too', () => {
+    expect(runFloor(vpc('ord')).decision).toBe('ALLOW');
+    expect(runFloor(vpc('ewr')).decision).toBe('ALLOW');
+  });
+  it('PLAYGROUND-CAP a vpc in ams is still DENY region-not-allowed', () => {
+    const d = runFloor(vpc('ams'));
+    expect([d.decision, d.rule_id]).toEqual(['DENY', 'region-not-allowed']);
+  });
+  it('PLAYGROUND-CAP an instance or a registry in ord is still DENY region-not-allowed', () => {
+    expect(runFloor(inst('ord')).rule_id).toBe('region-not-allowed');
+    expect(runFloor(reg('ord')).rule_id).toBe('region-not-allowed');
+    expect(runFloor(inst('ewr')).decision).toBe('ALLOW');
+  });
+  it('PLAYGROUND-CAP the per-class form validates; unknown class keys and non-list values are rejected', () => {
+    const text = (m: string) => `version: 1\nrules:\n  - id: custom-r\n    effect: deny\n    priority: 10\n    match: { verb: [create], class: [vpc], region_not_in: ${m} }\n    reason: x\n`;
+    expect(parsePolicy(text('{ vpc: [ewr] }'), 'floor').ok).toBe(true);
+    expect(parsePolicy(text('{ bogus: [ewr] }'), 'floor').ok).toBe(false);
+    expect(parsePolicy(text('{ vpc: ewr }'), 'floor').ok).toBe(false);
+  });
+});

@@ -20,8 +20,10 @@ export interface Config {
   rangeApiUrl: string;
   s3Host: string;
   sessionIdleMs: number;
-  /** Region of the per-session playground VPC; must be inside the floor's region allow-list. */
-  region: string;
+  /** Ordered regions a session playground VPC may be created in; each must be inside the floor's vpc region allow-list. */
+  playgroundRegions: string[];
+  /** Live protected playground VPCs allowed per region (the account allows 5 VPCs per location; 4 leaves headroom). */
+  playgroundCapPerRegion: number;
 }
 
 export interface Secrets {
@@ -51,6 +53,18 @@ const num = (env: Env, name: string, dflt: number): number => {
   return n;
 };
 
+const list = (env: Env, name: string, dflt: string): string[] => {
+  const items = (env[name] || dflt).split(',').map((x) => x.trim()).filter(Boolean);
+  if (items.length === 0) throw new Error(`BOOT_REFUSED: ${name} names no region`);
+  return items;
+};
+
+const positive = (env: Env, name: string, dflt: number): number => {
+  const n = num(env, name, dflt);
+  if (!Number.isInteger(n) || n < 1) throw new Error(`BOOT_REFUSED: ${name} must be an integer >= 1`);
+  return n;
+};
+
 export function loadConfig(env: Env): { config: Config; secrets: Secrets } {
   if (env.PLUMBLINE_MOCK_VULTR) throw new Error('BOOT_REFUSED: the mock Vultr client cannot be selected in a deployed build');
   if (env.VULTR_API_KEY) throw new Error('BOOT_REFUSED: the owner key VULTR_API_KEY must never be present on the broker VM');
@@ -74,8 +88,9 @@ export function loadConfig(env: Env): { config: Config; secrets: Secrets } {
     bucket: env.PLUMBLINE_BUCKET ?? 'plumbline-orders-db',
     rangeApiUrl: env.PLUMBLINE_RANGE_API_URL ?? 'http://127.0.0.1:8080',
     s3Host: need(env, 'VULTR_S3_HOST'),
-    sessionIdleMs: num(env, 'PLUMBLINE_SESSION_IDLE_MIN', 30) * 60_000,
-    region: env.PLUMBLINE_REGION ?? 'ewr',
+    sessionIdleMs: num(env, 'PLUMBLINE_SESSION_IDLE_MIN', 10) * 60_000,
+    playgroundRegions: list(env, 'PLUMBLINE_PLAYGROUND_REGIONS', 'ewr,ord'),
+    playgroundCapPerRegion: positive(env, 'PLUMBLINE_PLAYGROUND_CAP_PER_REGION', 4),
   };
   const secrets: Secrets = {
     apiToken: need(env, 'PLUMBLINE_API_TOKEN'),

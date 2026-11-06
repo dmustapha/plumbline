@@ -6,7 +6,7 @@ import { requestHash } from './hash.ts';
 import { createHash } from 'node:crypto';
 import type {
   AllowDecision, CallRequest, CostRef, Decision, DenyDecision, Effect, EngineState,
-  EscalateDecision, LayerResult, PolicyDoc, Rule,
+  EscalateDecision, LayerResult, PolicyDoc, Rule, RuleMatch,
 } from './types.ts';
 
 const RANK: Record<Effect, number> = { allow: 1, escalate: 2, deny: 3 };
@@ -80,6 +80,12 @@ function whenHolds(rule: Rule, req: CallRequest, f: Facts, s: EngineState): bool
   return true;
 }
 
+/** True when the request names a region outside the allow-list for its class (a class the map omits is unconstrained). */
+function regionOutside(list: NonNullable<RuleMatch['region_not_in']>, req: CallRequest): boolean {
+  const allowed = Array.isArray(list) ? list : list[req.class];
+  return allowed !== undefined && !(req.params.region !== undefined && allowed.includes(req.params.region));
+}
+
 function matches(rule: Rule, req: CallRequest, f: Facts, s: EngineState): boolean {
   const m = rule.match;
   if (m.verb && !m.verb.includes(req.verb)) return false;
@@ -89,7 +95,7 @@ function matches(rule: Rule, req: CallRequest, f: Facts, s: EngineState): boolea
   if (m.label_not_prefix && startsWithAny(f.label, m.label_not_prefix)) return false;
   if (m.tags_any && !m.tags_any.some((t) => f.tags.includes(t.toLowerCase()))) return false;
   if (m.plan_not_in && (req.params.plan !== undefined && m.plan_not_in.includes(req.params.plan))) return false;
-  if (m.region_not_in && (req.params.region !== undefined && m.region_not_in.includes(req.params.region))) return false;
+  if (m.region_not_in && !regionOutside(m.region_not_in, req)) return false;
   return whenHolds(rule, req, f, s);
 }
 

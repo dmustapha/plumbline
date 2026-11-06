@@ -6,3 +6,4 @@ U-13 | PASSED (direct to VSI, 10-way concurrency, 60 calls: 60x200, p50 1.08s p9
 U-4  | PASSED | 2026-11-06T13:00:04Z | evidence/probes/u-4-h-4.txt | relay CONNECTED; external, gateway:22/:80, docker0:7443, peer all FAILED on the real VM 1: keep the relay-container shape (ADR-005).
 H-4  | PASSED | 2026-11-06T13:00:04Z | evidence/probes/u-4-h-4.txt | getaddrinfo example.com and one.one.one.one FAIL from the sandbox network; Docker 29.9.3 (>= 26).
 U-9 | PASSED | 2026-11-06T13:09:00Z | broker https 200 verify=0 on 108-61-70-169.sslip.io; verifier on 66-42-126-97.sslip.io | Caddy cert on sslip.io works (needs ufw 80/443)
+U-3  | PASSED(absent) | 2026-11-06T13:54:22Z | /dev/kvm absent and no vmx/svm cpu flags on vc2-2c-4gb | microVM impossible on this plan; hardened Docker (R2) is the isolation claim

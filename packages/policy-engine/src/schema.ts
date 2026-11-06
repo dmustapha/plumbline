@@ -39,8 +39,20 @@ function checkMatch(m: unknown, path: (string | number)[], out: SchemaError[]): 
   }
   if (m.verb !== undefined) checkStringList(m.verb, VERBS, [...path, 'verb'], out);
   if (m.class !== undefined) checkStringList(m.class, CLASSES, [...path, 'class'], out);
-  for (const k of ['target_id', 'label_prefix', 'label_not_prefix', 'tags_any', 'plan_not_in', 'region_not_in']) {
+  for (const k of ['target_id', 'label_prefix', 'label_not_prefix', 'tags_any', 'plan_not_in']) {
     if (m[k] !== undefined) checkStringList(m[k], null, [...path, k], out);
+  }
+  if (m.region_not_in !== undefined) checkRegionList(m.region_not_in, [...path, 'region_not_in'], out);
+}
+
+/** region_not_in is a list, or a per-class map of lists (the floor allows more regions for a vpc than for an instance). */
+function checkRegionList(v: unknown, path: (string | number)[], out: SchemaError[]): void {
+  if (!isRecord(v)) return checkStringList(v, null, path, out);
+  const entries = Object.entries(v);
+  if (entries.length === 0) out.push({ path, message: 'must name at least one class' });
+  for (const [cls, list] of entries) {
+    if (!CLASSES.includes(cls)) out.push({ path: [...path, cls], message: `unknown class "${cls}"` });
+    else checkStringList(list, null, [...path, cls], out);
   }
 }
 

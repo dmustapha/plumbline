@@ -16,7 +16,7 @@ export const baseConfig: Config = {
   dataDir: '/tmp/plumbline-test', socketPath: '/tmp/plumbline-test/b.sock', sandboxBind: '127.0.0.1', sandboxPort: 0,
   sessionCeilingUsd: 1.5, globalCapUsd: 10, maxInstances: 4, bondEnabled: false, bondUsd: 0.05, bondBurnUsd: 0.045,
   floorPath: policyDir + 'floor.yaml', floorSigPath: policyDir + 'floor.yaml.sig', sessionDefaultPath: policyDir + 'session-default.yaml',
-  requireFloorSig: false, verifierUrl: null, leaseTtlS: 45, bucket: 'plumbline-orders-db', rangeApiUrl: 'http://127.0.0.1:1', s3Host: 'example.invalid', sessionIdleMs: 1_800_000, region: 'ewr',
+  requireFloorSig: false, verifierUrl: null, leaseTtlS: 45, bucket: 'plumbline-orders-db', rangeApiUrl: 'http://127.0.0.1:1', s3Host: 'example.invalid', sessionIdleMs: 1_800_000, playgroundRegions: ['ewr', 'ord'], playgroundCapPerRegion: 4,
 };
 
 export const secrets: Secrets = {
