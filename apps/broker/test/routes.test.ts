@@ -54,10 +54,11 @@ describe('sandbox routes', () => {
     expect((await app.sandbox.inject({ method: 'GET', url: '/v1/admin/kill-switch/clear' })).statusCode).toBe(404);
     expect((await app.sandbox.inject({ method: 'GET', url: '/healthz' })).statusCode).toBe(200);
   });
-  it('creates the session playground through the engine path', async () => {
+  it('creates the session playground (a VPC, CO-A) through the engine path', async () => {
     const { app, mock } = await makeBroker();
     const s = (await app.internal.inject({ method: 'POST', url: '/v1/session', headers: H, payload: {} })).json();
     expect(s.playground.label).toBe(`plumbline-s${s.session_id}-vault`);
-    expect((mock.state.firewall_groups[0] as unknown as { description: string }).description).toContain('[protected]');
+    expect(mock.state.firewall_groups).toHaveLength(0);
+    expect(mock.state.vpcs.map((v) => (v as unknown as { description: string }).description)).toEqual([s.playground.label]);
   });
 });

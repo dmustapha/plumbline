@@ -8,6 +8,8 @@ import { recordDecision, recordEvent, type Bond, type Db, type Ledger } from '@p
 import {
   Firewalls, Instances, Registries, SpendRefused, TierUnavailable, VultrError, Vpcs, type RateCardCache, type S3Store, type TierKeys,
 } from '@plumbline/vultr-adapter';
+import { ensureCanaryVersions, sessionCanaryKey } from '@plumbline/rewind';
+import { canaryKeyFor } from './canary.ts';
 import type { Config } from './config.ts';
 import type { ApprovalAuthority, Approvals, Binding } from './approvals.ts';
 import { EgressRefused, type Egress } from './egress.ts';
@@ -201,7 +203,7 @@ const hasMarker = (s: string): boolean => s.toLowerCase().includes('[protected]'
 const short = (): string => randomBytes(3).toString('hex');
 const fingerprint = (t: Target): string => createHash('sha256').update(canonicalJson({ id: t.id ?? null, label: t.label ?? null, tags: [...(t.tags ?? [])].sort(), resolved: t.resolved === true })).digest('hex');
 const inCleanupScope = (cls: string, label: string | undefined): boolean =>
-  label !== undefined && (cls === 'instance' ? label.startsWith(WORKER_PREFIX) : cls === 'firewall_group' && PLAYGROUND_LABEL_RE.test(label));
+  label !== undefined && (cls === 'instance' ? label.startsWith(WORKER_PREFIX) : (cls === 'vpc' || cls === 'firewall_group') && PLAYGROUND_LABEL_RE.test(label));
 
 export class Pipeline {
   constructor(private readonly d: PipelineDeps) {}
@@ -215,7 +217,7 @@ export class Pipeline {
   async #resolve(call: ParsedCall, sid: string, taskId: string): Promise<Resolved | { unavailable: string }> {
     const ctx = { session_id: sid };
     const { verb, class: cls, id, params } = call;
-    if (cls === 'bucket_object') return this.#resolveBucket(verb, id ?? 'orders.json', ctx);
+    if (cls === 'bucket_object') return this.#resolveBucket(verb, id ?? canaryKeyFor(sid), ctx);
     if (verb === 'create') {
       const label = params.label ?? params.name ?? (cls === 'instance' ? `${WORKER_PREFIX}${taskId.slice(0, 4)}${short()}` : undefined);
       return { target: { label }, versions: null };
@@ -237,7 +239,11 @@ export class Pipeline {
       const l = await this.d.s3.listVersions(ctx, key);
       return { target: { ...base, resolved: true }, versions: l.versions.length };
     } catch (e) {
-      return { unavailable: String((e as Error).message) };
+      const msg = String((e as Error).message);
+      // CO-E: a key the guard refuses never reaches the engine; any other listing error on a delete leaves the version
+      // count unknown (null), so the engine itself DENYs object-state-unknown and the decision is ledgered.
+      if (verb === 'delete' && !msg.startsWith('SESSION_KEY_FORBIDDEN')) return { target: { ...base, resolved: true }, versions: null };
+      return { unavailable: msg };
     }
   }
 
@@ -275,7 +281,7 @@ export class Pipeline {
     if ('unavailable' in resolved) return resolved;
     if (who.cleanup && !inCleanupScope(call.class, resolved.target.label)) {
       recordEvent(this.d.db, 'CLEANUP_REFUSED', who.ledger_session, { class: call.class, id: call.id ?? null, label: resolved.target.label ?? null }, this.d.clock());
-      return { refused: 'cleanup path only deletes plumbline-wk-* instances and plumbline-s<sid>-* playground groups' };
+      return { refused: 'cleanup path only deletes plumbline-wk-* instances and plumbline-s<sid>-* playground VPCs' };
     }
     const request: CallRequest = {
       request_id: requestId ?? `q-${randomBytes(6).toString('hex')}`, task_id: who.task_id, session_id: who.session_id,
@@ -324,10 +330,10 @@ export class Pipeline {
 
   /**
    * AG4-BRK-6: the broker's own TTL reaper, session sweep and kill-switch fleet destroy. It may only DELETE a
-   * plumbline-wk-* instance or a plumbline-s<sid>-* playground group, still passes the engine (kill switch aside)
+   * plumbline-wk-* instance or a plumbline-s<sid>-* playground VPC, still passes the engine (kill switch aside)
    * and is ledgered with system_cleanup: true.
    */
-  async cleanup(ownerSid: string, cls: 'instance' | 'firewall_group', id: string): Promise<Outcome> {
+  async cleanup(ownerSid: string, cls: 'instance' | 'vpc' | 'firewall_group', id: string): Promise<Outcome> {
     const call: ParsedCall = { verb: 'delete', class: cls, id, params: {}, extra: {} };
     const who: Who = { task_id: `reap-${short()}`, session_id: 'system', ledger_session: ownerSid, system: true, caller: 'owner', cleanup: true };
     return this.#run(call, who, null, { system_cleanup: true });
@@ -509,12 +515,12 @@ export class Pipeline {
 
   async #vpc(allow: AllowDecision, req: CallRequest, call: ParsedCall, sid: string, decisionId: string): Promise<unknown> {
     const ctx = { session_id: sid };
-    const { verb, id, params } = call;
+    const { verb, id, extra } = call;
     if (verb === 'list') return new Vpcs(this.d.tiers.http('observer')).list(ctx);
     const vpc = new Vpcs(this.d.tiers.http('deployer'));
     if (verb === 'create') {
       const v = await vpc.create(allow, req);
-      this.d.ledger.recordResource({ id: v.id, class: 'vpc', label: v.description, plan: null, hourly: 0, ttl_h: 1, protected: false, session_id: sid, allow_decision_id: decisionId });
+      this.d.ledger.recordResource({ id: v.id, class: 'vpc', label: v.description, plan: null, hourly: 0, ttl_h: 1, protected: Boolean(extra.protectedPlayground), session_id: extra.ownerSession ?? sid, allow_decision_id: decisionId });
       return v;
     }
     if (verb !== 'delete') throw new Error(`DISPATCH_UNHANDLED: vpc:${verb}`);
@@ -542,7 +548,7 @@ export class Pipeline {
   async #bucket(allow: AllowDecision, req: CallRequest, call: ParsedCall, sid: string): Promise<unknown> {
     const ctx = { session_id: sid };
     const { verb, id, params } = call;
-    const key = id ?? 'orders.json';
+    const key = id ?? canaryKeyFor(sid);
     switch (verb) {
       case 'list': return this.d.s3.listVersions(ctx, key);
       case 'put': return { version_id: await this.d.s3.putObject(allow, req, params.content ?? '{}') };
@@ -550,6 +556,20 @@ export class Pipeline {
       case 'restore': return { version_id: await this.d.s3.restoreVersion(allow, req) };
       default: throw new Error(`DISPATCH_UNHANDLED: bucket_object:${verb}`);
     }
+  }
+
+  /** CO-E: gives a new session its own canary with two versions. The seeding puts are engine-judged, so they are in the ledger. */
+  async seedCanary(sid: string): Promise<{ key: string; versions: number }> {
+    const key = sessionCanaryKey(sid);
+    const put = async (k: string, body: string): Promise<string> => {
+      const out = await this.runSystem(sid, { verb: 'put', class: 'bucket_object', id: k, params: { content: body }, extra: {} });
+      const ok = out.status === 'DECIDED' && out.decision.decision === 'ALLOW' && !out.error;
+      if (!ok) throw new Error(`CANARY_SEED_REFUSED: ${out.status === 'DECIDED' ? (out.error?.code ?? out.decision.rule_id) : out.status}`);
+      return String((out.result as { version_id?: string }).version_id ?? '');
+    };
+    const versionCount = async (k: string): Promise<number> => (await this.d.s3.listVersions({ session_id: sid }, k)).versions.length;
+    const r = await ensureCanaryVersions({ versionCount, put }, sid);
+    return { key, versions: r.versions };
   }
 
   callHash(raw: unknown): string {

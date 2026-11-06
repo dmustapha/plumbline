@@ -2,7 +2,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { FastifyInstance, FastifyReply } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { CANNED } from '@plumbline/operator';
 import { SessionBook } from './sessionBook.ts';
 import { relay, sessionFor, type ApiDeps } from './deps.ts';
@@ -55,9 +55,13 @@ function registerReads(app: FastifyInstance, d: ApiDeps): void {
   app.get('/api/replay', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/decisions?limit=100')));
   app.get('/api/bond', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/bond')));
   app.get('/api/egress-counter', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/egress-counter')));
-  app.get('/ledger/export', async (req, reply) => relay(reply, d.broker.call('GET', '/v1/ledger/export', undefined, {
+  // CO-D: the verifier on VM 2 reads the broker's ledger export over HTTPS. Exactly this path and exactly the two HMAC headers
+  // are forwarded; the broker alone decides (401 without a valid signature). No other broker route is reachable this way.
+  const exportRoute = async (req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> => relay(reply, d.broker.call('GET', '/v1/ledger/export', undefined, {
     'x-plumbline-ts': String(req.headers['x-plumbline-ts'] ?? ''), 'x-plumbline-sig': String(req.headers['x-plumbline-sig'] ?? ''),
-  })));
+  }));
+  app.get('/v1/ledger/export', exportRoute);
+  app.get('/ledger/export', exportRoute);
 }
 
 function registerPolicy(app: FastifyInstance, d: ApiDeps): void {

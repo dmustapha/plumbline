@@ -1,4 +1,5 @@
 // File: packages/vultr-adapter/src/users.ts
+import { randomBytes } from 'node:crypto';
 import type { Tier } from '@plumbline/policy-engine';
 import type { VultrHttp } from './http.ts';
 import { consumeOwnerAction, type OwnerAction } from './owner-action.ts';
@@ -18,7 +19,8 @@ export class OwnerAdmin {
     consumeOwnerAction(auth, 'user.create');
     const res = await this.http.request<{ user: Raw }>('POST', '/users', {
       session_id: 'system',
-      body: { name, email: `${name}@plumbline.invalid`, service_user: true, api_enabled: true, acls },
+      // Vultr answers 400 without a password even for service users (live probe 2026-11-06). Never logged, never stored: the user authenticates by API key only.
+      body: { name, email: `${name}@plumbline.invalid`, service_user: true, api_enabled: true, acls, password: `${randomBytes(24).toString('base64url')}-Aa1!` },
     });
     return { id: String(res.user.id) };
   }

@@ -97,12 +97,12 @@ describe('AG4-BRK-3 resource ownership', () => {
     expect(own.status === 'DECIDED' && own.decision.decision).toBe('ALLOW');
     expect(deletes(mock)).toHaveLength(1);
   });
-  it('AG4-BRK-3 another session cannot touch my vault group even with protect-tagged-destroy removed', async () => {
+  it('AG4-BRK-3 another session cannot touch my vault VPC even with protect-tagged-destroy removed', async () => {
     const { app, mock } = await makeBroker();
     const s = (await app.internal.inject({ method: 'POST', url: '/v1/session', headers: H, payload: {} })).json();
     const edited = app.policies.get(A.session_id).text.replace('id: protect-tagged-destroy\n    effect: deny', 'id: protect-tagged-destroy\n    effect: allow');
     expect(app.policies.put(A.session_id, edited).ok).toBe(true);
-    const out = await app.pipeline.handleCall(A, del('firewall_group', s.playground.id));
+    const out = await app.pipeline.handleCall(A, del('vpc', s.playground.id));
     expect(out.status === 'DECIDED' && out.decision.decision).toBe('DENY');
     expect(deletes(mock)).toHaveLength(0);
   });

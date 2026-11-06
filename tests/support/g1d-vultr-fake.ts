@@ -46,6 +46,7 @@ export function createFakeVultr() {
     }
     if (path === '/users' && method === 'GET') return json(200, { users: st.users.map((u) => ({ id: u.id, name: u.name, acls: u.acls })) });
     if (path === '/users' && method === 'POST') {
+      if (typeof body.password !== 'string' || body.password.length < 12) return json(400, { error: 'Bad request.' }); // live: Vultr 400s without a password
       st.seq += 1;
       const u: FakeUser = { id: `user-${st.seq}`, name: String(body.name), acls: (body.acls as string[]) ?? [], ips: [], keys: [] };
       st.users.push(u);

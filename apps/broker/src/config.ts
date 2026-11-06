@@ -20,6 +20,8 @@ export interface Config {
   rangeApiUrl: string;
   s3Host: string;
   sessionIdleMs: number;
+  /** Region of the per-session playground VPC; must be inside the floor's region allow-list. */
+  region: string;
 }
 
 export interface Secrets {
@@ -68,11 +70,12 @@ export function loadConfig(env: Env): { config: Config; secrets: Secrets } {
     sessionDefaultPath: env.PLUMBLINE_SESSION_DEFAULT_PATH ?? '/opt/plumbline/app/policy/session-default.yaml',
     requireFloorSig: env.PLUMBLINE_REQUIRE_FLOOR_SIG !== '0',
     verifierUrl: env.PLUMBLINE_VERIFIER_URL ?? null,
-    leaseTtlS: num(env, 'PLUMBLINE_LEASE_TTL_S', 120),
+    leaseTtlS: num(env, 'PLUMBLINE_LEASE_TTL_S', 45),
     bucket: env.PLUMBLINE_BUCKET ?? 'plumbline-orders-db',
     rangeApiUrl: env.PLUMBLINE_RANGE_API_URL ?? 'http://127.0.0.1:8080',
     s3Host: need(env, 'VULTR_S3_HOST'),
     sessionIdleMs: num(env, 'PLUMBLINE_SESSION_IDLE_MIN', 30) * 60_000,
+    region: env.PLUMBLINE_REGION ?? 'ewr',
   };
   const secrets: Secrets = {
     apiToken: need(env, 'PLUMBLINE_API_TOKEN'),

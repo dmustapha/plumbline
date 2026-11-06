@@ -3,7 +3,7 @@ import { timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { listDecisions, proofCounts, type Bond, type Db, type Ledger } from '@plumbline/ledger';
 import { diffRules, verifyPolicySignature } from '@plumbline/policy-engine';
-import { classifyDelete, restoreTarget } from '@plumbline/rewind';
+import { classifyDelete, objectVersionCount, restoreTarget, sessionCanaryKey } from '@plumbline/rewind';
 import type { TierKeys } from '@plumbline/vultr-adapter';
 import type { Approvals } from './approvals.ts';
 import type { Config, Secrets } from './config.ts';
@@ -15,7 +15,7 @@ import type { LiveList } from './liveList.ts';
 import type { LlmProxy, Role } from './llmProxy.ts';
 import type { Pipeline, S3Port } from './pipeline.ts';
 import type { PolicyStore } from './policyStore.ts';
-import type { SessionRegistry } from './sessions.ts';
+import { PLAYGROUND_SUBNET_SIZE, playgroundSubnet, type SessionRegistry } from './sessions.ts';
 import type { TokenService } from './tokens.ts';
 
 export interface InternalDeps {
@@ -53,13 +53,17 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
 
   app.post('/v1/session', async () => {
     const s = d.sessions.create();
+    const label = `plumbline-s${s.id}-vault`;
+    // CO-2 E-2: the playground is a VPC (a firewall group is invisible to the verifier).
     const out = await d.pipeline.runSystem(s.id, {
-      verb: 'create', class: 'firewall_group', params: { label: `plumbline-s${s.id}-vault` },
+      verb: 'create', class: 'vpc',
+      params: { label, region: d.config.region, subnet: playgroundSubnet(s.id), subnet_size: PLAYGROUND_SUBNET_SIZE },
       extra: { protectedPlayground: true, ownerSession: s.id },
     });
     const created = out.status === 'DECIDED' ? (out.result as { id?: string } | undefined) : undefined;
-    if (created?.id) s.playground = { id: created.id, label: `plumbline-s${s.id}-vault` };
-    return { session_id: s.id, tier: s.tier, playground: s.playground, playground_error: s.playground ? null : out };
+    if (created?.id) s.playground = { id: created.id, label };
+    const canary = await d.pipeline.seedCanary(s.id).then((c) => ({ ...c, error: null }), (e: unknown) => ({ key: null, versions: null, error: String((e as Error).message).slice(0, 160) }));
+    return { session_id: s.id, tier: s.tier, playground: s.playground, playground_error: s.playground ? null : out, canary };
   });
 
   app.post<{ Params: { sid: string }; Body: { tier: 'observer' | 'standard' } }>('/v1/session/:sid/tier', async (req, reply) => {
@@ -135,20 +139,34 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     budget_left_pct: Math.max(0, Math.round((1 - d.ledger.globalSpend() / d.config.globalCapUsd) * 100)),
   }));
 
-  app.get<{ Querystring: { session_id: string } }>('/v1/rewind', async (req) => {
-    const listing = await d.s3.listVersions({ session_id: req.query.session_id ?? 'system' }, 'orders.json');
-    return { listing, classify: classifyDelete(listing), restore_target: restoreTarget(listing), bond: d.bond.snapshot(), bond_enabled: d.config.bondEnabled };
+  const SESSION_ID = /^[0-9a-f]{8}$/;
+
+  app.get<{ Querystring: { session_id: string } }>('/v1/rewind', async (req, reply) => {
+    const sid = req.query.session_id;
+    if (!SESSION_ID.test(sid ?? '')) return reply.code(400).send({ status: 'ARGS_INVALID', detail: 'session_id must be a session id' });
+    try {
+      const listing = await d.s3.listVersions({ session_id: sid }, sessionCanaryKey(sid));
+      return { key: sessionCanaryKey(sid), object_versions: objectVersionCount(listing), listing, classify: classifyDelete(listing), restore_target: restoreTarget(listing), bond: d.bond.snapshot(), bond_enabled: d.config.bondEnabled };
+    } catch (e) {
+      // CO-E: an unreadable listing is never a guessed count; the delete scene then fails closed (object-state-unknown).
+      return reply.code(503).send({ status: 'REWIND_UNAVAILABLE', object_versions: null, listing: null, classify: classifyDelete(null), restore_target: null, detail: String((e as Error).message).slice(0, 160), bond: d.bond.snapshot(), bond_enabled: d.config.bondEnabled });
+    }
   });
 
   app.post<{ Body: { session_id: string; action: 'delete' | 'restore' } }>('/v1/rewind/act', async (req, reply) => {
     const sid = req.body?.session_id;
-    if (!d.sessions.get(sid) || !['delete', 'restore'].includes(req.body.action)) return reply.code(400).send({ status: 'ARGS_INVALID' });
+    if (!SESSION_ID.test(sid ?? '') || !d.sessions.get(sid) || !['delete', 'restore'].includes(req.body.action)) return reply.code(400).send({ status: 'ARGS_INVALID' });
     const claims = { task_id: `ui-${d.clock().toString(36)}`, session_id: sid };
-    if (req.body.action === 'delete') return d.pipeline.handleCall(claims, { verb: 'delete', class: 'bucket_object', target: { id: 'orders.json' } }, null, 'owner');
-    const listing = await d.s3.listVersions({ session_id: sid }, 'orders.json');
-    const version = restoreTarget(listing);
+    const key = sessionCanaryKey(sid);
+    if (req.body.action === 'delete') return d.pipeline.handleCall(claims, { verb: 'delete', class: 'bucket_object', target: { id: key } }, null, 'owner');
+    let version: string | null;
+    try {
+      version = restoreTarget(await d.s3.listVersions({ session_id: sid }, key));
+    } catch (e) {
+      return reply.code(503).send({ status: 'REWIND_UNAVAILABLE', object_versions: null, detail: String((e as Error).message).slice(0, 160) });
+    }
     if (!version) return reply.code(409).send({ status: 'REWIND_UNAVAILABLE', detail: 'no earlier version' });
-    return d.pipeline.handleCall(claims, { verb: 'restore', class: 'bucket_object', target: { id: 'orders.json' }, params: { version_id: version } }, null, 'owner');
+    return d.pipeline.handleCall(claims, { verb: 'restore', class: 'bucket_object', target: { id: key }, params: { version_id: version } }, null, 'owner');
   });
 
   app.get('/v1/ledger/export', async (req, reply) => {

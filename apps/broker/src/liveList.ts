@@ -1,4 +1,5 @@
 // File: apps/broker/src/liveList.ts
+import { canaryKeyFor } from './canary.ts';
 import { Firewalls, Instances, Registries, Vpcs, type S3Store, type TierKeys } from '@plumbline/vultr-adapter';
 
 type Section<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -25,7 +26,7 @@ export class LiveList {
       section(() => new Firewalls(this.tiers.http('network')).list(ctx)),
       section(() => new Vpcs(this.tiers.http('observer')).list(ctx)),
       section(() => new Registries(this.tiers.http('observer')).list(ctx)),
-      section(() => this.s3.listVersions(ctx, 'orders.json')),
+      section(() => this.s3.listVersions(ctx, canaryKeyFor(sessionId))),
     ]);
     const at = this.clock();
     return { fetched_at_ms: at, fetched_at: new Date(at).toISOString(), instances, firewalls, vpcs, registries, bucket, tiers: this.tiers.availability() };

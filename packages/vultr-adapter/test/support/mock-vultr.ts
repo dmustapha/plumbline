@@ -57,6 +57,7 @@ export function createMockVultr(opts: MockOptions = {}) {
     if (method === 'POST' && path === '/users') {
       state.seq += 1;
       if (!body.name) return json(400, { error: 'name required' });
+      if (typeof body.password !== 'string' || body.password.length < 12) return json(400, { error: 'Bad request.' }); // live: Vultr 400s without a password
       return json(201, { user: { id: `user-${state.seq}`, ...body } });
     }
     if (method === 'POST' && /^\/users\/[^/]+\/ip-whitelist$/.test(path)) return json(204, null);

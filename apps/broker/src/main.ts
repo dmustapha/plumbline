@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import Fastify from 'fastify';
 import { Bond, Ledger, openDb, type Db } from '@plumbline/ledger';
 import { RateCardCache, S3Store, TierKeys, VsiClient, VultrHttp } from '@plumbline/vultr-adapter';
+import { brokerKeyGuard } from './canary.ts';
 import { ApprovalAuthority, Approvals } from './approvals.ts';
 import { loadConfig, type Config, type Secrets } from './config.ts';
 import { Egress } from './egress.ts';
@@ -36,7 +37,7 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
   const kill = new KillSwitch(join(config.dataDir, 'killswitch'), tokens);
   const tiers = new TierKeys(secrets.vultr, ledger, inject.fetchImpl);
   const rate = new RateCardCache(new VultrHttp({ apiKey: null, gate: ledger, fetchImpl: inject.fetchImpl }), clock);
-  const realS3 = inject.s3 ? null : new S3Store({ host: config.s3Host, accessKey: secrets.s3.accessKey, secretKey: secrets.s3.secretKey, bucket: config.bucket }, ledger);
+  const realS3 = inject.s3 ? null : new S3Store({ host: config.s3Host, accessKey: secrets.s3.accessKey, secretKey: secrets.s3.secretKey, bucket: config.bucket, keyGuard: brokerKeyGuard(config.bondEnabled) }, ledger);
   const s3: S3Port = inject.s3 ?? (realS3 as S3Store);
   // AG4-ADP-7: object storage counts as available only while a real store is healthy (the injected fake is test-only).
   tiers.registerObjstore(realS3 ?? { healthy: () => true });
@@ -65,10 +66,11 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
 
   const reap = async (): Promise<void> => {
     const now = clock();
-    const due = db.prepare("SELECT id, class, session_id FROM resources WHERE destroyed_at_ms IS NULL AND class='instance' AND created_at_ms + ttl_h * 3600000 < ?").all(now) as { id: string; class: 'instance'; session_id: string }[];
+    // CO-B (defence in depth): the TTL reaper only ever selects unprotected plumbline-wk-* workers, whatever ttl a row carries.
+    const due = db.prepare("SELECT id, class, session_id FROM resources WHERE destroyed_at_ms IS NULL AND class='instance' AND protected = 0 AND label LIKE 'plumbline-wk-%' AND created_at_ms + ttl_h * 3600000 < ?").all(now) as { id: string; class: 'instance'; session_id: string }[];
     for (const r of due) await pipeline.cleanup(r.session_id, 'instance', r.id);
     for (const s of sessions.expired(config.sessionIdleMs)) {
-      if (s.playground) await pipeline.cleanup(s.id, 'firewall_group', s.playground.id);
+      if (s.playground) await pipeline.cleanup(s.id, 'vpc', s.playground.id);
       policies.reset(s.id);
       sessions.drop(s.id);
     }
