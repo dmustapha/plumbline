@@ -6,5 +6,4 @@ node_modules/
 .env
 *.env
 !ops/env/*.env.example
-evidence/*.json
 !evidence/.gitkeep

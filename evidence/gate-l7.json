@@ -1,0 +1,67 @@
+{
+  "gate": "gate-l7",
+  "pass": true,
+  "ran_at": "2026-11-06T18:55:14.121Z",
+  "base": "https://108-61-70-169.sslip.io",
+  "git_commit": "d021c18024975393857fa4ba5a7971f13175724a",
+  "git_dirty": false,
+  "checks": {
+    "refuses_after_slash_unit_test": true,
+    "bond_enabled_on_deployment": true,
+    "live_burned": true,
+    "live_next_provision_refused": true,
+    "live_other_session_unaffected": true,
+    "live_cleanup_through_broker": true
+  },
+  "data": {
+    "session_id": "6d3469cd",
+    "scene_key": "bond-scene/g1793991228678.json",
+    "escalate_decision_id": "d-mw5c2ej3-e4c7b32b",
+    "escalate_rule": "last-copy-block",
+    "approval": {
+      "approved": true,
+      "status": "DECIDED"
+    },
+    "bond_before": {
+      "enabled": true,
+      "session_id": "6d3469cd",
+      "free": 0.05,
+      "held": 0,
+      "burned": 0,
+      "actions": []
+    },
+    "bond_after": {
+      "enabled": true,
+      "session_id": "6d3469cd",
+      "free": 0.005,
+      "held": 0,
+      "burned": 0.045,
+      "actions": [
+        {
+          "action_id": "d-mw5c2ej3-e4c7b32b",
+          "amount": 0.045,
+          "state": "burned"
+        }
+      ]
+    },
+    "refused_decision_id": "d-mw5c2omv-b7e4918a",
+    "refused_vultr_ids": [],
+    "other_session_id": "e4ccef51",
+    "other_verdicts": [
+      {
+        "decision_id": "d-mw5c2xwf-011cf2ba",
+        "rule_id": "allow-worker-create",
+        "decision": "ALLOW"
+      }
+    ],
+    "other_bond": {
+      "enabled": true,
+      "session_id": "e4ccef51",
+      "free": 0.05,
+      "held": 0,
+      "burned": 0,
+      "actions": []
+    }
+  },
+  "evidence_sha256": "16290f0d2ea1fe4a798dabf005e7b8d73dbc9ccf33e0738c9af41f4e4042de20"
+}

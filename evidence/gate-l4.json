@@ -1,0 +1,134 @@
+{
+  "gate": "gate-l4",
+  "pass": true,
+  "ran_at": "2026-11-06T18:47:49.154Z",
+  "base": "https://108-61-70-169.sslip.io",
+  "git_commit": "d021c18024975393857fa4ba5a7971f13175724a",
+  "git_dirty": false,
+  "checks": {
+    "observer_create_403": true,
+    "observer_list_200": true
+  },
+  "data": {
+    "rows": [
+      {
+        "call": "POST /instances",
+        "tier": "observer",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "GET /instances",
+        "tier": "observer",
+        "status": 200,
+        "body": "ok",
+        "ok": true
+      },
+      {
+        "call": "POST /firewalls",
+        "tier": "observer",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "POST /users",
+        "tier": "observer",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "POST /firewalls",
+        "tier": "deployer",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "GET /users",
+        "tier": "deployer",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "POST /users",
+        "tier": "deployer",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "POST /instances",
+        "tier": "network",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "GET /users",
+        "tier": "network",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "POST /instances",
+        "tier": "registry",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "POST /firewalls",
+        "tier": "registry",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      },
+      {
+        "call": "GET /users",
+        "tier": "registry",
+        "status": 403,
+        "body": {
+          "error": "Permission denied. You do not have the required IAM permissions for this action.",
+          "status": 403
+        },
+        "ok": true
+      }
+    ]
+  },
+  "evidence_sha256": "cf7d8be1ef5391fa9b5351c956258fd1711380393e243dec6c7f7b2b4a8ff57f"
+}

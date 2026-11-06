@@ -1,0 +1,3 @@
+[
+  { "commit": "d021c18024975393857fa4ba5a7971f13175724a", "reason": "All seven live gates (l1..l7) were run at this commit on a clean tree against the deployed range. Commits after it change only evidence/ and docs (verify: git diff --name-only d021c18..HEAD lists nothing outside evidence/)." }
+]
