@@ -206,7 +206,7 @@ async function l5(e: GateEnv): Promise<boolean> {
     registry_blocked_by_vultr_free_tier_limit: /422/.test(regStdout),
     shared_registry_delete_denied: sharedDenied(shared),
     vultr_list_confirms_deleted: gone.absent,
-  }, { created_ids: made, still_listed: gone.remaining, verified_by: 'owner view-only list (inventory), independent of the broker', push: 'not attempted: registry push is U-8 and is not claimed', registry_note: 'one free registry per Vultr account; plumblinereg holds it' });
+  }, { created_ids: made, still_listed: gone.remaining, verified_by: 'owner view-only list (inventory), independent of the broker', push: 'not attempted: registry push is U-8 and is not claimed', registry_note: 'one free registry per Vultr account; plumblinereg holds it', shared_registry_verdicts: shared.verdicts.map((v) => ({ decision_id: v.decision_id, decision: v.decision, rule_id: v.rule_id, verb: v.verb, class: v.class })) });
 }
 
 async function l6(e: GateEnv): Promise<boolean> {
