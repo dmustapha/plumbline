@@ -1,0 +1,21 @@
+# File: ops/Caddyfile.verifier
+# VM 2 front door. Only the paths the verifier serves are proxied; everything else is 404, so the process is never reachable by accident.
+# /lease/renew is public but HMAC-signed, replay-protected and TTL-bounded (apps/verifier/src/lease.ts).
+{$PLUMBLINE_VERIFIER_HOST_PUBLIC} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+	}
+	request_body {
+		max_size 8KB
+	}
+	@verifier path /healthz /api/verify /api/verify/run /api/watchdog /lease/renew
+	handle @verifier {
+		reverse_proxy 127.0.0.1:8081
+	}
+	handle {
+		respond "not found" 404
+	}
+}

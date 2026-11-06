@@ -1,0 +1,34 @@
+# File: ops/systemd/plumbline-verifier.service
+# D-R6a: the verifier user holds only the view-only key and the lease secret. The shared dir is created by bootstrap-vm.sh as
+# root:plumbline-vm2 mode 1770 (sticky: the watchdog user cannot replace lease.json); the verifier refuses to boot otherwise.
+# StateDirectory gives the verifier a private 0700 dir for its ledger continuity pin.
+[Unit]
+Description=Plumbline verifier (read-only key, second region)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=plumbline-verifier
+Group=plumbline-verifier
+SupplementaryGroups=plumbline-vm2
+EnvironmentFile=/etc/plumbline/verifier.env
+WorkingDirectory=/opt/plumbline/app
+ExecStart=/usr/bin/node --import tsx /opt/plumbline/app/apps/verifier/src/main-verifier.ts
+Restart=always
+RestartSec=2
+UMask=0027
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+StateDirectory=plumbline-verifier
+StateDirectoryMode=0700
+ReadWritePaths=/var/lib/plumbline-shared
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

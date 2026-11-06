@@ -1,0 +1,13 @@
+{
+  "name": "@plumbline/verifier",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": { "plumbline-verify": "src/cli.ts" },
+  "dependencies": {
+    "@plumbline/ledger": "*",
+    "@plumbline/policy-engine": "*",
+    "@plumbline/vultr-adapter": "*",
+    "fastify": "^5.2.0"
+  }
+}

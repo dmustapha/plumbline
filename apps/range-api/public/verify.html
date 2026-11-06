@@ -1,0 +1,26 @@
+<!-- File: apps/range-api/public/verify.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline verify</title><link rel="stylesheet" href="/style.css"></head>
+<body data-page="verify"><main>
+<div class="panel"><h2>Independent verifier</h2>
+<p class="mut">Runs on a different VM, in a different region, with a different read-only key. It lists the live Vultr account twice, 3 seconds apart, and compares it to the broker's hash-chained ledger export and to an owner-written baseline. It re-runs the policy engine on what Vultr reports, so a forged ALLOW row for a plan the floor forbids still turns RED. A Vultr error, a stale export or a missing baseline shows DEGRADED, never GREEN.</p>
+<div class="row"><button id="vrun" class="primary">Run verify</button></div>
+<div id="vout" class="mut">loading...</div></div>
+<div class="panel" id="vprod"><h2>The second host's own read of plumbline-prod-db</h2>
+<p class="mut">Read by the verifier host from the Vultr API, not relayed by the broker: status, power state, plan, region and operating system, with the time it was read.</p>
+<div id="vprodout" class="mut">loading...</div></div>
+<div class="panel" id="vlimits"><h2>Stated limits</h2>
+<ul>
+<li>Point-in-time: a resource created and destroyed between two polls is not seen. A destroy is visible within about 0.8 s, so a rogue VM is declared only when it is present at both polls. Create-then-delete inside one gap is not prevented and not detected.</li>
+<li>The ledger is the broker's own record. The verifier checks its hash chain, its freshness and that it only ever grows, but a broker that lies consistently from its first row is caught only by the live comparison and the policy re-run.</li>
+</ul></div>
+<div class="panel" id="vcover"><h2>Not covered</h2>
+<p class="mut">What the verifier cannot see with a view-only key, and says so on every verdict:</p>
+<ul id="vnot">
+<li>Firewall groups: the view-only key gets 403 on /firewalls, so the per-session playground firewall group is not compared (it is a VPC now, which is).</li>
+<li>Object Storage buckets and object versions: 403 on /object-storage.</li>
+<li>Dollar ceiling and session spend: the export carries no session state. Plan, region, label and scope rules are replayed on live state; the dollar rule is the broker's.</li>
+</ul>
+<p class="mut">Covered: instances, VPCs and container registries.</p></div>
+<div id="trust"></div>
+</main><script src="/app.js"></script></body></html>
