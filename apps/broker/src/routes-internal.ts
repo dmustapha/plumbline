@@ -152,14 +152,20 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     models: d.db.prepare('SELECT model, COUNT(*) AS calls, SUM(prompt_tokens) AS prompt_tokens, SUM(completion_tokens) AS completion_tokens, SUM(usd) AS usd FROM inference_calls GROUP BY model').all(),
     floor: { version: d.policies.floor.version, hash: d.policies.floor.hash },
     session_default: { version: d.policies.defaultDoc.version, hash: d.policies.defaultDoc.hash },
-    bond: d.config.bondEnabled ? d.bond.snapshot() : null,
+    bond: d.config.bondEnabled ? d.bond.aggregate() : null,
     generated_at: d.clock(),
   }));
 
   app.get<{ Params: { sid: string } }>('/v1/spend/:sid', async (req) => d.ledger.display(req.params.sid));
   app.post<{ Body: { session_id: string } }>('/v1/acl-self-test', async (req) => d.tiers.aclSelfTest(req.body?.session_id ?? 'system'));
   app.get('/v1/egress-counter', async () => d.egress.readCounter());
-  app.get('/v1/bond', async () => ({ enabled: d.config.bondEnabled, ...d.bond.snapshot() }));
+  // Per-session bond: a named session gets its own snapshot; no session gets counts only (never a free amount).
+  app.get<{ Querystring: { session_id?: string } }>('/v1/bond', async (req, reply) => {
+    const sid = req.query.session_id;
+    if (sid === undefined || sid === '') return { enabled: d.config.bondEnabled, ...d.bond.aggregate() };
+    if (!/^[0-9a-f]{8}$/.test(sid)) return reply.code(400).send({ status: 'ARGS_INVALID', detail: 'session_id must be a session id' });
+    return { enabled: d.config.bondEnabled, session_id: sid, ...d.bond.snapshot(sid), actions: d.bond.actions(sid) };
+  });
 
   app.get('/v1/status', async () => ({
     ok: true, uptime_s: Math.round((d.clock() - d.startedAt) / 1000), kill_switch: d.kill.view(), lease: d.lease.status(),
@@ -174,10 +180,10 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     if (!SESSION_ID.test(sid ?? '')) return reply.code(400).send({ status: 'ARGS_INVALID', detail: 'session_id must be a session id' });
     try {
       const listing = await d.s3.listVersions({ session_id: sid }, sessionCanaryKey(sid));
-      return { key: sessionCanaryKey(sid), object_versions: objectVersionCount(listing), listing, classify: classifyDelete(listing), restore_target: restoreTarget(listing), bond: d.bond.snapshot(), bond_enabled: d.config.bondEnabled };
+      return { key: sessionCanaryKey(sid), object_versions: objectVersionCount(listing), listing, classify: classifyDelete(listing), restore_target: restoreTarget(listing), bond: d.bond.snapshot(sid), bond_enabled: d.config.bondEnabled };
     } catch (e) {
       // CO-E: an unreadable listing is never a guessed count; the delete scene then fails closed (object-state-unknown).
-      return reply.code(503).send({ status: 'REWIND_UNAVAILABLE', object_versions: null, listing: null, classify: classifyDelete(null), restore_target: null, detail: String((e as Error).message).slice(0, 160), bond: d.bond.snapshot(), bond_enabled: d.config.bondEnabled });
+      return reply.code(503).send({ status: 'REWIND_UNAVAILABLE', object_versions: null, listing: null, classify: classifyDelete(null), restore_target: null, detail: String((e as Error).message).slice(0, 160), bond: d.bond.snapshot(sid), bond_enabled: d.config.bondEnabled });
     }
   });
 

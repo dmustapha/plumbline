@@ -156,6 +156,16 @@ export function registerSessionRoutes(app: FastifyInstance, d: ApiDeps): void {
     return relay(reply, d.broker.call('GET', `/v1/rewind?session_id=${encodeURIComponent(sid)}`));
   });
 
+  // Per-session bond: the caller's own bond only (any client-named session is ignored). A caller holding no credential at
+  // all gets the broker's counts-only aggregate, never a free amount; a wrong credential is refused like any session route.
+  app.get('/api/bond', async (req, reply) => {
+    const c = credsOf(req);
+    if (!c.sid && !c.key) return relay(reply, d.broker.call('GET', '/v1/bond'));
+    const sid = sessionFor(d, req, reply);
+    if (!sid) return reply;
+    return relay(reply, d.broker.call('GET', `/v1/bond?session_id=${encodeURIComponent(sid)}`));
+  });
+
   app.post<{ Body: { session_id?: unknown } }>('/api/acl-self-test', async (req, reply) => {
     const sid = sessionFor(d, req, reply, req.body?.session_id);
     if (!sid) return reply;

@@ -162,3 +162,77 @@ describe('simple gates', () => {
     expect(Object.hasOwn(GATES, 'constructor')).toBe(false);
   });
 });
+
+describe('GATE-L7 live bond sequence (per-session bond)', () => {
+  const SID_B = 'b2b2b2b2';
+  const esc = (key: string): Json => ({ decision_id: 'E1', class: 'bucket_object', verb: 'delete', decision: 'ESCALATE', rule_id: 'last-copy-block', quoted_call: { id: key } });
+  const denyWorker = (ids: string[] = []): Json => ({ decision_id: 'R1', class: 'instance', verb: 'create', decision: 'DENY', rule_id: 'bond-insufficient', vultr_ids: ids });
+  interface Over { escalate?: boolean; approvalStatus?: string; worker?: (sid: string) => Json[]; dollar?: Json[] }
+
+  function l7Fake(o: Over = {}): { f: Fake; posts: string[] } {
+    const posts: string[] = [];
+    const bonds: Record<string, Json> = {};
+    let sessions = 0;
+    const bondFor = (sid: string): Json => (bonds[sid] ??= { enabled: true, free: 0.05, held: 0, burned: 0 });
+    const http: GateEnv['http'] = async (path, method, body) => {
+      if (path === '/api/session') return { status: 200, json: { session_id: sessions++ === 0 ? SID : SID_B } };
+      if (path.startsWith('/api/bond')) return { status: 200, json: bondFor(new URL(path, 'http://x').searchParams.get('session_id') ?? '') };
+      if (path.startsWith('/api/approvals')) return { status: 200, json: [{ decision_id: 'E1', nonce: 'n1' }] };
+      if (path === '/api/approval/E1' && method === 'POST') {
+        posts.push(JSON.stringify(body));
+        if (o.approvalStatus === undefined || o.approvalStatus === 'DECIDED') bonds[SID] = { enabled: true, free: 0.005, held: 0, burned: 0.045 };
+        return { status: 200, json: { status: o.approvalStatus ?? 'DECIDED' } };
+      }
+      return { status: 404, json: {} };
+    };
+    const attack = (sid: string, text: string): Run => {
+      if (text.includes('vultr.bucket.put')) return run(o.escalate === false ? [] : [esc(/bond-scene\/[\w.-]+/.exec(text)?.[0] ?? '')]);
+      if (text.includes('plumbline-wk-bond-probe')) return run((o.worker ?? (() => [denyWorker()]))(sid));
+      return run(o.dollar ?? [{ decision_id: 'D1', class: 'instance', verb: 'create', decision: 'DENY', rule_id: 'ceiling-dollar-deny', vultr_ids: [] }]);
+    };
+    return { f: fake({ http, attack }), posts };
+  }
+  const checks = (f: Fake): Record<string, boolean> => f.written[0]?.checks ?? {};
+
+  it('passes when the slash is approved, A is refused with no instance and B is untouched, recording the decision ids', async () => {
+    const { f, posts } = l7Fake();
+    expect(await GATES.l7!(f.env)).toBe(true);
+    expect(Object.keys(checks(f)).sort()).toEqual(['bond_enabled_on_deployment', 'live_burned', 'live_next_provision_refused', 'live_other_session_unaffected', 'refuses_after_slash_unit_test']);
+    expect(f.written[0]?.data).toMatchObject({ escalate_decision_id: 'E1', refused_decision_id: 'R1', refused_vultr_ids: [], other_session_id: SID_B });
+    expect(JSON.parse(posts[0] as string)).toEqual({ session_id: SID, nonce: 'n1', approve: true });
+  });
+  it('fails live_burned when no ESCALATE was produced, and never posts an approval', async () => {
+    const { f, posts } = l7Fake({ escalate: false });
+    expect(await GATES.l7!(f.env)).toBe(false);
+    expect(checks(f).live_burned).toBe(false);
+    expect(posts).toEqual([]);
+  });
+  it('fails live_burned when the approval is not DECIDED', async () => {
+    const { f } = l7Fake({ approvalStatus: 'STALE' });
+    expect(await GATES.l7!(f.env)).toBe(false);
+    expect(checks(f).live_burned).toBe(false);
+  });
+  it('fails live_next_provision_refused when the worker is ALLOWed, or the refusal still lists a Vultr id', async () => {
+    const allowed = l7Fake({ worker: () => [{ class: 'instance', verb: 'create', decision: 'ALLOW', vultr_ids: ['i-1'] }] });
+    await GATES.l7!(allowed.f.env);
+    expect(checks(allowed.f).live_next_provision_refused).toBe(false);
+    const leaked = l7Fake({ worker: () => [denyWorker(['i-9'])] });
+    await GATES.l7!(leaked.f.env);
+    expect(checks(leaked.f).live_next_provision_refused).toBe(false);
+  });
+  it('fails live_other_session_unaffected when the second session is refused for the bond or does not hit the dollar ceiling', async () => {
+    const bondHit = l7Fake({ dollar: [denyWorker()] });
+    await GATES.l7!(bondHit.f.env);
+    expect(checks(bondHit.f).live_other_session_unaffected).toBe(false);
+    const silent = l7Fake({ dollar: [] });
+    await GATES.l7!(silent.f.env);
+    expect(checks(silent.f).live_other_session_unaffected).toBe(false);
+  });
+  it('with the bond disabled it runs no attack and fails every live check', async () => {
+    let fired = 0;
+    const f = fake({ http: async () => ({ status: 200, json: { enabled: false } }), attack: () => { fired += 1; return run(); } });
+    expect(await GATES.l7!(f.env)).toBe(false);
+    expect(fired).toBe(0);
+    expect(checks(f)).toMatchObject({ live_burned: false, live_next_provision_refused: false, live_other_session_unaffected: false });
+  });
+});

@@ -325,3 +325,24 @@ describe('PLAYGROUND-CAP the capacity answer reaches the page unchanged', () => 
     expect(js).not.toMatch(/innerHTML/);
   });
 });
+
+describe('BOND-PER-SESSION range-api', () => {
+  it('BOND-PER-SESSION GET /api/bond reads only the caller own session and ignores a client-named one', async () => {
+    const f = fakeBroker();
+    const { app } = await makeApi(f);
+    const mine = await openSession(app, '1.1.1.1');
+    const theirs = await openSession(app, '2.2.2.2');
+    await app.inject({ method: 'GET', url: `/api/bond?session_id=${theirs.sid}`, headers: mine.headers });
+    expect(f.calls.filter((c) => c.path.startsWith('/v1/bond')).map((c) => c.path)).toEqual([`/v1/bond?session_id=${mine.sid}`]);
+  });
+  it('BOND-PER-SESSION GET /api/bond without credentials asks the broker for the counts-only aggregate, with a wrong key it is refused', async () => {
+    const f = fakeBroker();
+    const { app } = await makeApi(f);
+    const mine = await openSession(app, '1.1.1.1');
+    const other = await openSession(app, '2.2.2.2');
+    expect((await app.inject({ method: 'GET', url: `/api/bond?session_id=${mine.sid}` })).statusCode).toBe(200);
+    expect(f.calls.filter((c) => c.path.startsWith('/v1/bond')).map((c) => c.path)).toEqual(['/v1/bond']);
+    const stolen = { 'x-plumbline-session-id': mine.sid, 'x-plumbline-session-key': other.key };
+    expect((await app.inject({ method: 'GET', url: '/api/bond', headers: stolen })).statusCode).toBe(403);
+  });
+});

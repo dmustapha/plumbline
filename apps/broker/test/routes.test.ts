@@ -62,3 +62,15 @@ describe('sandbox routes', () => {
     expect(mock.state.vpcs.map((v) => (v as unknown as { description: string }).description)).toEqual([s.playground.label]);
   });
 });
+
+describe('BOND-PER-SESSION /v1/bond', () => {
+  it('BOND-PER-SESSION a named session gets its own snapshot, no session gets counts only, a bad id is refused', async () => {
+    const app = await makeBroker({ versions: 1, config: { bondEnabled: true } });
+    const own = (await app.app.internal.inject({ method: 'GET', url: '/v1/bond?session_id=aaaaaaaa', headers: H })).json();
+    expect(own).toMatchObject({ enabled: true, session_id: 'aaaaaaaa', free: 0.05, held: 0, burned: 0, actions: [] });
+    const agg = (await app.app.internal.inject({ method: 'GET', url: '/v1/bond', headers: H })).json();
+    expect(agg).toEqual({ enabled: true, sessions: 1, held_actions: 0, burned_actions: 0 });
+    expect('free' in agg).toBe(false);
+    expect((await app.app.internal.inject({ method: 'GET', url: '/v1/bond?session_id=nope', headers: H })).statusCode).toBe(400);
+  });
+});

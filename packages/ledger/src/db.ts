@@ -72,6 +72,12 @@ CREATE TABLE IF NOT EXISTS bond_actions (
   amount REAL NOT NULL,
   state TEXT NOT NULL CHECK (state IN ('held','released','burned'))
 );
+CREATE TABLE IF NOT EXISTS bond_sessions (
+  session_id TEXT PRIMARY KEY,
+  free REAL NOT NULL,
+  held REAL NOT NULL,
+  burned REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS approvals (
   decision_id TEXT PRIMARY KEY,
   session_id TEXT NOT NULL,
@@ -91,6 +97,13 @@ function migrate(db: Db): void {
   for (const col of DECISION_COLUMNS_V2) {
     if (!have.has(col)) db.exec(`ALTER TABLE decisions ADD COLUMN ${col} TEXT`);
   }
+  migrateBondActions(db);
+}
+
+/** Per-session bond: an older bond_actions table gains session_id (old rows get 'legacy'; the old global `bond` table stays, unused). */
+function migrateBondActions(db: Db): void {
+  const cols = (db.prepare('PRAGMA table_info(bond_actions)').all() as { name: string }[]).map((c) => c.name);
+  if (!cols.includes('session_id')) db.exec("ALTER TABLE bond_actions ADD COLUMN session_id TEXT NOT NULL DEFAULT 'legacy'");
 }
 
 export function openDb(path: string): Db {

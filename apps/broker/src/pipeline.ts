@@ -392,7 +392,7 @@ export class Pipeline {
     const rec = this.#record({ ...d, decision: allow }, a.call, who, null, { approved_from: decisionId });
     const pub = this.#publicOf(allow, rec, null);
     const bonded = this.d.config.bondEnabled && a.call.class === 'bucket_object' && a.call.verb === 'delete';
-    if (bonded && !this.d.bond.hold(decisionId, this.d.config.bondBurnUsd)) {
+    if (bonded && !this.d.bond.hold(sid, decisionId, this.d.config.bondBurnUsd)) {
       return { status: 'DECIDED', decision: { ...pub, decision: 'DENY', rule_id: 'bond-insufficient', reason: 'bond could not be held' } };
     }
     const out = await this.#execute(allow, d.request, a.call, who, pub, rec.id);

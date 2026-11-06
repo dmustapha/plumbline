@@ -263,7 +263,7 @@ const pages = {
   },
   async bond() {
     const r = await api('/api/bond');
-    $('#bondout').textContent = r.ok ? (r.json.enabled ? `free ${r.json.free} | held ${r.json.held} | burned ${r.json.burned}` : 'bond rung not enabled on this deployment (its gate has not passed)') : 'unavailable';
+    $('#bondout').textContent = r.ok ? (r.json.enabled ? (r.json.free === undefined ? `no session yet: ${r.json.burned_actions} burn(s) across ${r.json.sessions} session(s); open the Range to get your own bond` : `your bond: free ${r.json.free} | held ${r.json.held} | burned ${r.json.burned}`) : 'bond rung not enabled on this deployment (its gate has not passed)') : 'unavailable';
   },
   async verify() {
     const draw = (r) => {

@@ -34,6 +34,6 @@ export function buildState(d: StateDeps, sessionId: string, bucket: { versions: 
     tier_available: d.tiers.availability(),
     object_versions: versions,
     restorable: versions === null ? null : versions >= 2,
-    bond: { enabled: d.config.bondEnabled, free_usd: d.bond.freeUsd() },
+    bond: { enabled: d.config.bondEnabled, free_usd: d.bond.freeUsd(sessionId) },
   };
 }

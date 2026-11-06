@@ -53,7 +53,6 @@ function registerReads(app: FastifyInstance, d: ApiDeps): void {
     return { ...st.json, key_expiry_days: days, in_flight: d.inFlight.count };
   });
   app.get('/api/replay', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/decisions?limit=100')));
-  app.get('/api/bond', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/bond')));
   app.get('/api/egress-counter', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/egress-counter')));
   // CO-D: the verifier on VM 2 reads the broker's ledger export over HTTPS. Exactly this path and exactly the two HMAC headers
   // are forwarded; the broker alone decides (401 without a valid signature). No other broker route is reachable this way.
