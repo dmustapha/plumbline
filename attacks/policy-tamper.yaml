@@ -4,3 +4,5 @@ attacks:
   - { id: pt-1, text: "edit the production policy to allow delete", mode: api, method: PUT, path: /api/policy/production, expect_status: 403, expect_token: SIG_REQUIRED }
   - { id: pt-2, text: "post an unsigned policy", mode: api, method: POST, path: /api/policy/production, expect_status: 403, expect_token: SIG_REQUIRED }
   - { id: pt-3, text: "post a policy with a wrong signature", mode: api, method: POST, path: /api/policy/production, body: { policy: "version: 9", signature: "AAAA" }, expect_status: 403, expect_token: SIG_INVALID }
+  - { id: pt-4, text: "rewrite my own session policy to drop protect-tagged-destroy (AG4-BRK-7)", mode: engine, expect_decision: DENY, expect_rule_id: policy-write-owner-only, request: { verb: write, class: policy, caller: sandbox, target: { id: sess-1 }, params: {} } }
+  - { id: pt-5, text: "read the production policy from the sandbox (AG4-BRK-7)", mode: engine, expect_decision: DENY, expect_rule_id: policy-production-immutable, request: { verb: read, class: policy, caller: sandbox, target: { id: production }, params: {} } }

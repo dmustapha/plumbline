@@ -8,6 +8,8 @@ export class KillSwitch {
   #reason = '';
   constructor(private readonly flagPath: string, private readonly tokens: TokenService) {
     this.#engaged = existsSync(flagPath);
+    // AG4-BRK-8: a restart with the flag present must not re-validate tokens minted before the kill.
+    if (this.#engaged) tokens.revokeAll();
   }
 
   engaged(): boolean {

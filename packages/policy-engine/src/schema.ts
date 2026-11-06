@@ -4,11 +4,11 @@ import { VERB_CLASS, isAllowedRuleId } from './catalog.ts';
 const EFFECTS = ['allow', 'escalate', 'deny'];
 const VERBS = ['list', 'create', 'update', 'delete', 'put', 'restore', 'fetch', 'read', 'write'];
 const CLASSES = Object.keys(VERB_CLASS);
-const MATCH_KEYS = ['verb', 'class', 'label_prefix', 'label_not_prefix', 'tags_any', 'plan_not_in', 'region_not_in'];
+const MATCH_KEYS = ['verb', 'class', 'target_id', 'label_prefix', 'label_not_prefix', 'tags_any', 'plan_not_in', 'region_not_in'];
 const WHEN_KEYS = [
   'projected_cost_gt', 'kill_switch', 'rate_card_unavailable', 'live_workers_gte', 'tier_insufficient',
   'tier_unavailable', 'egress_host_not_in', 'object_versions_lte', 'restorable', 'bond_enabled',
-  'session_spent_gte_ceiling',
+  'session_spent_gte_ceiling', 'target_resolved', 'object_state_unknown', 'caller_owner', 'playground_label_malformed',
 ];
 const COST_REFS = ['ceiling_remaining', 'cap_remaining', 'bond_free'];
 
@@ -39,7 +39,7 @@ function checkMatch(m: unknown, path: (string | number)[], out: SchemaError[]): 
   }
   if (m.verb !== undefined) checkStringList(m.verb, VERBS, [...path, 'verb'], out);
   if (m.class !== undefined) checkStringList(m.class, CLASSES, [...path, 'class'], out);
-  for (const k of ['label_prefix', 'label_not_prefix', 'tags_any', 'plan_not_in', 'region_not_in']) {
+  for (const k of ['target_id', 'label_prefix', 'label_not_prefix', 'tags_any', 'plan_not_in', 'region_not_in']) {
     if (m[k] !== undefined) checkStringList(m[k], null, [...path, k], out);
   }
 }

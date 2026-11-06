@@ -27,17 +27,23 @@ export interface SelfTestResult {
 export class TierKeys {
   readonly #http: Partial<Record<Tier, VultrHttp>> = {};
   readonly #down = new Set<Tier>();
+  #objstore: { healthy(): boolean } | null = null;
 
   constructor(keys: TierKeyConfig, gate: SpendGate, fetchImpl?: typeof fetch) {
     for (const tier of ['observer', 'deployer', 'network', 'registry'] as const) {
       const k = keys[tier];
-      if (k) this.#http[tier] = new VultrHttp({ apiKey: k, gate, fetchImpl });
+      if (k) this.#http[tier] = new VultrHttp({ apiKey: k, gate, fetchImpl, onFailure: (e) => this.noteFailure(tier, e) });
     }
   }
 
   availability(): Record<Tier, boolean> {
     const has = (t: Tier): boolean => this.#http[t] !== undefined && !this.#down.has(t);
-    return { observer: has('observer'), deployer: has('deployer'), network: has('network'), registry: has('registry'), objstore: true };
+    return { observer: has('observer'), deployer: has('deployer'), network: has('network'), registry: has('registry'), objstore: this.#objstore !== null && this.#objstore.healthy() };
+  }
+
+  /** AG4-ADP-7: objstore is available only while an S3 store with credentials exists and its last call succeeded. */
+  registerObjstore(store: { healthy(): boolean } | null): void {
+    this.#objstore = store;
   }
 
   http(tier: Tier): VultrHttp {
@@ -55,25 +61,51 @@ export class TierKeys {
     this.#down.clear();
   }
 
+  /**
+   * AG4-ADP-8: every key must be refused (403) for what its tier may not do. Probes carry an invalid payload so an
+   * over-scoped key answers 400/422 (permitted but malformed) and creates nothing; any non-403 on a forbidden call is a FAIL.
+   */
   async aclSelfTest(sessionId: string): Promise<SelfTestResult[]> {
     const out: SelfTestResult[] = [];
-    const observer = this.http('observer');
-    try {
-      await observer.request('POST', '/instances', {
-        session_id: sessionId, body: { region: 'ewr', plan: 'plumbline-selftest-invalid', os_id: 2136, label: 'plumbline-selftest' },
-      });
-      out.push({ call: 'POST /instances', tier: 'observer', status: 202, body: 'UNEXPECTED: accepted', ok: false });
-    } catch (e) {
-      const v = e as VultrError;
-      out.push({ call: 'POST /instances', tier: 'observer', status: v.status ?? 0, body: v.body ?? String(e), ok: v.status === 403 });
-    }
-    try {
-      await observer.request('GET', '/instances', { session_id: sessionId, query: { per_page: 1 } });
-      out.push({ call: 'GET /instances', tier: 'observer', status: 200, body: 'list ok', ok: true });
-    } catch (e) {
-      const v = e as VultrError;
-      out.push({ call: 'GET /instances', tier: 'observer', status: v.status ?? 0, body: v.body ?? String(e), ok: false });
+    for (const probe of ACL_PROBES) {
+      if (!this.availability()[probe.tier]) continue;
+      const http = this.http(probe.tier);
+      const call = `${probe.method} ${probe.path}`;
+      try {
+        await http.request(probe.method, probe.path, { session_id: sessionId, body: probe.body, query: probe.method === 'GET' ? { per_page: 1 } : undefined });
+        out.push({ call, tier: probe.tier, status: 200, body: probe.expect === 200 ? 'ok' : 'UNEXPECTED: accepted', ok: probe.expect === 200 });
+      } catch (e) {
+        const v = e as VultrError;
+        out.push({ call, tier: probe.tier, status: v.status ?? 0, body: v.body ?? String(e), ok: v.status === probe.expect });
+      }
     }
     return out;
   }
 }
+
+interface AclProbe {
+  tier: Tier;
+  method: 'GET' | 'POST';
+  path: string;
+  expect: 200 | 403;
+  body?: unknown;
+}
+
+const INVALID_INSTANCE = { region: 'ewr', plan: 'plumbline-selftest-invalid', os_id: 2136, label: 'plumbline-selftest' };
+const INVALID_FIREWALL = { description: '' };
+const INVALID_USER = { name: '' };
+
+const ACL_PROBES: AclProbe[] = [
+  { tier: 'observer', method: 'POST', path: '/instances', expect: 403, body: INVALID_INSTANCE },
+  { tier: 'observer', method: 'POST', path: '/firewalls', expect: 403, body: INVALID_FIREWALL },
+  { tier: 'observer', method: 'POST', path: '/users', expect: 403, body: INVALID_USER },
+  { tier: 'observer', method: 'GET', path: '/instances', expect: 200 },
+  { tier: 'deployer', method: 'POST', path: '/firewalls', expect: 403, body: INVALID_FIREWALL },
+  { tier: 'deployer', method: 'GET', path: '/users', expect: 403 },
+  { tier: 'deployer', method: 'POST', path: '/users', expect: 403, body: INVALID_USER },
+  { tier: 'network', method: 'POST', path: '/instances', expect: 403, body: INVALID_INSTANCE },
+  { tier: 'network', method: 'GET', path: '/users', expect: 403 },
+  { tier: 'registry', method: 'POST', path: '/instances', expect: 403, body: INVALID_INSTANCE },
+  { tier: 'registry', method: 'POST', path: '/firewalls', expect: 403, body: INVALID_FIREWALL },
+  { tier: 'registry', method: 'GET', path: '/users', expect: 403 },
+];

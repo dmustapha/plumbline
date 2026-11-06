@@ -13,7 +13,7 @@ export interface Fixture {
   expect_state?: string;
   expect_code?: string;
   state?: Partial<EngineState> & { tier_unavailable?: Tier };
-  request?: { verb: CallRequest['verb']; class: CallRequest['class']; target?: CallRequest['target']; params?: CallRequest['params'] };
+  request?: { verb: CallRequest['verb']; class: CallRequest['class']; target?: CallRequest['target']; params?: CallRequest['params']; caller?: CallRequest['caller'] };
   canned_code?: string;
   page?: string;
   path?: string;
@@ -65,7 +65,7 @@ export interface SuiteReport {
 export function runEngineSuite(fixtures: Fixture[], session: PolicyDoc, floor: PolicyDoc, now = 1_000_000): SuiteReport {
   const results: FixtureResult[] = fixtures.map((f) => {
     if (!f.request || (f.mode && f.mode !== 'engine')) return { id: f.id, group: f.group, verdict: 'deferred' };
-    const req: CallRequest = { request_id: f.id, task_id: 'suite', session_id: 'suite', verb: f.request.verb, class: f.request.class, target: f.request.target ?? {}, params: f.request.params ?? {} };
+    const req: CallRequest = { request_id: f.id, task_id: 'suite', session_id: 'suite', verb: f.request.verb, class: f.request.class, target: f.request.target ?? {}, params: f.request.params ?? {}, ...(f.request.caller ? { caller: f.request.caller } : {}) };
     const d = evaluate(req, session, floor, baselineState(now, f.state));
     const got = { decision: d.decision, rule_id: d.rule_id };
     if (d.decision === 'ALLOW' && f.expect_decision !== 'ALLOW') return { id: f.id, group: f.group, verdict: 'breach', got };

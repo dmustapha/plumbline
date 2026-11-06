@@ -3,6 +3,12 @@ export interface MockOptions {
   viewKeys?: string[];
   rateLimitAfter?: number;
   planHourly?: Record<string, number>;
+  /** keys that get 401 on every call (IP lock) */
+  unauthorizedKeys?: string[];
+  /** per-key allow predicate for 'METHOD /path'; unlisted keys may do everything */
+  acl?: Record<string, (method: string, path: string) => boolean>;
+  /** shape of the POST /users/:id/apikeys answer */
+  apiKeyShape?: 'top-level' | 'nested';
 }
 
 interface Item { id: string; [k: string]: unknown }
@@ -23,6 +29,9 @@ export function createMockVultr(opts: MockOptions = {}) {
     if (opts.rateLimitAfter !== undefined && state.calls.length > opts.rateLimitAfter && state.calls.length <= opts.rateLimitAfter + 2) {
       return new Response('{"error":"rate"}', { status: 429, headers: { 'retry-after': '0' } });
     }
+    if ((opts.unauthorizedKeys ?? []).includes(key)) return json(401, { error: 'Unauthorized IP address' });
+    const allowed = opts.acl?.[key];
+    if (allowed && !allowed(method, path)) return json(403, { error: 'Permission denied. You do not have the required IAM permissions for this action.' });
     const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
     if (path === '/plans') {
       const hourly = opts.planHourly ?? { 'vc2-1c-1gb': 0.007, 'vc2-2c-4gb': 0.027 };
@@ -39,6 +48,22 @@ export function createMockVultr(opts: MockOptions = {}) {
       '/registries': { list: state.registries, field: 'registries', one: 'registry' },
       '/registry': { list: state.registries, field: 'registries', one: 'registry' },
     };
+    if (method === 'POST' && /^\/users\/[^/]+\/apikeys$/.test(path)) {
+      state.seq += 1;
+      const k = { api_key: `REAL-KEY-${state.seq}`, date_expire: String(body.date_expire ?? '') };
+      return json(201, opts.apiKeyShape === 'nested' ? { api_key: k } : k);
+    }
+    if (method === 'POST' && /^\/firewalls\/[^/]+\/rules$/.test(path)) return json(201, { firewall_rule: { id: 1, ...body } });
+    if (method === 'POST' && path === '/users') {
+      state.seq += 1;
+      if (!body.name) return json(400, { error: 'name required' });
+      return json(201, { user: { id: `user-${state.seq}`, ...body } });
+    }
+    if (method === 'POST' && /^\/users\/[^/]+\/ip-whitelist$/.test(path)) return json(204, null);
+    if (method === 'DELETE' && /^\/(users|object-storage)\/[^/]+$/.test(path)) return json(204, null);
+    if (method === 'GET' && path === '/users') return json(200, { users: [] });
+    if (method === 'POST' && path === '/firewalls' && !body.description) return json(400, { error: 'description required' });
+    if (method === 'POST' && path === '/instances' && String(body.plan).includes('invalid')) return json(400, { error: 'invalid plan' });
     const [, root, id] = path.match(/^(\/[a-z]+)(?:\/([^/]+))?$/) ?? [];
     const col = root ? collections[root] : undefined;
     if (!col || !root) return json(404, { error: 'not found' });

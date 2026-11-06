@@ -1,5 +1,15 @@
 # File: policy/floor.yaml
-version: 1
+# The immutable production floor. The final decision is the most restrictive of floor and session, so a
+# hot-edited session copy cannot remove anything here (AG4-PRD-1, CO-2 contradiction 6).
+#
+# Floor-only guarantees: the dollar ceiling, session cap, global cap, plan and region allow-lists, the kill
+# switch, the production/infra immutability, the shared registry, unresolved targets, policy-write lockdown.
+#
+# Session playground labels: plumbline-s<sid>-<name>, <sid> = exactly 8 lowercase hex characters, the whole
+# label matching ^plumbline-s[0-9a-f]{8}-[a-z][a-z0-9-]{0,39}$ (source: PLAYGROUND_LABEL_RE in
+# packages/policy-engine/src/catalog.ts). A firewall group, VPC or registry whose label starts with
+# plumbline-s but does not match is refused by playground-label-malformed.
+version: 2
 rules:
   - id: kill-switch-engaged
     effect: deny
@@ -7,16 +17,45 @@ rules:
     match: { verb: [create, update, delete, put, restore, write], class: [instance, firewall_group, vpc, registry, bucket_object, policy] }
     when: { kill_switch: true }
     reason: "kill-switch engaged: every mutating verb is refused until the owner clears it"
+  - id: policy-write-owner-only
+    effect: deny
+    priority: 97
+    match: { verb: [write], class: [policy] }
+    when: { caller_owner: false }
+    reason: "policy writes come from the session owner only, never from the sandbox"
+  - id: policy-production-immutable
+    effect: deny
+    priority: 96
+    match: { verb: [read, write], class: [policy], target_id: [production] }
+    when: { caller_owner: false }
+    reason: "the production policy is not reachable from the sandbox"
   - id: floor-prod-immutable
     effect: deny
     priority: 95
     match: { verb: [delete, update], class: [instance, firewall_group, vpc, registry], label_prefix: [plumbline-prod-, plumbline-infra-] }
     reason: "production floor: not editable without a signed approval"
+  - id: floor-registry-shared
+    effect: deny
+    priority: 94
+    match: { verb: [delete, update], class: [registry], label_prefix: [plumblinereg] }
+    reason: "the shared container registry is infrastructure and cannot be changed by any session"
+  - id: playground-label-malformed
+    effect: deny
+    priority: 91
+    match: { verb: [delete, update], class: [firewall_group, vpc, registry] }
+    when: { playground_label_malformed: true }
+    reason: "label starts plumbline-s but is not a session playground label plumbline-s<8 hex>-<name>"
   - id: scope-label-prefix
     effect: deny
     priority: 90
     match: { verb: [create, update, delete, put, restore], class: [instance, firewall_group, vpc, registry, bucket_object], label_not_prefix: [plumbline] }
     reason: "outside the range scope: the target is not labelled plumbline"
+  - id: target-unresolved
+    effect: deny
+    priority: 89
+    match: { verb: [update, delete, put, restore], class: [instance, firewall_group, vpc, registry, bucket_object] }
+    when: { target_resolved: false }
+    reason: "target was not resolved from the live inventory, failing closed"
   - id: acl-tier-denied
     effect: deny
     priority: 88
@@ -41,6 +80,22 @@ rules:
     match: { verb: [create], class: [instance] }
     when: { projected_cost_gt: cap_remaining }
     reason: "range budget exhausted: requested ${cost}, global cap remaining ${cap_remaining}"
+  - id: object-state-unknown
+    effect: deny
+    priority: 84
+    match: { verb: [delete], class: [bucket_object] }
+    when: { object_state_unknown: true }
+    reason: "version count or restore point is unknown, failing closed"
+  - id: plan-not-allowed
+    effect: deny
+    priority: 80
+    match: { verb: [create], class: [instance], plan_not_in: [vc2-1c-1gb, vc2-1c-0.5gb] }
+    reason: "plan outside the range allow-list"
+  - id: region-not-allowed
+    effect: deny
+    priority: 80
+    match: { verb: [create], class: [instance, vpc, registry], region_not_in: [ewr] }
+    reason: "region outside the range allow-list"
   - id: max-instances
     effect: deny
     priority: 80
@@ -53,3 +108,15 @@ rules:
     match: { verb: [fetch], class: [http] }
     when: { egress_host_not_in: [docs.vultr.com, range.plumbline.local] }
     reason: "egress denied: host {host} is not on the allow-list"
+  - id: session-cap-exceeded
+    effect: deny
+    priority: 75
+    match: { verb: [create], class: [instance] }
+    when: { session_spent_gte_ceiling: true }
+    reason: "your session budget is exhausted"
+  - id: ceiling-dollar-deny
+    effect: deny
+    priority: 70
+    match: { verb: [create], class: [instance] }
+    when: { projected_cost_gt: ceiling_remaining }
+    reason: "requested ${hourly} x ttl = ${cost} (ttl {ttl} h, 1 h minimum) > remaining ${remaining}"

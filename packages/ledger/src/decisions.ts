@@ -1,6 +1,6 @@
 // File: packages/ledger/src/decisions.ts
 import { createHash, randomBytes } from 'node:crypto';
-import { isGenuineDecision, type Decision } from '@plumbline/policy-engine';
+import { isGenuineDecision, requestHash, toLedgerRequestFields, type CallRequest, type Decision } from '@plumbline/policy-engine';
 import type { Db } from './db.ts';
 
 export interface DecisionMeta {
@@ -9,6 +9,8 @@ export interface DecisionMeta {
   model: string | null;
   call: unknown;
   vultr_ids: string[];
+  /** CO-2 E-1: the exact normalized request the engine decided. Its hash must equal the decision's request_hash. */
+  request: CallRequest;
 }
 
 export interface DecisionRow {
@@ -25,16 +27,24 @@ export interface DecisionRow {
   model: string | null;
   call_hash: string;
   detail_json: string;
+  target_id: string | null;
+  request_hash: string | null;
+  plan: string | null;
+  region: string | null;
+  request_json: string | null;
 }
 
 export function recordDecision(db: Db, d: Decision, meta: DecisionMeta, now: number = Date.now()): { id: string; ts: number } {
   if (!isGenuineDecision(d)) throw new Error('NOT_AN_ENGINE_DECISION');
+  const req = meta.request;
+  if (!req || d.request_id !== req.request_id || d.request_hash !== requestHash(req)) throw new Error('DECISION_REQUEST_MISMATCH');
   const id = `d-${now.toString(36)}-${randomBytes(4).toString('hex')}`;
   const callHash = createHash('sha256').update(JSON.stringify(meta.call ?? null)).digest('hex');
   const detail = JSON.stringify({ reason: d.reason, layers: d.layers, policy_version: d.policy_version, projected_cost_usd: d.projected_cost_usd, call: meta.call, vultr_ids: meta.vultr_ids });
+  const f = toLedgerRequestFields(req);
   db.prepare(
-    'INSERT INTO decisions(id,ts,request_id,session_id,task_id,decision,rule_id,layer,verb,class,model,call_hash,detail_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
-  ).run(id, now, d.request_id, meta.session_id, meta.task_id, d.decision, d.rule_id, d.layer, d.verb, d.class, meta.model, callHash, detail);
+    'INSERT INTO decisions(id,ts,request_id,session_id,task_id,decision,rule_id,layer,verb,class,model,call_hash,detail_json,target_id,request_hash,plan,region,request_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+  ).run(id, now, d.request_id, meta.session_id, meta.task_id, d.decision, d.rule_id, d.layer, d.verb, d.class, meta.model, callHash, detail, d.target_id, d.request_hash, f.plan ?? null, f.region ?? null, JSON.stringify(f.request));
   return { id, ts: now };
 }
 
@@ -72,13 +82,4 @@ export function proofCounts(db: Db): ProofCounts {
     "SELECT COUNT(*) AS attacks, SUM(decision='ALLOW') AS allow, SUM(decision='ESCALATE') AS escalate, SUM(decision='DENY') AS deny, COUNT(DISTINCT task_id) AS tasks, MIN(ts) AS first_ts, MAX(ts) AS last_ts FROM decisions WHERE session_id != 'system'",
   ).get() as { attacks: number; allow: number | null; escalate: number | null; deny: number | null; tasks: number; first_ts: number | null; last_ts: number | null };
   return { attacks: row.attacks, allow: row.allow ?? 0, escalate: row.escalate ?? 0, deny: row.deny ?? 0, tasks: row.tasks, first_ts: row.first_ts, last_ts: row.last_ts };
-}
-
-export function exportLedger(db: Db, now: number = Date.now()) {
-  return {
-    generated_at: now,
-    resources: db.prepare('SELECT id,class,label,plan,created_at_ms,destroyed_at_ms,allow_decision_id,protected FROM resources').all(),
-    decisions: db.prepare('SELECT id,ts,decision,rule_id,layer,session_id,verb,class FROM decisions ORDER BY ts').all(),
-    counts: proofCounts(db),
-  };
 }

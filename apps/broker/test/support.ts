@@ -41,13 +41,13 @@ export function fakeS3(versions = 2) {
   };
 }
 
-export async function makeBroker(opts: { versions?: number; viewKeys?: string[]; config?: Partial<Config> } = {}) {
+export async function makeBroker(opts: { versions?: number; viewKeys?: string[]; config?: Partial<Config>; clock?: () => number; floorTransform?: (t: string) => string } = {}) {
   const mock = createMockVultr({ viewKeys: opts.viewKeys });
   const s3 = fakeS3(opts.versions ?? 2);
   const dir = mkdtempSync(join(tmpdir(), 'plb-broker-'));
   const cfg = { ...baseConfig, dataDir: dir, ...opts.config };
-  const policies = new PolicyStore(dir, readFileSync(cfg.floorPath, 'utf8'), undefined, secrets.policyPubkeyB64, false, readFileSync(cfg.sessionDefaultPath, 'utf8'));
-  const app = await assemble(cfg, secrets, { fetchImpl: mock.fetch, s3: s3.port as never, db: openDb(':memory:'), policies });
+  const policies = new PolicyStore(dir, (opts.floorTransform ?? ((t: string) => t))(readFileSync(cfg.floorPath, 'utf8')), undefined, secrets.policyPubkeyB64, false, readFileSync(cfg.sessionDefaultPath, 'utf8'));
+  const app = await assemble(cfg, secrets, { fetchImpl: mock.fetch, s3: s3.port as never, db: openDb(':memory:'), policies, clock: opts.clock });
   await app.rate.refresh();
   mock.state.calls.length = 0;
   return { app, mock, s3 };

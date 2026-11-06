@@ -1,0 +1,11 @@
+2026-11-06T11:54:57Z create user -> id_present=yes err=none
+2026-11-06T11:54:57Z U-10 api_key object fields in create response: 
+2026-11-06T11:54:57Z U-10 date_expire in create response: absent
+2026-11-06T11:54:57Z ip-whitelist add -> 204
+2026-11-06T11:55:02Z U-6 pending-charges with subscriptions_view+billing key -> HTTP 200 ["pending_charges"]
+2026-11-06T11:55:03Z key GET /instances -> 200
+2026-11-06T11:55:04Z U-11 DELETE ip-whitelist/105.127.6.61/32 -> 404 {"error":"Not found.","status":404}
+2026-11-06T11:55:04Z U-11 DELETE ip-whitelist/105.127.6.61 -> 404 {"error":"Not found.","status":404}
+2026-11-06T11:55:05Z U-11 list after: {"ip_whitelist":[{"subnet":"105.127.6.61","subnet_size":32,"date_added":"2026-11-06T11:54:58+00:00","ip_type":"v4"}],"meta":{"total":1}}
+2026-11-06T11:55:07Z after remove, key GET /instances -> 200
+2026-11-06T11:55:08Z delete user -> 204

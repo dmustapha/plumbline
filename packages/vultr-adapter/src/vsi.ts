@@ -69,33 +69,41 @@ export class VsiClient {
     const charge = this.#gate.charge('vsi', estimate, { session_id: sessionId });
     if (!charge.ok) throw new Error(`SPEND_REFUSED: ${charge.reason}`);
     const t0 = Date.now();
-    const res = await this.#fetch(`${VSI_BASE}/chat/completions`, {
-      method: 'POST',
-      headers: { authorization: `Bearer ${this.#key}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ ...req, max_tokens: maxTokens, temperature: req.temperature ?? 0.2 }),
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    if (!res.ok) {
-      charge.receipt.settle(0);
-      throw new Error(`VSI_${res.status}`);
+    let settleWith = 0;
+    try {
+      const res = await this.#fetch(`${VSI_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${this.#key}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ ...req, max_tokens: maxTokens, temperature: req.temperature ?? 0.2 }),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (!res.ok) throw new Error(`VSI_${res.status}`);
+      const body = (await res.json()) as {
+        model?: string;
+        choices?: { finish_reason: string; message: ChatResult['message'] }[];
+        usage?: ChatResult['usage'];
+      };
+      settleWith = estimate; // a response arrived: inference may have been billed even if the body is unusable
+      const choice = body.choices?.[0];
+      if (!choice) throw new Error('VSI_EMPTY');
+      if (!body.usage) throw new Error('VSI_NO_USAGE');
+      const usd = priceUsd(req.model, body.usage.prompt_tokens, body.usage.completion_tokens);
+      settleWith = usd;
+      return { model: body.model ?? req.model, message: choice.message, finish_reason: choice.finish_reason, usage: body.usage, usd, latency_ms: Date.now() - t0 };
+    } finally {
+      charge.receipt.settle(settleWith);
     }
-    const body = (await res.json()) as {
-      model?: string;
-      choices: { finish_reason: string; message: ChatResult['message'] }[];
-      usage: ChatResult['usage'];
-    };
-    const choice = body.choices[0];
-    if (!choice) throw new Error('VSI_EMPTY');
-    const usd = priceUsd(req.model, body.usage.prompt_tokens, body.usage.completion_tokens);
-    charge.receipt.settle(usd);
-    return { model: body.model ?? req.model, message: choice.message, finish_reason: choice.finish_reason, usage: body.usage, usd, latency_ms: Date.now() - t0 };
   }
 
   async usage(sessionId: string): Promise<unknown> {
     const c = this.#gate.charge('vsi', 0, { session_id: sessionId });
     if (!c.ok) throw new Error(`SPEND_REFUSED: ${c.reason}`);
-    const res = await this.#fetch(`${VSI_BASE}/usage`, { headers: { authorization: `Bearer ${this.#key}` }, signal: AbortSignal.timeout(10000) });
-    if (!res.ok) throw new Error(`VSI_${res.status}`);
-    return res.json();
+    try {
+      const res = await this.#fetch(`${VSI_BASE}/usage`, { headers: { authorization: `Bearer ${this.#key}` }, signal: AbortSignal.timeout(10000) });
+      if (!res.ok) throw new Error(`VSI_${res.status}`);
+      return await res.json();
+    } finally {
+      c.receipt.settle(0);
+    }
   }
 }

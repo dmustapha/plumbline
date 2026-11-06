@@ -11,7 +11,15 @@ export interface Target {
   id?: string;
   label?: string;
   tags?: string[];
+  /**
+   * AG4-ENG-2: true only when label and tags were read from the live inventory by the broker for this id.
+   * Anything else (absent included) is unresolved and fails closed for update/delete/put/restore.
+   */
+  resolved?: boolean;
 }
+
+/** Who issued the call. The broker sets it from the authenticated route, never from the body. Absent means 'sandbox'. */
+export type Caller = 'sandbox' | 'owner';
 
 export interface Params {
   plan?: string;
@@ -35,11 +43,23 @@ export interface CallRequest {
   class: ResourceClass;
   target: Target;
   params: Params;
+  caller?: Caller;
+}
+
+/**
+ * E-1: the fields a ledger row carries so the verifier can re-run `evaluate` later.
+ * `evaluate` is a pure function of (request, state, session policy, floor policy): no I/O, no clock besides state.now_ms.
+ */
+export interface LedgerRequestFields {
+  plan?: string;
+  region?: string;
+  request: { verb: Verb; class: ResourceClass; target: Target; params: Params };
 }
 
 export interface RuleMatch {
   verb?: Verb[];
   class?: ResourceClass[];
+  target_id?: string[];
   label_prefix?: string[];
   label_not_prefix?: string[];
   tags_any?: string[];
@@ -61,6 +81,10 @@ export interface RuleWhen {
   restorable?: boolean;
   bond_enabled?: boolean;
   session_spent_gte_ceiling?: boolean;
+  target_resolved?: boolean;
+  object_state_unknown?: boolean;
+  caller_owner?: boolean;
+  playground_label_malformed?: boolean;
 }
 
 export interface Rule {
@@ -120,6 +144,9 @@ interface DecisionBase {
   policy_version: string;
   layers: LayerResult[];
   projected_cost_usd: number;
+  /** AG4-ENG-6: binds the decision to one call. See requestHash. */
+  target_id: string | null;
+  request_hash: string;
 }
 
 export interface DenyDecision extends DecisionBase {

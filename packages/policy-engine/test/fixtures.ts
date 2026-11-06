@@ -42,6 +42,14 @@ export function req(over: Partial<CallRequest>): CallRequest {
   return { request_id: `r${n}`, task_id: 't1', session_id: 's1', verb: 'list', class: 'instance', target: {}, params: {}, ...over };
 }
 
-export const prodDb = { id: 'i-prod', label: 'plumbline-prod-db', tags: ['protected'] };
-export const worker = { id: 'i-wk1', label: 'plumbline-wk-aaaa1111', tags: ['plumbline'] };
-export const vault = { id: 'fw-s1', label: 'plumbline-s1-vault', tags: ['protected'] };
+export const prodDb = { id: 'i-prod', label: 'plumbline-prod-db', tags: ['protected'], resolved: true };
+export const worker = { id: 'i-wk1', label: 'plumbline-wk-aaaa1111', tags: ['plumbline'], resolved: true };
+export const vault = { id: 'fw-s1', label: 'plumbline-sa1b2c3d4-vault', tags: ['protected'], resolved: true };
+
+/** AG4-ENG-7: a session layer that allows everything, so any DENY seen must come from the floor alone. */
+export const allowAllSession: PolicyDoc = {
+  version: 1, layer: 'session', hash: 'allow-all',
+  rules: [{ id: 'custom-allow-all', effect: 'allow', priority: 1, match: {}, reason: 'weakened session' }],
+};
+/** An empty session layer: nothing allows anything, so only the floor's own denies are being tested via allowAllSession. */
+export const emptySession: PolicyDoc = { version: 1, layer: 'session', hash: 'empty', rules: [] };

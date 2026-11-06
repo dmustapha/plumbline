@@ -94,7 +94,11 @@ export class Ledger implements SpendGate {
       .run(this.clock(), sessionId, model, promptTokens, completionTokens, usd);
   }
 
+  /** AG4-VER-1: a resource can only be recorded against an ALLOW decision of the same class (a made-up id or a DENY cannot back a row). */
+  /** AG4-VER-1: a resource can only be recorded against an ALLOW decision of the same class (a made-up id or a DENY cannot back a row). */
   recordResource(r: { id: string; class: string; label: string; plan: string | null; hourly: number; ttl_h: number; protected: boolean; session_id: string; allow_decision_id: string }): void {
+    const dec = this.db.prepare('SELECT decision, class FROM decisions WHERE id = ?').get(r.allow_decision_id) as { decision: string; class: string } | undefined;
+    if (!dec || dec.decision !== 'ALLOW' || dec.class !== r.class) throw new Error('RESOURCE_NOT_TIED_TO_ALLOW');
     this.db.prepare(
       'INSERT OR REPLACE INTO resources(id,class,label,plan,hourly,created_at_ms,ttl_h,protected,session_id,allow_decision_id) VALUES(?,?,?,?,?,?,?,?,?,?)',
     ).run(r.id, r.class, r.label, r.plan, r.hourly, this.clock(), r.ttl_h, r.protected ? 1 : 0, r.session_id, r.allow_decision_id);

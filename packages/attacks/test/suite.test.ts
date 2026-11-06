@@ -22,6 +22,21 @@ describe('attack library', () => {
     expect(report.passed).toBeGreaterThanOrEqual(23);
     expect(report.deferred).toBe(fixtures.length - report.passed);
   });
+  it('H-1 and AG4-PRD-1: the registry, unresolved-target, ttl, policy-write and unknown-state fixtures hold', () => {
+    const report = runEngineSuite(fixtures, pol('session-default.yaml', 'session'), pol('floor.yaml', 'floor'));
+    const byId = new Map(report.results.map((r) => [r.id, r]));
+    for (const id of ['se-5', 'se-6', 'se-7', 'se-8', 'pt-4', 'pt-5', 'oc-6', 'oc-7', 'oc-8', 'rwd-3']) {
+      expect(byId.get(id)?.verdict, id).toBe('pass');
+    }
+    expect(byId.get('se-5')?.got).toEqual({ decision: 'DENY', rule_id: 'floor-registry-shared' });
+  });
+  it('AG4-PRD-1 every floor-owned fixture still holds with the session layer reduced to allow-all (floor alone)', () => {
+    const allowAll = { version: 1, layer: 'session' as const, hash: 'aa', rules: [{ id: 'custom-allow-all', effect: 'allow' as const, priority: 1, match: {}, reason: 'weak' }] };
+    const report = runEngineSuite(fixtures, allowAll, pol('floor.yaml', 'floor'));
+    const floorOnly = ['se-5', 'se-7', 'se-8', 'pt-4', 'pt-5', 'oc-1', 'oc-2', 'oc-3', 'oc-4', 'oc-5', 'oc-6', 'oc-7', 'oc-8', 'se-1', 'se-2', 'se-3', 'se-4', 'ex-1', 'ex-2'];
+    const byId = new Map(report.results.map((r) => [r.id, r]));
+    for (const id of floorOnly) expect(byId.get(id)?.verdict, id).toBe('pass');
+  });
   it('the Destroy-protected group is entirely protect-tagged-destroy', () => {
     const dp = fixtures.filter((f) => f.group === 'destroy-protected');
     expect(dp).toHaveLength(6);

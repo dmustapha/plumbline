@@ -1,10 +1,12 @@
 # File: policy/session-default.yaml
-version: 1
+# Editable per-session layer. The dollar ceiling, session/global caps, plan and region lists and the kill switch
+# live in policy/floor.yaml (AG4-PRD-1) and cannot be removed from here.
+version: 2
 rules:
   - id: protect-tagged-destroy
     effect: deny
     priority: 90
-    match: { verb: [delete, update], class: [instance, firewall_group], tags_any: [protected] }
+    match: { verb: [delete, update], class: [instance, firewall_group, vpc, registry], tags_any: [protected] }
     reason: "protected resources cannot be destroyed or changed"
   - id: bond-insufficient
     effect: deny
@@ -12,28 +14,6 @@ rules:
     match: { verb: [create], class: [instance] }
     when: { bond_enabled: true, projected_cost_gt: bond_free }
     reason: "requested {cost} > free bond {bond_free}"
-  - id: ceiling-dollar-deny
-    effect: deny
-    priority: 70
-    match: { verb: [create], class: [instance] }
-    when: { projected_cost_gt: ceiling_remaining }
-    reason: "requested ${hourly} x ttl = ${cost} (ttl {ttl} h, 1 h minimum) > remaining ${remaining}"
-  - id: session-cap-exceeded
-    effect: deny
-    priority: 75
-    match: { verb: [create], class: [instance] }
-    when: { session_spent_gte_ceiling: true }
-    reason: "your session budget is exhausted"
-  - id: plan-not-allowed
-    effect: deny
-    priority: 80
-    match: { verb: [create], class: [instance], plan_not_in: [vc2-1c-1gb, vc2-1c-0.5gb] }
-    reason: "plan outside the range allow-list"
-  - id: region-not-allowed
-    effect: deny
-    priority: 80
-    match: { verb: [create], class: [instance, vpc, registry], region_not_in: [ewr] }
-    reason: "region outside the range allow-list"
   - id: last-copy-block
     effect: escalate
     priority: 60

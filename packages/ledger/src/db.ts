@@ -17,7 +17,12 @@ CREATE TABLE IF NOT EXISTS decisions (
   class TEXT NOT NULL,
   model TEXT,
   call_hash TEXT NOT NULL,
-  detail_json TEXT NOT NULL
+  detail_json TEXT NOT NULL,
+  target_id TEXT,
+  request_hash TEXT,
+  plan TEXT,
+  region TEXT,
+  request_json TEXT
 );
 CREATE TRIGGER IF NOT EXISTS decisions_no_update BEFORE UPDATE ON decisions
   BEGIN SELECT RAISE(ABORT, 'decisions are append-only'); END;
@@ -78,10 +83,21 @@ CREATE TABLE IF NOT EXISTS approvals (
 );
 `;
 
+/** CO-2 E-1: columns added after the first schema. A database file from before them gains the columns (nullable); no rows are written. */
+const DECISION_COLUMNS_V2 = ['target_id', 'request_hash', 'plan', 'region', 'request_json'] as const;
+
+function migrate(db: Db): void {
+  const have = new Set((db.prepare('PRAGMA table_info(decisions)').all() as { name: string }[]).map((c) => c.name));
+  for (const col of DECISION_COLUMNS_V2) {
+    if (!have.has(col)) db.exec(`ALTER TABLE decisions ADD COLUMN ${col} TEXT`);
+  }
+}
+
 export function openDb(path: string): Db {
   const db = new Database(path);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }

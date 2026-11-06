@@ -26,6 +26,8 @@ export const RULE_IDS = [
   'allow-list', 'allow-worker-create', 'allow-worker-delete', 'allow-breadth-create',
   'allow-breadth-delete', 'allow-bucket-ops', 'allow-fetch', 'allow-policy-own',
   'allow-ledger-read', 'allow-instance-update',
+  'policy-write-owner-only', 'policy-production-immutable', 'floor-registry-shared', 'target-unresolved',
+  'playground-label-malformed', 'object-state-unknown', 'ttl-invalid', 'args-invalid',
 ] as const;
 
 export function isAllowedRuleId(id: string): boolean {
@@ -42,3 +44,12 @@ export function tierFor(verb: Verb, cls: ResourceClass): Tier | null {
   if (cls === 'firewall_group') return 'network';
   return 'objstore';
 }
+
+/**
+ * Session playground labels look like plumbline-s<sid>-<name>, where <sid> is exactly 8 lowercase hex characters.
+ * Anything that starts with 'plumbline-s' but does not match is NOT a playground resource (plumbline-shared,
+ * plumbline-ssh-infra, plumbline-sandbox-x) and the floor refuses to update or delete it (playground-label-malformed).
+ * Documented in policy/floor.yaml; the single source of the regex is here.
+ */
+export const PLAYGROUND_LABEL_PREFIX = 'plumbline-s';
+export const PLAYGROUND_LABEL_RE = /^plumbline-s[0-9a-f]{8}-[a-z][a-z0-9-]{0,39}$/;

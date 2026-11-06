@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import Fastify from 'fastify';
 import { Bond, Ledger, openDb, type Db } from '@plumbline/ledger';
 import { RateCardCache, S3Store, TierKeys, VsiClient, VultrHttp } from '@plumbline/vultr-adapter';
-import { Approvals } from './approvals.ts';
+import { ApprovalAuthority, Approvals } from './approvals.ts';
 import { loadConfig, type Config, type Secrets } from './config.ts';
 import { Egress } from './egress.ts';
 import { KillSwitch } from './killswitch.ts';
@@ -36,13 +36,17 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
   const kill = new KillSwitch(join(config.dataDir, 'killswitch'), tokens);
   const tiers = new TierKeys(secrets.vultr, ledger, inject.fetchImpl);
   const rate = new RateCardCache(new VultrHttp({ apiKey: null, gate: ledger, fetchImpl: inject.fetchImpl }), clock);
-  const s3: S3Port = inject.s3 ?? new S3Store({ host: config.s3Host, accessKey: secrets.s3.accessKey, secretKey: secrets.s3.secretKey, bucket: config.bucket }, ledger);
+  const realS3 = inject.s3 ? null : new S3Store({ host: config.s3Host, accessKey: secrets.s3.accessKey, secretKey: secrets.s3.secretKey, bucket: config.bucket }, ledger);
+  const s3: S3Port = inject.s3 ?? (realS3 as S3Store);
+  // AG4-ADP-7: object storage counts as available only while a real store is healthy (the injected fake is test-only).
+  tiers.registerObjstore(realS3 ?? { healthy: () => true });
   const policies = inject.policies ?? PolicyStore.fromFiles(config.dataDir, config.floorPath, config.floorSigPath, config.sessionDefaultPath, secrets.policyPubkeyB64, config.requireFloorSig);
   const sessions = new SessionRegistry(clock);
   const approvals = new Approvals(db);
+  const authority = new ApprovalAuthority();
   const egress = new Egress(config.rangeApiUrl, inject.fetchImpl);
   const lease = new LeaseEmitter(config.verifierUrl, secrets.leaseSecret, config.leaseTtlS, inject.fetchImpl, clock);
-  const pipeline = new Pipeline({ config, db, ledger, bond, tiers, rate, s3, policies, sessions, kill, approvals, egress, clock });
+  const pipeline = new Pipeline({ config, db, ledger, bond, tiers, rate, s3, policies, sessions, kill, approvals, authority, egress, clock });
   const live = new LiveList(tiers, s3, clock);
   const llm = new LlmProxy(new VsiClient(secrets.inferenceKey, ledger, inject.fetchImpl), ledger);
   const taskModels = new Map<string, string>();
@@ -62,16 +66,16 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
   const reap = async (): Promise<void> => {
     const now = clock();
     const due = db.prepare("SELECT id, class, session_id FROM resources WHERE destroyed_at_ms IS NULL AND class='instance' AND created_at_ms + ttl_h * 3600000 < ?").all(now) as { id: string; class: 'instance'; session_id: string }[];
-    for (const r of due) await pipeline.runSystem(r.session_id, { verb: 'delete', class: 'instance', id: r.id, params: {}, extra: {} });
+    for (const r of due) await pipeline.cleanup(r.session_id, 'instance', r.id);
     for (const s of sessions.expired(config.sessionIdleMs)) {
-      if (s.playground) await pipeline.runSystem(s.id, { verb: 'delete', class: 'firewall_group', id: s.playground.id, params: {}, extra: {} });
+      if (s.playground) await pipeline.cleanup(s.id, 'firewall_group', s.playground.id);
       policies.reset(s.id);
       sessions.drop(s.id);
     }
   };
 
   return {
-    internal, sandbox, ledger, db, pipeline, tokens, kill, lease, policies, sessions, rate, tiers,
+    internal, sandbox, ledger, db, pipeline, reap, tokens, kill, lease, policies, sessions, rate, tiers,
     async start(): Promise<void> {
       await rate.refresh();
       every(60_000, () => rate.refresh());

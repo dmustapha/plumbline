@@ -14,7 +14,9 @@ export class SessionRegistry {
   constructor(private readonly clock: () => number = Date.now) {}
 
   create(): Session {
-    const id = randomBytes(8).toString('hex').slice(0, 12);
+    // 8 lowercase hex characters: the floor's playground label rule is plumbline-s<8 hex>-<name> (PLAYGROUND_LABEL_RE).
+    let id = randomBytes(4).toString('hex');
+    while (this.#sessions.has(id)) id = randomBytes(4).toString('hex');
     const s: Session = { id, created_at: this.clock(), last_seen: this.clock(), tier: 'standard', playground: null };
     this.#sessions.set(id, s);
     return s;

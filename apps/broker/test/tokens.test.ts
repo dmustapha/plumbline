@@ -26,3 +26,20 @@ describe('task tokens', () => {
     expect(b.verify(a.mint('a', 'b').token)).toBeNull();
   });
 });
+
+describe('AG4-BRK-8 restart with the kill flag present', () => {
+  it('AG4-BRK-8 a token minted before the kill is invalid after a restart while the flag file exists', async () => {
+    const { mkdtempSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const { KillSwitch } = await import('../src/killswitch.ts');
+    const dir = mkdtempSync(join(tmpdir(), 'plb-kill-'));
+    const before = new TokenService('s', () => 1000);
+    const token = before.mint('t', 'sess0001').token;
+    new KillSwitch(join(dir, 'flag'), before).engage('x');
+    const restarted = new TokenService('s', () => 1000);
+    expect(restarted.verify(token)).not.toBeNull();
+    new KillSwitch(join(dir, 'flag'), restarted);
+    expect(restarted.verify(token)).toBeNull();
+  });
+});

@@ -144,11 +144,11 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     const sid = req.body?.session_id;
     if (!d.sessions.get(sid) || !['delete', 'restore'].includes(req.body.action)) return reply.code(400).send({ status: 'ARGS_INVALID' });
     const claims = { task_id: `ui-${d.clock().toString(36)}`, session_id: sid };
-    if (req.body.action === 'delete') return d.pipeline.handleCall(claims, { verb: 'delete', class: 'bucket_object', target: { id: 'orders.json' } });
+    if (req.body.action === 'delete') return d.pipeline.handleCall(claims, { verb: 'delete', class: 'bucket_object', target: { id: 'orders.json' } }, null, 'owner');
     const listing = await d.s3.listVersions({ session_id: sid }, 'orders.json');
     const version = restoreTarget(listing);
     if (!version) return reply.code(409).send({ status: 'REWIND_UNAVAILABLE', detail: 'no earlier version' });
-    return d.pipeline.handleCall(claims, { verb: 'restore', class: 'bucket_object', target: { id: 'orders.json' }, params: { version_id: version } });
+    return d.pipeline.handleCall(claims, { verb: 'restore', class: 'bucket_object', target: { id: 'orders.json' }, params: { version_id: version } }, null, 'owner');
   });
 
   app.get('/v1/ledger/export', async (req, reply) => {
@@ -163,7 +163,9 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     if (!same(String(req.headers['x-plumbline-admin-token'] ?? ''), d.secrets.adminToken)) return reply.code(401).send({ status: 'AUTH_ADMIN_INVALID' });
     d.kill.engage(req.body?.reason ?? 'owner engaged');
     const sent = await d.lease.expireNow();
-    return { engaged: true, lease_expired_at_verifier: sent };
+    // AG4-BRK-6: fail closed. The broker destroys its own fleet whether or not a verifier is configured or reachable.
+    const fleet = await d.pipeline.destroyWorkers();
+    return { engaged: true, lease_expired_at_verifier: sent, workers_destroyed: fleet.destroyed, workers_failed: fleet.failed };
   });
 
   app.post('/v1/admin/kill-switch/clear', async (req, reply) => {
