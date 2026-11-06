@@ -41,6 +41,8 @@ export function createMockVultr(opts: MockOptions = {}) {
     if (method !== 'GET' && readOnly) {
       return json(403, { error: 'Permission denied. You do not have the required IAM permissions for this action.' });
     }
+    // LIVE: POST /vpcs answers 400 'Missing v4_subnet_mask' (not v4_subnet_size)
+    if (method === 'POST' && path === '/vpcs' && (!body.v4_subnet_mask || !body.v4_subnet || !body.region)) return json(400, { error: 'Missing v4_subnet_mask', status: 400 });
     const collections: Record<string, { list: Item[]; field: string; one: string }> = {
       '/instances': { list: state.instances, field: 'instances', one: 'instance' },
       '/firewalls': { list: state.firewall_groups, field: 'firewall_groups', one: 'firewall_group' },

@@ -33,6 +33,8 @@ export interface FirewallView {
 
 export interface VpcView {
   id: string;
+  /** Vultr's name for the label; `label` repeats it so the operator sees the same field on every class (LIVE: it looked for `label` and found None) */
+  label: string;
   description: string;
   region: string;
   date_created: string;
@@ -40,6 +42,7 @@ export interface VpcView {
 
 export interface RegistryView {
   id: string;
+  label: string;
   name: string;
   urn: string;
   region: string;
@@ -135,15 +138,15 @@ export class Vpcs {
 
   async list(ctx: Ctx): Promise<VpcView[]> {
     const res = await this.http.request<{ vpcs?: Raw[] }>('GET', '/vpcs', { ...ctx, query: { per_page: 500 } });
-    return (res.vpcs ?? []).map((r) => ({ id: str(r.id), description: str(r.description), region: str(r.region), date_created: str(r.date_created) }));
+    return (res.vpcs ?? []).map((r) => ({ id: str(r.id), label: str(r.description), description: str(r.description), region: str(r.region), date_created: str(r.date_created) }));
   }
 
   async create(allow: AllowDecision, req: CallRequest): Promise<VpcView> {
     const ctx = guard(allow, req, 'create', 'vpc');
-    const body = { region: need(req.params.region, 'region'), description: need(req.params.label, 'label'), v4_subnet: need(req.params.subnet, 'subnet'), v4_subnet_size: Number(need(req.params.subnet_size, 'subnet_size')) };
+    const body = { region: need(req.params.region, 'region'), description: need(req.params.label, 'label'), v4_subnet: need(req.params.subnet, 'subnet'), v4_subnet_mask: Number(need(req.params.subnet_size, 'subnet_size')) };
     const res = await this.http.request<{ vpc: Raw }>('POST', '/vpcs', { ...ctx, body, request_id: req.request_id });
     const r = res.vpc;
-    return { id: str(r.id), description: str(r.description), region: str(r.region), date_created: str(r.date_created) };
+    return { id: str(r.id), label: str(r.description), description: str(r.description), region: str(r.region), date_created: str(r.date_created) };
   }
 
   async delete(allow: AllowDecision, req: CallRequest): Promise<void> {
@@ -157,7 +160,7 @@ export class Registries {
 
   async list(ctx: Ctx): Promise<RegistryView[]> {
     const res = await this.http.request<{ registries?: Raw[] }>('GET', '/registries', ctx);
-    return (res.registries ?? []).map((r) => ({ id: str(r.id), name: str(r.name), urn: str(r.urn), region: str(r.region) }));
+    return (res.registries ?? []).map((r) => ({ id: str(r.id), label: str(r.name), name: str(r.name), urn: str(r.urn), region: str(r.region) }));
   }
 
   async create(allow: AllowDecision, req: CallRequest): Promise<RegistryView> {
@@ -166,7 +169,7 @@ export class Registries {
     const ctx = guard(allow, req, 'create', 'registry');
     const res = await this.http.request<Raw>('POST', '/registry', { ...ctx, body: { name, public: false, region: need(req.params.region, 'region'), plan: 'start_up' }, request_id: req.request_id });
     const r = (res.registry as Raw | undefined) ?? res;
-    return { id: str(r.id), name: str(r.name), urn: str(r.urn), region: str(r.region) };
+    return { id: str(r.id), label: str(r.name), name: str(r.name), urn: str(r.urn), region: str(r.region) };
   }
 
   async delete(allow: AllowDecision, req: CallRequest): Promise<void> {

@@ -20,6 +20,7 @@ export type DockerExec = (args: string[], opts?: ExecOptions) => Promise<ExecRes
 export function cleanEnv(): NodeJS.ProcessEnv {
   const keep: NodeJS.ProcessEnv = { PATH: process.env.PATH ?? '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' };
   if (process.env.DOCKER_HOST) keep.DOCKER_HOST = process.env.DOCKER_HOST;
+  if (process.env.DOCKER_CONFIG) keep.DOCKER_CONFIG = process.env.DOCKER_CONFIG; // a path, not a secret: keeps the docker CLI from probing an unreadable $HOME
   return keep;
 }
 

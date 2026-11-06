@@ -13,6 +13,7 @@ User=plumbline-runner
 Group=plumbline-runner
 SupplementaryGroups=docker plumbline-ipc
 EnvironmentFile=/etc/plumbline/runner.env
+Environment=DOCKER_CONFIG=/run/plumbline  # no config.json there: silences the docker "permission denied" warning under ProtectHome
 WorkingDirectory=/opt/plumbline/app
 ExecStartPre=+/usr/local/sbin/plb-firewall-rules --check
 ExecStart=/usr/bin/node --import tsx /opt/plumbline/app/apps/runner/src/main.ts

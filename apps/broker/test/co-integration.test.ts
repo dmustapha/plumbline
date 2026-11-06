@@ -20,7 +20,7 @@ const del = (cls: string, id: string) => ({ verb: 'delete', class: cls, target: 
 const deletes = (mock: { state: { calls: { method: string }[] } }) => mock.state.calls.filter((c) => c.method === 'DELETE');
 type Built = Awaited<ReturnType<typeof makeBroker>>;
 const newSession = async (app: Built['app']) => (await app.internal.inject({ method: 'POST', url: '/v1/session', headers: H, payload: {} })).json();
-const vpcs = (mock: Built['mock']) => mock.state.vpcs as unknown as { id: string; description: string; v4_subnet: string; v4_subnet_size: number; region: string }[];
+const vpcs = (mock: Built['mock']) => mock.state.vpcs as unknown as { id: string; description: string; v4_subnet: string; v4_subnet_mask: number; region: string }[];
 
 describe('CO-A: the session playground is a VPC', () => {
   it('CO-A session creation makes a VPC (not a firewall group) with subnet, size 24 and the configured region', async () => {
@@ -28,7 +28,7 @@ describe('CO-A: the session playground is a VPC', () => {
     const s = await newSession(app);
     expect(mock.state.firewall_groups).toHaveLength(0);
     expect(vpcs(mock)).toHaveLength(1);
-    expect(vpcs(mock)[0]).toMatchObject({ description: `plumbline-s${s.session_id}-vault`, v4_subnet: playgroundSubnet(s.session_id), v4_subnet_size: 24, region: 'ewr' });
+    expect(vpcs(mock)[0]).toMatchObject({ description: `plumbline-s${s.session_id}-vault`, v4_subnet: playgroundSubnet(s.session_id), v4_subnet_mask: 24, region: 'ewr' });
     expect(s.playground).toEqual({ id: vpcs(mock)[0]?.id, label: `plumbline-s${s.session_id}-vault` });
     const row = app.db.prepare("SELECT class, protected, session_id FROM resources WHERE id = ?").get(s.playground.id);
     expect(row).toEqual({ class: 'vpc', protected: 1, session_id: s.session_id });
@@ -84,15 +84,20 @@ describe('CO-A: the session playground is a VPC', () => {
     await app.reap();
     expect(vpcs(mock)).toHaveLength(0);
   });
-  it('CO-A another session cannot delete my playground VPC; its owner can (hot-edit semantics unchanged)', async () => {
+  it('CO-A another session cannot delete my playground VPC; its owner is DENIED protect-tagged-destroy until the hot-edit flips it to ESCALATE', async () => {
     const { app, mock } = await makeBroker();
     const s = await newSession(app);
     const other = await app.pipeline.handleCall({ task_id: 'tB', session_id: '99999999' }, del('vpc', s.playground.id));
     expect(other.status === 'DECIDED' && other.decision.decision).toBe('DENY');
-    expect(deletes(mock)).toHaveLength(0);
+    // LIVE FINDING: the playground is protected by its ledger row (a VPC label cannot carry [protected]), so the hot-edit flip has something to flip
     const own = await app.pipeline.handleCall({ task_id: 'tA', session_id: s.session_id }, del('vpc', s.playground.id));
-    expect(own.status === 'DECIDED' && own.decision.decision).toBe('ALLOW');
-    expect(vpcs(mock)).toHaveLength(0);
+    expect(own.status === 'DECIDED' && own.decision).toMatchObject({ decision: 'DENY', rule_id: 'protect-tagged-destroy' });
+    expect(deletes(mock)).toHaveLength(0);
+    const flipped = app.policies.get(s.session_id).text.replace('id: protect-tagged-destroy\n    effect: deny', 'id: protect-tagged-destroy\n    effect: escalate');
+    expect(app.policies.put(s.session_id, flipped).ok).toBe(true);
+    const esc = await app.pipeline.handleCall({ task_id: 'tC', session_id: s.session_id }, del('vpc', s.playground.id));
+    expect(esc.status === 'DECIDED' && esc.decision).toMatchObject({ decision: 'ESCALATE', rule_id: 'protect-tagged-destroy' });
+    expect(deletes(mock)).toHaveLength(0);
   });
 });
 

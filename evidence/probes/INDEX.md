@@ -5,3 +5,4 @@ U-11 | FAILED | 2026-11-06T11:55Z | evidence/probes/u-6-10-11.txt | DELETE /user
 U-13 | PASSED (direct to VSI, 10-way concurrency, 60 calls: 60x200, p50 1.08s p95 1.85s; broker-proxy path untested) | 2026-11-06T12:00Z | evidence/probes/u-13.txt | no 429 at this rate; keep per-session limit 3/min
 U-4  | PASSED | 2026-11-06T13:00:04Z | evidence/probes/u-4-h-4.txt | relay CONNECTED; external, gateway:22/:80, docker0:7443, peer all FAILED on the real VM 1: keep the relay-container shape (ADR-005).
 H-4  | PASSED | 2026-11-06T13:00:04Z | evidence/probes/u-4-h-4.txt | getaddrinfo example.com and one.one.one.one FAIL from the sandbox network; Docker 29.9.3 (>= 26).
+U-9 | PASSED | 2026-11-06T13:09:00Z | broker https 200 verify=0 on 108-61-70-169.sslip.io; verifier on 66-42-126-97.sslip.io | Caddy cert on sslip.io works (needs ufw 80/443)

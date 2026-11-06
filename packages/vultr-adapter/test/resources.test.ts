@@ -58,7 +58,7 @@ describe('G1e breadth verbs: firewall group, VPC, registry (create and delete th
     const { vpcs, mock } = setup();
     const c = request({ class: 'vpc', params: { region: 'ewr', label: 'plumbline-s1a2b3c4d-lab', subnet: '10.9.0.0', subnet_size: 24 } });
     const v = await vpcs.create(allowFor(c), c);
-    expect(mock.state.vpcs[0]).toMatchObject({ region: 'ewr', description: 'plumbline-s1a2b3c4d-lab', v4_subnet: '10.9.0.0', v4_subnet_size: 24 });
+    expect(mock.state.vpcs[0]).toMatchObject({ region: 'ewr', description: 'plumbline-s1a2b3c4d-lab', v4_subnet: '10.9.0.0', v4_subnet_mask: 24 });
     const d = del('vpc', v.id, 'plumbline-s1a2b3c4d-lab');
     await vpcs.delete(allowFor(d), d);
     expect(mock.state.vpcs).toHaveLength(0);

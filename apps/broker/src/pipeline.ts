@@ -214,6 +214,13 @@ export class Pipeline {
     return row?.session_id ?? null;
   }
 
+  /** The ledger row written at creation says whether the broker made this resource protected (a VPC label cannot carry the [protected] marker). */
+  #protectedRow(id: string | undefined): boolean {
+    if (!id) return false;
+    const row = this.d.db.prepare('SELECT protected FROM resources WHERE id = ? AND destroyed_at_ms IS NULL').get(id) as { protected: number } | undefined;
+    return row?.protected === 1;
+  }
+
   async #resolve(call: ParsedCall, sid: string, taskId: string): Promise<Resolved | { unavailable: string }> {
     const ctx = { session_id: sid };
     const { verb, class: cls, id, params } = call;
@@ -270,7 +277,7 @@ export class Pipeline {
     }
     if (cls === 'vpc') {
       const found = (await new Vpcs(t.http('observer')).list(ctx)).find((v) => v.id === id);
-      return found ? { id, label: found.description, tags: hasMarker(found.description) ? ['protected'] : [], resolved: true } : { id };
+      return found ? { id, label: found.description, tags: hasMarker(found.description) || this.#protectedRow(id) ? ['protected'] : [], resolved: true } : { id };
     }
     const found = (await new Registries(t.http('observer')).list(ctx)).find((r) => r.id === id);
     return found ? { id, label: found.name, tags: [], resolved: true } : { id };

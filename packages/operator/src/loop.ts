@@ -1,5 +1,5 @@
 // File: packages/operator/src/loop.ts
-import { ADVISORY_PROMPT, EXECUTOR_PROMPT, PLANNER_PROMPT } from './prompts.ts';
+import { ADVISORY_PROMPT, EXECUTOR_PROMPT, PLANNER_PROMPT, sessionContext } from './prompts.ts';
 import type { ChatMsg, LlmPort, LlmReplyLike, SandboxPort, SandboxResultLike, TaskPort } from './llm.ts';
 import { SUBMIT_TOOL, extractCode } from './tools.ts';
 
@@ -66,7 +66,7 @@ export async function runOperatorTask(deps: OperatorDeps, sessionId: string, tex
 
   let plan: LlmReplyLike;
   try {
-    plan = await deps.llm.chat(sessionId, 'planner', [{ role: 'system', content: PLANNER_PROMPT }, { role: 'user', content: text }], undefined, undefined, 300);
+    plan = await deps.llm.chat(sessionId, 'planner', [{ role: 'system', content: `${PLANNER_PROMPT}\n${sessionContext(sessionId)}` }, { role: 'user', content: text }], undefined, undefined, 300);
   } catch (e) {
     return fail(busy(e) ? 'OPERATOR_BUSY' : 'OPERATOR_INVALID', String((e as Error).message).slice(0, 120));
   }
@@ -76,7 +76,7 @@ export async function runOperatorTask(deps: OperatorDeps, sessionId: string, tex
 
   const messages: ChatMsg[] = [
     { role: 'system', content: EXECUTOR_PROMPT },
-    { role: 'user', content: `Request: ${text}\n\nPlan:\n${out.plan}` },
+    { role: 'user', content: `${sessionContext(sessionId)}\nRequest: ${text}\n\nPlan:\n${out.plan}` },
   ];
   const max = deps.maxAttempts ?? 3;
   for (let attempt = 1; attempt <= max; attempt++) {

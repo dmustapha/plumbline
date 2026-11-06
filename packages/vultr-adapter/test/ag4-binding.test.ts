@@ -79,7 +79,7 @@ describe('AG4-ADP-2 an ALLOW is bound to its call', () => {
     const { vpcs, registries, mock } = setup();
     const vreq = request({ verb: 'create', class: 'vpc', params: { region: 'ewr', label: 'plumbline-vpc-1', subnet: '10.9.0.0', subnet_size: 24 } });
     await vpcs.create(allowFor(vreq), vreq);
-    expect(mock.state.vpcs[0]).toMatchObject({ region: 'ewr', description: 'plumbline-vpc-1', v4_subnet: '10.9.0.0', v4_subnet_size: 24 });
+    expect(mock.state.vpcs[0]).toMatchObject({ region: 'ewr', description: 'plumbline-vpc-1', v4_subnet: '10.9.0.0', v4_subnet_mask: 24 });
     const rreq = request({ verb: 'create', class: 'registry', params: { region: 'ewr', name: 'plumblinereg', label: 'plumblinereg' } });
     await registries.create(allowFor(rreq), rreq);
     expect(mock.state.registries[0]).toMatchObject({ name: 'plumblinereg' });
