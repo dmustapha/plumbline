@@ -148,3 +148,27 @@ describe('script hygiene', () => {
     }
   });
 });
+
+describe('SEC REVIEW (opus) fixes on the VM hardening', () => {
+  it('SEC-S2 IPv6 cannot be a side door: the bridge is dropped in ip6tables INPUT and FORWARD, applied and checked', () => {
+    const fw = read('scripts/firewall-rules.sh');
+    expect(fw).toMatch(/ip6tables -I INPUT 1 -i "\$BRIDGE" -j DROP/);
+    expect(fw).toMatch(/ip6tables -I FORWARD 1 -i "\$BRIDGE" -j DROP/);
+    expect(fw).toMatch(/ip6tables -C INPUT -i "\$BRIDGE" -j DROP 2>\/dev\/null \|\| \{ echo "MISSING/);
+  });
+  it('SEC-S6 the runner has its own 0700 runtime directory for the docker config; no Environment line carries an inline comment', () => {
+    const unit = read('systemd/plumbline-runner.service');
+    expect(unit).toMatch(/^RuntimeDirectory=plumbline-runner$/m);
+    expect(unit).toMatch(/^RuntimeDirectoryMode=0700$/m);
+    expect(unit).toMatch(/^Environment=DOCKER_CONFIG=\/run\/plumbline-runner$/m);
+    for (const line of unit.split('\n').filter((l) => l.startsWith('Environment='))) expect(line).not.toContain('#');
+  });
+  it('SEC-S6 /run/plumbline is sticky (3770) so one service cannot unlink another service socket', () => {
+    expect(read('scripts/bootstrap-vm.sh')).toMatch(/d \/run\/plumbline 3770 plumbline-broker plumbline-ipc/);
+  });
+  it('SEC-S1 sandbox containers never use a log driver that writes their stdout to the host disk', async () => {
+    const { buildRunArgs } = await import('../src/index.ts');
+    const args = buildRunArgs({ name: 'x', limits: { mem_mb: 128, cpus: 0.5, pids: 64, wall_s: 10 } } as never);
+    expect(args.slice(args.indexOf('--log-driver'), args.indexOf('--log-driver') + 2)).toEqual(['--log-driver', 'none']);
+  });
+});

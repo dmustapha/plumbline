@@ -32,6 +32,11 @@ check() {
   for r in "${INPUT_RULES[@]}"; do iptables -C INPUT $r 2>/dev/null || { echo "MISSING INPUT $r" >&2; ok=1; }; done
   iptables -C DOCKER-USER -j "$CHAIN" 2>/dev/null || { echo "MISSING DOCKER-USER jump to $CHAIN" >&2; ok=1; }
   for r in "${CHAIN_RULES[@]}"; do iptables -C "$CHAIN" $r 2>/dev/null || { echo "MISSING $CHAIN $r" >&2; ok=1; }; done
+  # SEC REVIEW (opus) #2: IPv6 must not be a side door around the bridge rules
+  if command -v ip6tables >/dev/null; then
+    ip6tables -C INPUT -i "$BRIDGE" -j DROP 2>/dev/null || { echo "MISSING ip6 INPUT -i $BRIDGE -j DROP" >&2; ok=1; }
+    ip6tables -C FORWARD -i "$BRIDGE" -j DROP 2>/dev/null || { echo "MISSING ip6 FORWARD -i $BRIDGE -j DROP" >&2; ok=1; }
+  fi
   return $ok
 }
 
@@ -46,6 +51,10 @@ apply() {
     r="${INPUT_RULES[$i]}"
     iptables -C INPUT $r 2>/dev/null || iptables -I INPUT 1 $r
   done
+  if command -v ip6tables >/dev/null; then
+    ip6tables -C INPUT -i "$BRIDGE" -j DROP 2>/dev/null || ip6tables -I INPUT 1 -i "$BRIDGE" -j DROP
+    ip6tables -C FORWARD -i "$BRIDGE" -j DROP 2>/dev/null || ip6tables -I FORWARD 1 -i "$BRIDGE" -j DROP
+  fi
 }
 
 # Teardown (used by local test runs and by teardown drills; the bootstrap never calls it).
@@ -54,6 +63,10 @@ remove() {
   for ((i = 0; i < ${#INPUT_RULES[@]}; i++)); do r="${INPUT_RULES[$i]}"; while iptables -C INPUT $r 2>/dev/null; do iptables -D INPUT $r; done; done
   while iptables -C DOCKER-USER -j "$CHAIN" 2>/dev/null; do iptables -D DOCKER-USER -j "$CHAIN"; done
   iptables -F "$CHAIN" 2>/dev/null && iptables -X "$CHAIN" 2>/dev/null || true
+  if command -v ip6tables >/dev/null; then
+    while ip6tables -C INPUT -i "$BRIDGE" -j DROP 2>/dev/null; do ip6tables -D INPUT -i "$BRIDGE" -j DROP; done
+    while ip6tables -C FORWARD -i "$BRIDGE" -j DROP 2>/dev/null; do ip6tables -D FORWARD -i "$BRIDGE" -j DROP; done
+  fi
 }
 
 case "$MODE" in

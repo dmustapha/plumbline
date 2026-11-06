@@ -168,7 +168,7 @@ if [ "$ROLE" = "broker" ]; then
   usermod -aG docker plumbline-runner
   for u in api runner broker; do usermod -aG plumbline-ipc "plumbline-$u"; done
   chown plumbline-broker:plumbline-ipc /var/lib/plumbline && chmod 750 /var/lib/plumbline
-  printf 'd /run/plumbline 2770 plumbline-broker plumbline-ipc -\n' > /etc/tmpfiles.d/plumbline.conf && systemd-tmpfiles --create
+  printf 'd /run/plumbline 3770 plumbline-broker plumbline-ipc -\n' > /etc/tmpfiles.d/plumbline.conf && systemd-tmpfiles --create
   install_firewall
   ensure_sandbox_network
   build_sandbox_image

@@ -13,7 +13,10 @@ User=plumbline-runner
 Group=plumbline-runner
 SupplementaryGroups=docker plumbline-ipc
 EnvironmentFile=/etc/plumbline/runner.env
-Environment=DOCKER_CONFIG=/run/plumbline  # no config.json there: silences the docker "permission denied" warning under ProtectHome
+# SEC REVIEW (opus) #6: a runner-only directory, so the broker user cannot plant a docker config.json (proxies/contexts/plugins) for the runner's docker CLI
+RuntimeDirectory=plumbline-runner
+RuntimeDirectoryMode=0700
+Environment=DOCKER_CONFIG=/run/plumbline-runner
 WorkingDirectory=/opt/plumbline/app
 ExecStartPre=+/usr/local/sbin/plb-firewall-rules --check
 ExecStart=/usr/bin/node --import tsx /opt/plumbline/app/apps/runner/src/main.ts

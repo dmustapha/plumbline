@@ -1,5 +1,6 @@
 // File: packages/sandbox/src/docker.ts
 import { spawn } from 'node:child_process';
+import { posix } from 'node:path';
 import { SANDBOX_IMAGE, SANDBOX_LABEL, SANDBOX_NETWORK, SANDBOX_SOCKET_DIR, type Limits } from './limits.ts';
 
 export interface ExecOptions {
@@ -58,8 +59,9 @@ const FORBIDDEN_SOCKET_DIRS = new Set(['/', '/run', '/var', '/var/run', '/run/pl
 
 /** The fallback mounts a directory that holds ONLY the dedicated sandbox socket, never the admin socket or the docker socket. */
 export function assertSandboxSocketDir(dir: string): void {
-  const clean = dir.replace(/\/+$/, '') || '/';
-  if (!clean.startsWith('/') || /[,=\s]/.test(clean) || clean.includes('..') || FORBIDDEN_SOCKET_DIRS.has(clean) || clean.includes('docker')) {
+  // SEC REVIEW (opus) #4: normalise first so '/run/plumbline/.' and '/run//plumbline' cannot slip past the forbidden set
+  const clean = posix.normalize(dir).replace(/\/+$/, '') || '/';
+  if (!clean.startsWith('/') || /[,=\s]/.test(clean) || dir.includes('..') || FORBIDDEN_SOCKET_DIRS.has(clean) || clean.includes('docker')) {
     throw new Error(`socket transport: ${dir} is not an acceptable dedicated sandbox socket directory`);
   }
 }
@@ -85,6 +87,8 @@ export function buildRunArgs(spec: RunSpec): string[] {
     '--cpus', String(l.cpus), '--pids-limit', String(l.pids),
     '--tmpfs', '/tmp:rw,noexec,nosuid,size=16m',
     '--ulimit', 'nofile=64:64', '--ulimit', 'core=0',
+    // SEC REVIEW (opus) #1: output goes to the runner over the attach pipe only; the json-file log driver would write a runaway task's stdout to the host disk unbounded
+    '--log-driver', 'none',
   ];
   if (spec.runtime) args.push('--runtime', spec.runtime);
   args.push(spec.image ?? SANDBOX_IMAGE);

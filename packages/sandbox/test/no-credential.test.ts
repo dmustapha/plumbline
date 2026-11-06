@@ -26,7 +26,7 @@ describe('no_credential_in_sandbox (static layer)', () => {
     expect(fb).toContain('--cap-drop');
   });
   it('AG4-SBX-5 the fallback refuses a mount that would expose the admin socket or the docker socket', () => {
-    for (const bad of ['/run/plumbline', '/run', '/', '/var/run/docker.sock', '/var/run/docker', 'relative/dir', '/run/x,y', '/run/../etc', '/run/x readonly']) {
+    for (const bad of ['/run/plumbline', '/run', '/', '/var/run/docker.sock', '/var/run/docker', 'relative/dir', '/run/x,y', '/run/../etc', '/run/x readonly', '/run/plumbline/.', '/run//plumbline', '/var//run/plumbline/']) {
       expect(() => assertSandboxSocketDir(bad), bad).toThrow();
     }
     expect(() => assertSandboxSocketDir('/run/plumbline-sbx')).not.toThrow();
