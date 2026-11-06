@@ -179,17 +179,20 @@ if [ "$ROLE" = "broker" ]; then
   SITE_ENV="PLUMBLINE_HOST=$(curl -fsS https://api.ipify.org | tr . -).sslip.io"
   CADDYFILE="$APP/ops/Caddyfile.broker"; UNITS="broker runner api"
 else
+  chown root:plumbline-vm2 /etc/plumbline && chmod 750 /etc/plumbline  # LIVE FINDING: baseline.json (0640 root:plumbline-vm2) must be reachable; env files stay 0600 root
   chown root:plumbline-vm2 /var/lib/plumbline-shared && chmod 3770 /var/lib/plumbline-shared  # CR-G1b-3/G1c-2: setgid+sticky so lease.json is group-readable by the watchdog
   for u in watchdog verifier; do usermod -aG plumbline-vm2 "plumbline-$u"; done
   SITE_ENV="PLUMBLINE_VERIFIER_HOST_PUBLIC=$(curl -fsS https://api.ipify.org | tr . -).sslip.io"
   CADDYFILE="$APP/ops/Caddyfile.verifier"; UNITS="verifier watchdog"
 fi
+# LIVE FINDING: the Vultr Debian image runs ufw with only SSH open; Caddy needs 80 (ACME http-01) and 443.
+if command -v ufw >/dev/null; then ufw allow 80/tcp >/dev/null; ufw allow 443/tcp >/dev/null; fi
 echo "$SITE_ENV" >> /etc/default/caddy
 if [ "$HTTP_FALLBACK" = 1 ]; then sed 's#^{\$\([A-Z_]*\)} {#http://{$\1} {#' "$CADDYFILE" > /etc/caddy/Caddyfile; else cp "$CADDYFILE" /etc/caddy/Caddyfile; fi
 mkdir -p /etc/systemd/system/caddy.service.d
 printf '[Service]\nEnvironmentFile=/etc/default/caddy\n' > /etc/systemd/system/caddy.service.d/env.conf
 for unit in $UNITS; do install -m 0644 "$APP/ops/systemd/plumbline-$unit.service" /etc/systemd/system/; done
 systemctl daemon-reload
-systemctl enable --now caddy
+systemctl enable caddy && systemctl restart caddy  # restart: apt already started caddy with the default Caddyfile and no env
 echo "units installed: $UNITS. Copy /etc/plumbline/*.env from the owner machine, then: systemctl enable --now $(for u in $UNITS; do printf 'plumbline-%s ' "$u"; done)"
 [ "$NET_OK" = 0 ] || fail "sandbox network self-check failed (see NET_CHECK_FAILED above). Do not start services until U-4 is decided."
