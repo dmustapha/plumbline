@@ -1,0 +1,120 @@
+<!-- File: apps/range-api/public/rewind.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline rewind</title><link rel="stylesheet" href="/style.css"></head>
+<body data-page="rewind"><main>
+<div class="panel"><h2>Reprieve Rewind: bucket plumbline-orders-db (versioned)</h2>
+<p class="mut">Object Storage versioning is the only live undo here. A VM snapshot takes minutes, so no VM undo is claimed. You act on your own copy of the canary object; the shared orders.json is never touched.</p>
+<div class="row"><button id="del" class="primary">Delete your orders.json</button><button id="rew">Rewind</button><button id="approve" hidden>Approve irreversible delete</button></div>
+<p id="state" class="mut">loading...</p>
+<pre id="rwout"></pre></div>
+<div class="panel"><h3>Independent version list</h3>
+<p class="mut">Read straight from Object Storage ListObjectVersions on every refresh. It is not this page's state.</p>
+<div id="versions" class="mut">loading...</div>
+<p id="source" class="mut"></p></div>
+<div id="trust"></div>
+</main>
+<script src="/app.js"></script>
+<script>
+(function () {
+  'use strict';
+  var pending = null;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function say(text) { $('rwout').textContent = text; }
+
+  function api(method, path, body) {
+    var opts = { method: method, credentials: 'same-origin', headers: {} };
+    if (body) { opts.headers['content-type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    return fetch(path, opts).then(function (r) {
+      return r.json().catch(function () { return { status: 'ERROR' }; }).then(function (j) { j.http = r.status; return j; });
+    });
+  }
+
+  function row(parent, text, cls) {
+    var d = document.createElement('div');
+    d.className = cls || '';
+    d.textContent = text;
+    parent.appendChild(d);
+  }
+
+  function renderVersions(listing) {
+    var box = $('versions');
+    box.textContent = '';
+    var rows = [];
+    (listing.versions || []).forEach(function (v) {
+      rows.push({ t: v.lastModified, text: 'VERSION ' + v.versionId + (v.isLatest ? ' (latest)' : '') + ' ' + v.size + ' bytes ' + v.lastModified, cls: 'ok' });
+    });
+    (listing.deleteMarkers || []).forEach(function (m) {
+      rows.push({ t: m.lastModified, text: 'DELETE-MARKER ' + m.versionId + (m.isLatest ? ' (latest)' : '') + ' ' + m.lastModified, cls: 'bad' });
+    });
+    rows.sort(function (a, b) { return a.t < b.t ? 1 : a.t > b.t ? -1 : 0; });
+    if (!rows.length) row(box, 'no versions and no delete markers listed');
+    rows.forEach(function (r) { row(box, r.text, r.cls); });
+    $('source').textContent = 'source: ListObjectVersions straight from S3, fetched ' + (listing.fetched_at || 'unknown');
+  }
+
+  function renderState(j) {
+    var c = j.classify || {};
+    var bits = [];
+    if (c.state_known === false) bits.push('object state unknown: deletes are denied (fail closed)');
+    else bits.push(c.versions + ' version(s): ' + (c.last_copy ? 'LAST COPY, a delete needs approval' : 'a delete is reversible'));
+    if (c.has_delete_marker) bits.push('a delete marker is the latest entry');
+    bits.push(j.restore_target ? 'rewind target ' + j.restore_target : 'nothing to rewind to');
+    $('state').textContent = bits.join('; ');
+    $('rew').disabled = !j.restore_target;
+  }
+
+  function refresh() {
+    return api('GET', '/api/rewind').then(function (j) {
+      if (j.status === 'REWIND_UNAVAILABLE' || !j.listing) {
+        $('versions').textContent = 'Rewind is not enabled right now (object storage unreachable or the rung has not passed its gate). No simulated restore is shown.';
+        $('state').textContent = 'unavailable';
+        $('del').disabled = true;
+        $('rew').disabled = true;
+        return;
+      }
+      $('del').disabled = false;
+      renderVersions(j.listing);
+      renderState(j);
+    }).catch(function () { $('state').textContent = 'could not reach the range API'; });
+  }
+
+  function describe(j) {
+    if (j.status === 'REWIND_UNAVAILABLE') return 'REWIND_UNAVAILABLE: ' + (j.message || j.detail || 'object state could not be read');
+    if (j.status !== 'DECIDED') return j.status || ('HTTP ' + j.http);
+    var d = j.decision;
+    var line = d.decision + ' by rule ' + d.rule_id + ': ' + d.reason;
+    if (j.error) line += '\nexecution failed: ' + j.error.code + ' ' + j.error.message;
+    return line;
+  }
+
+  function act(action) {
+    $('approve').hidden = true;
+    pending = null;
+    return api('POST', '/api/rewind/act', { action: action }).then(function (j) {
+      say(describe(j));
+      if (j.status === 'DECIDED' && j.decision.decision === 'ESCALATE' && j.approval) {
+        pending = { id: j.decision.decision_id, nonce: j.approval.nonce };
+        $('approve').hidden = false;
+      }
+      return refresh();
+    });
+  }
+
+  function approve() {
+    if (!pending) return;
+    var p = pending;
+    pending = null;
+    $('approve').hidden = true;
+    api('POST', '/api/approval/' + encodeURIComponent(p.id), { nonce: p.nonce, approve: true }).then(function (j) {
+      say(describe(j));
+      return refresh();
+    });
+  }
+
+  $('del').addEventListener('click', function () { act('delete'); });
+  $('rew').addEventListener('click', function () { act('restore'); });
+  $('approve').addEventListener('click', approve);
+  refresh();
+}());
+</script></body></html>

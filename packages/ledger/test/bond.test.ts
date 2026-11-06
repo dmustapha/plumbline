@@ -11,6 +11,36 @@ const load = (f: string, l: 'session' | 'floor') => {
   return r.policy;
 };
 
+describe('bond ledger rows', () => {
+  it('bond $0.05 and burn $0.045 leave exactly $0.005 free and a burned action row', () => {
+    const b = new Bond(openDb(':memory:'), 0.05);
+    expect(b.hold('act-1', 0.045)).toBe(true);
+    expect(b.snapshot()).toEqual({ free: 0.005, held: 0.045, burned: 0 });
+    expect(b.burn('act-1')).toBe(true);
+    expect(b.snapshot()).toEqual({ free: 0.005, held: 0, burned: 0.045 });
+    expect(b.actions()).toEqual([{ action_id: 'act-1', amount: 0.045, state: 'burned' }]);
+  });
+  it('rejects a zero, negative or over-free hold and cannot release or burn what is not held', () => {
+    const b = new Bond(openDb(':memory:'), 0.05);
+    expect(b.hold('z', 0)).toBe(false);
+    expect(b.hold('n', -1)).toBe(false);
+    expect(b.hold('big', 0.06)).toBe(false);
+    expect(b.release('missing')).toBe(false);
+    expect(b.burn('missing')).toBe(false);
+    b.hold('h', 0.01);
+    b.burn('h');
+    expect(b.release('h')).toBe(false);
+    expect(b.snapshot()).toEqual({ free: 0.04, held: 0, burned: 0.01 });
+  });
+  it('the burn survives reopening the handle (state lives in the db, not the object)', () => {
+    const db = openDb(':memory:');
+    const first = new Bond(db, 0.05);
+    first.hold('p', 0.045);
+    first.burn('p');
+    expect(new Bond(db, 0.05).snapshot()).toEqual({ free: 0.005, held: 0, burned: 0.045 });
+  });
+});
+
 describe('bond', () => {
   it('hold then burn is idempotent per action id', () => {
     const b = new Bond(openDb(':memory:'), 5);

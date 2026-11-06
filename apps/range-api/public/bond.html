@@ -1,0 +1,44 @@
+<!-- File: apps/range-api/public/bond.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline bond</title><link rel="stylesheet" href="/style.css"></head>
+<body data-page="bond"><main>
+<div class="panel"><h2>Undo-or-Insure bond</h2>
+<p class="mut">A risk budget, not a deterrent: authority is the deterrent. An approved irreversible delete (an object with no restore point) holds then burns bond; while the free bond is below the price of a provision, that provision is refused with <code>bond-insufficient</code> before any network call.</p>
+<pre id="bondout">loading...</pre></div>
+<div class="panel"><h2>Ledger rows</h2>
+<p class="mut">Every line below is a decision row read from the append-only ledger. Nothing here is typed or computed in the page.</p>
+<div id="burns"><h3>Burned by an approved delete</h3><ul id="burnlist"></ul></div>
+<div id="refusals"><h3>Refused after the slash</h3><ul id="refuselist"></ul></div>
+</div>
+<div id="trust"></div>
+</main><script src="/app.js"></script>
+<script>
+(function () {
+  function line(row, text) {
+    var li = document.createElement('li');
+    var code = document.createElement('code');
+    code.textContent = row.id;
+    li.append(code, document.createTextNode(' ' + text));
+    return li;
+  }
+  function fill(id, rows, none, text) {
+    var ul = document.getElementById(id);
+    ul.replaceChildren();
+    if (!rows.length) { var li = document.createElement('li'); li.className = 'mut'; li.textContent = none; ul.append(li); return; }
+    rows.forEach(function (r) { ul.append(line(r, text(r))); });
+  }
+  function detail(r) { try { return JSON.parse(r.detail_json); } catch (e) { return {}; } }
+  function stamp(r) { return new Date(r.ts).toISOString().replace('T', ' ').slice(0, 19) + 'Z'; }
+  fetch('/api/replay').then(function (res) { return res.json(); }).then(function (rows) {
+    rows = Array.isArray(rows) ? rows : [];
+    var burns = rows.filter(function (r) { var c = detail(r).call || {}; return r.decision === 'ALLOW' && r.class === 'bucket_object' && r.verb === 'delete' && c.approved_from; });
+    var refusals = rows.filter(function (r) { return r.decision === 'DENY' && r.rule_id === 'bond-insufficient'; });
+    fill('burnlist', burns, 'no approved irreversible delete in the recent ledger', function (r) { return 'ALLOW delete ' + r.target_id + ' (approved ' + detail(r).call.approved_from + ') at ' + stamp(r); });
+    fill('refuselist', refusals, 'no bond refusal in the recent ledger', function (r) { return 'DENY bond-insufficient ' + r.verb + ' ' + r.class + ' at ' + stamp(r) + ': ' + (detail(r).reason || ''); });
+  }).catch(function () {
+    document.getElementById('burnlist').textContent = 'ledger unavailable';
+    document.getElementById('refuselist').textContent = 'ledger unavailable';
+  });
+}());
+</script>
+</body></html>

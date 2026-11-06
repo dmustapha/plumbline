@@ -31,4 +31,12 @@ describe('rewind', () => {
     expect(restoredCorrectly(marked, after, 'a', 'b').ok).toBe(false);
     expect(restoredCorrectly(marked, marked, 'a', 'a').ok).toBe(false);
   });
+  it('restoredCorrectly refuses an extra version that is not the latest', () => {
+    const stale: ListingLike = { versions: [...marked.versions, v('v3', '4', false)], deleteMarkers: [], fetched_at: 'n' };
+    expect(restoredCorrectly(marked, stale, 'a', 'a').ok).toBe(false);
+  });
+  it('restoredCorrectly refuses a restore that left a latest marker', () => {
+    const still: ListingLike = { versions: [...marked.versions, v('v3', '4')], deleteMarkers: marked.deleteMarkers, fetched_at: 'n' };
+    expect(restoredCorrectly(marked, still, 'a', 'a')).toMatchObject({ ok: false });
+  });
 });
