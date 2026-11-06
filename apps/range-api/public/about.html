@@ -1,0 +1,17 @@
+<!-- File: apps/range-api/public/about.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>About Plumbline</title><link rel="stylesheet" href="/style.css"></head>
+<body data-page="about"><main>
+<div class="panel"><h2>The problem</h2><p>Teams hand AI agents live cloud credentials. Logs and receipts are written by the same trust root that acts. Plumbline lets you attack an agent that owns a real Vultr account and checks the result against Vultr itself.</p></div>
+<div class="panel"><h2>Admission checklist for a buyer</h2><ol>
+<li>The agent process holds no credential (see the sandbox env on /range).</li><li>A dollar ceiling the agent cannot raise (try "provision a 64 vCPU node").</li>
+<li>A verifier on a different host and key (/verify).</li><li>A kill-switch that works when the primary host is dead.</li>
+<li>Policy is versioned data with tests; production changes need a signature (/range/policy).</li></ol></div>
+<div class="panel"><h2>We do NOT claim</h2><ul>
+<li>That create-then-delete is prevented: the verifier is point-in-time.</li><li>That the spend shown is Vultr's invoice: it is broker arithmetic from public prices.</li>
+<li>That the model resists attacks: the demo runs in disclosed compliant-operator mode.</li><li>That the sandbox is a microVM or unescapable: it is a hardened Docker container.</li>
+<li>That VM deletion can be reversed: only Object Storage versioning can.</li><li>That a bond deters a model.</li><li>That your policy edits change production: they change your own copy.</li>
+<li>That ACL tiers give per-resource scoping: Vultr has none; the engine is the fine-grained control.</li></ul></div>
+<div class="panel"><h2>Vultr services used</h2><p>Cloud Compute (two VMs and the protected target), Serverless Inference (three models), IAM sub-user ACLs with IP allow-lists, Firewall groups, VPC, Container Registry, Object Storage with versioning, the public plans rate card.</p></div>
+<div id="trust"></div>
+</main><script src="/app.js"></script></body></html>

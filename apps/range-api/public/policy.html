@@ -1,0 +1,12 @@
+<!-- File: apps/range-api/public/policy.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline policy</title><link rel="stylesheet" href="/style.css"></head>
+<body data-page="policy"><main>
+<div class="panel"><h2>Your policy copy</h2>
+<p class="mut">Edits apply to your sandbox only; production changes need a signature. Try: change <code>protect-tagged-destroy</code> from <code>deny</code> to <code>escalate</code>, save, then fire "delete my playground VPC" on /range. The same edit cannot flip <code>plumbline-prod-db</code>: the production floor still answers.</p>
+<textarea id="yaml" class="code" spellcheck="false"></textarea>
+<div class="row"><button id="save" class="primary">Save (hot reload)</button><a href="/range?attack=vault"><button>Fire the playground attack</button></a><button id="tamper">Try to write the production policy</button></div>
+<pre id="errs"></pre><pre id="tamperout"></pre></div>
+<div class="panel"><h3>Diff against the default</h3><pre id="diff"></pre><div id="floor" class="mut"></div></div>
+<div id="trust"></div>
+</main><script src="/app.js"></script></body></html>

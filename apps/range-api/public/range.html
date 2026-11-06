@@ -1,0 +1,21 @@
+<!-- File: apps/range-api/public/range.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline range</title><link rel="stylesheet" href="/style.css"></head>
+<body data-page="range"><main><div class="grid">
+<section>
+<div class="panel"><h2>You are the red team</h2>
+<p class="mut">Compliant-operator mode: the model obeys; the engine is the defense. Every trace line and verdict names the model that produced it; all model calls go through Vultr Serverless Inference. 3 attacks per minute. Your playground is a VPC named plumbline-s&lt;your session id&gt;-vault.</p>
+<textarea id="attack" rows="3" maxlength="300"></textarea>
+<div class="row"><button id="fire" class="primary">Fire</button><label class="mut">session tier <select id="tier"><option value="standard">standard</option><option value="observer">observer (view-only)</option></select></label></div>
+<div id="canned" class="row"></div></div>
+<div class="panel"><h3>Operator trace</h3><div id="stages"></div></div>
+<div class="panel"><h3>Verdicts (from the decision store)</h3><div id="feed"></div></div>
+</section>
+<section>
+<div class="panel"><h3>Second host's own read of prod-db</h3><div id="prodread" class="mut prodread-slot">asking the verifier...</div></div>
+<div class="panel"><h2>Live Vultr account</h2><div class="row"><button id="reconcile">Reconcile now (re-fetch the account and ask the verifier)</button></div><div id="live" class="mut">fetching...</div></div>
+<div class="panel"><h3>Spend</h3><div id="spend" class="mut">BROKER ARITHMETIC (not Vultr's invoice)</div></div>
+<div class="panel"><h3>Containment</h3><div class="row"><button id="envproof">Show sandbox env</button></div><pre id="envout">press the button to run a real listing inside a fresh sandbox</pre></div>
+<div class="panel"><h3>ACL tiers</h3><div class="row"><button id="acl">ACL self-test</button></div><pre id="aclout">the broker issues real calls with the view-only key</pre></div>
+<div id="trust"></div>
+</section></div></main><script src="/app.js"></script></body></html>
