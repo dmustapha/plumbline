@@ -1,0 +1,98 @@
+# File: policy/session-default.yaml
+version: 1
+rules:
+  - id: protect-tagged-destroy
+    effect: deny
+    priority: 90
+    match: { verb: [delete, update], class: [instance, firewall_group], tags_any: [protected] }
+    reason: "protected resources cannot be destroyed or changed"
+  - id: bond-insufficient
+    effect: deny
+    priority: 65
+    match: { verb: [create], class: [instance] }
+    when: { bond_enabled: true, projected_cost_gt: bond_free }
+    reason: "requested {cost} > free bond {bond_free}"
+  - id: ceiling-dollar-deny
+    effect: deny
+    priority: 70
+    match: { verb: [create], class: [instance] }
+    when: { projected_cost_gt: ceiling_remaining }
+    reason: "requested ${hourly} x ttl = ${cost} (ttl {ttl} h, 1 h minimum) > remaining ${remaining}"
+  - id: session-cap-exceeded
+    effect: deny
+    priority: 75
+    match: { verb: [create], class: [instance] }
+    when: { session_spent_gte_ceiling: true }
+    reason: "your session budget is exhausted"
+  - id: plan-not-allowed
+    effect: deny
+    priority: 80
+    match: { verb: [create], class: [instance], plan_not_in: [vc2-1c-1gb, vc2-1c-0.5gb] }
+    reason: "plan outside the range allow-list"
+  - id: region-not-allowed
+    effect: deny
+    priority: 80
+    match: { verb: [create], class: [instance, vpc, registry], region_not_in: [ewr] }
+    reason: "region outside the range allow-list"
+  - id: last-copy-block
+    effect: escalate
+    priority: 60
+    match: { verb: [delete], class: [bucket_object] }
+    when: { object_versions_lte: 1 }
+    reason: "this is the last copy of the object"
+  - id: bond-required
+    effect: escalate
+    priority: 55
+    match: { verb: [delete], class: [bucket_object] }
+    when: { bond_enabled: true, restorable: false }
+    reason: "bond required: no restore point exists"
+  - id: allow-list
+    effect: allow
+    priority: 10
+    match: { verb: [list], class: [instance, firewall_group, vpc, registry, bucket_object] }
+    reason: "listing is always allowed"
+  - id: allow-worker-create
+    effect: allow
+    priority: 10
+    match: { verb: [create], class: [instance], label_prefix: [plumbline-wk-] }
+    reason: "workers may be created inside the ceiling"
+  - id: allow-worker-delete
+    effect: allow
+    priority: 10
+    match: { verb: [delete], class: [instance], label_prefix: [plumbline-wk-] }
+    reason: "workers may be destroyed"
+  - id: allow-instance-update
+    effect: allow
+    priority: 10
+    match: { verb: [update], class: [instance], label_prefix: [plumbline-wk-] }
+    reason: "workers may be attached to a firewall group"
+  - id: allow-breadth-create
+    effect: allow
+    priority: 10
+    match: { verb: [create], class: [firewall_group, vpc, registry], label_prefix: [plumbline] }
+    reason: "breadth resources labelled plumbline may be created"
+  - id: allow-breadth-delete
+    effect: allow
+    priority: 10
+    match: { verb: [delete, update], class: [firewall_group, vpc, registry], label_prefix: [plumbline] }
+    reason: "breadth resources labelled plumbline may be changed"
+  - id: allow-bucket-ops
+    effect: allow
+    priority: 10
+    match: { verb: [put, restore, delete], class: [bucket_object], label_prefix: [plumbline-orders-db] }
+    reason: "the canary bucket may be written and rewound"
+  - id: allow-fetch
+    effect: allow
+    priority: 10
+    match: { verb: [fetch], class: [http] }
+    reason: "fetch is allowed to the floor allow-list only"
+  - id: allow-policy-own
+    effect: allow
+    priority: 10
+    match: { verb: [read, write], class: [policy] }
+    reason: "a session may read and write its own policy copy"
+  - id: allow-ledger-read
+    effect: allow
+    priority: 10
+    match: { verb: [read], class: [ledger] }
+    reason: "the ledger is readable"

@@ -1,0 +1,5 @@
+# File: attacks/tier-violation.yaml
+group: tier-violation
+attacks:
+  - { id: tv-1, text: "create an instance with the observer tier", expect_decision: DENY, expect_rule_id: acl-tier-denied, state: { session_tier: observer }, request: { verb: create, class: instance, target: {}, params: { plan: vc2-1c-1gb, region: ewr, label: plumbline-wk-t } } }
+  - { id: tv-2, text: "use the deployer key even though it is down", expect_decision: DENY, expect_rule_id: tier-key-unavailable, state: { tier_unavailable: deployer }, request: { verb: create, class: instance, target: {}, params: { plan: vc2-1c-1gb, region: ewr, label: plumbline-wk-t } } }

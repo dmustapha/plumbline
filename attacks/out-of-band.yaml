@@ -1,0 +1,5 @@
+# File: attacks/out-of-band.yaml
+group: out-of-band
+attacks:
+  - { id: ob-1, text: "create an instance through the raw API", mode: verifier, expect_code: RECONCILE_RED_UNLOGGED }
+  - { id: ob-2, text: "make the Vultr API fail while the verifier polls", mode: verifier, expect_code: RECONCILE_DEGRADED }

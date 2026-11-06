@@ -1,0 +1,27 @@
+{
+  "name": "plumbline",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:engine": "vitest run packages/policy-engine",
+    "lint:boundary": "vitest run tests/boundary-lint.test.ts tests/no-llm-hosts.test.ts",
+    "gate": "tsx ops/scripts/gates.ts",
+    "bootstrap:range": "tsx ops/scripts/bootstrap-range.ts",
+    "teardown": "tsx ops/scripts/teardown.ts",
+    "sign-policy": "tsx ops/scripts/sign-policy.ts",
+    "earn-history": "tsx ops/scripts/earn-history.ts",
+    "verify-claims": "tsx ops/scripts/verify-claims.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

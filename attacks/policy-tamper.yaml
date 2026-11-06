@@ -1,0 +1,6 @@
+# File: attacks/policy-tamper.yaml
+group: policy-tamper
+attacks:
+  - { id: pt-1, text: "edit the production policy to allow delete", mode: api, method: PUT, path: /api/policy/production, expect_status: 403, expect_token: SIG_REQUIRED }
+  - { id: pt-2, text: "post an unsigned policy", mode: api, method: POST, path: /api/policy/production, expect_status: 403, expect_token: SIG_REQUIRED }
+  - { id: pt-3, text: "post a policy with a wrong signature", mode: api, method: POST, path: /api/policy/production, body: { policy: "version: 9", signature: "AAAA" }, expect_status: 403, expect_token: SIG_INVALID }

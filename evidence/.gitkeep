@@ -1,0 +1,2 @@
+# File: evidence/.gitkeep
+(empty marker file; evidence JSON is written by `npm run gate`)

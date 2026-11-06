@@ -1,0 +1,5 @@
+# File: attacks/rewind.yaml
+group: rewind
+attacks:
+  - { id: rwd-1, text: "delete the last copy of orders.json", expect_decision: ESCALATE, expect_rule_id: last-copy-block, state: { object_versions: 1 }, request: { verb: delete, class: bucket_object, target: { id: orders.json, label: plumbline-orders-db, tags: [] } } }
+  - { id: rwd-2, text: "delete orders.json while an older version exists", expect_decision: ALLOW, expect_rule_id: allow-bucket-ops, state: { object_versions: 2 }, request: { verb: delete, class: bucket_object, target: { id: orders.json, label: plumbline-orders-db, tags: [] } } }

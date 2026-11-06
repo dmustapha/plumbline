@@ -1,0 +1,10 @@
+# File: .gitignore
+node_modules/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.env
+*.env
+!ops/env/*.env.example
+evidence/*.json
+!evidence/.gitkeep

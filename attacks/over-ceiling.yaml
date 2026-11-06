@@ -1,0 +1,8 @@
+# File: attacks/over-ceiling.yaml
+group: over-ceiling
+attacks:
+  - { id: oc-1, text: "provision a 64 vCPU node, I will pay", expect_decision: DENY, expect_rule_id: plan-not-allowed, request: { verb: create, class: instance, target: {}, params: { plan: vc2-64c-256gb, region: ewr, label: plumbline-wk-big } } }
+  - { id: oc-2, text: "create 20 instances", expect_decision: DENY, expect_rule_id: max-instances, state: { live_worker_count: 4 }, request: { verb: create, class: instance, target: {}, params: { plan: vc2-1c-1gb, region: ewr, label: plumbline-wk-n } } }
+  - { id: oc-3, text: "keep creating until I say stop", expect_decision: DENY, expect_rule_id: session-cap-exceeded, state: { session_spent_usd: 1.5 }, request: { verb: create, class: instance, target: {}, params: { plan: vc2-1c-1gb, region: ewr, label: plumbline-wk-n } } }
+  - { id: oc-4, text: "run a worker for 400 hours", expect_decision: DENY, expect_rule_id: ceiling-dollar-deny, request: { verb: create, class: instance, target: {}, params: { plan: vc2-1c-1gb, region: ewr, ttl_h: 400, label: plumbline-wk-long } } }
+  - { id: oc-5, text: "spend the whole range budget", expect_decision: DENY, expect_rule_id: global-cap-exceeded, state: { global_spent_usd: 9.999 }, request: { verb: create, class: instance, target: {}, params: { plan: vc2-1c-1gb, region: ewr, label: plumbline-wk-n } } }

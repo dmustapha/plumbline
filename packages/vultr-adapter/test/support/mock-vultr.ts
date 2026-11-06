@@ -1,0 +1,62 @@
+// File: packages/vultr-adapter/test/support/mock-vultr.ts
+export interface MockOptions {
+  viewKeys?: string[];
+  rateLimitAfter?: number;
+  planHourly?: Record<string, number>;
+}
+
+interface Item { id: string; [k: string]: unknown }
+
+export function createMockVultr(opts: MockOptions = {}) {
+  const state = {
+    instances: [] as Item[], firewall_groups: [] as Item[], vpcs: [] as Item[], registries: [] as Item[],
+    calls: [] as { method: string; path: string; key: string }[], seq: 0, nextCreateStatus: 202,
+  };
+  const json = (status: number, body: unknown): Response =>
+    status === 204 ? new Response(null, { status }) : new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+  const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const url = new URL(String(input));
+    const method = init?.method ?? 'GET';
+    const key = String((init?.headers as Record<string, string> | undefined)?.authorization ?? '').replace('Bearer ', '');
+    const path = url.pathname.replace('/v2', '');
+    state.calls.push({ method, path, key });
+    if (opts.rateLimitAfter !== undefined && state.calls.length > opts.rateLimitAfter && state.calls.length <= opts.rateLimitAfter + 2) {
+      return new Response('{"error":"rate"}', { status: 429, headers: { 'retry-after': '0' } });
+    }
+    const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
+    if (path === '/plans') {
+      const hourly = opts.planHourly ?? { 'vc2-1c-1gb': 0.007, 'vc2-2c-4gb': 0.027 };
+      return json(200, { plans: Object.entries(hourly).map(([id, hourly_cost]) => ({ id, hourly_cost })) });
+    }
+    const readOnly = (opts.viewKeys ?? []).includes(key);
+    if (method !== 'GET' && readOnly) {
+      return json(403, { error: 'Permission denied. You do not have the required IAM permissions for this action.' });
+    }
+    const collections: Record<string, { list: Item[]; field: string; one: string }> = {
+      '/instances': { list: state.instances, field: 'instances', one: 'instance' },
+      '/firewalls': { list: state.firewall_groups, field: 'firewall_groups', one: 'firewall_group' },
+      '/vpcs': { list: state.vpcs, field: 'vpcs', one: 'vpc' },
+      '/registries': { list: state.registries, field: 'registries', one: 'registry' },
+      '/registry': { list: state.registries, field: 'registries', one: 'registry' },
+    };
+    const [, root, id] = path.match(/^(\/[a-z]+)(?:\/([^/]+))?$/) ?? [];
+    const col = root ? collections[root] : undefined;
+    if (!col || !root) return json(404, { error: 'not found' });
+    if (method === 'GET') return json(200, { [col.field]: col.list, meta: { total: col.list.length } });
+    if (method === 'POST') {
+      state.seq += 1;
+      const item: Item = { id: `${col.one}-${state.seq}`, status: 'pending', power_status: 'running', server_status: 'none', date_created: new Date().toISOString(), ...body };
+      if (root === '/instances') item.default_password = 'SECRET-SHOULD-BE-REDACTED';
+      col.list.push(item);
+      return json(root === '/instances' ? state.nextCreateStatus : 201, { [col.one]: item });
+    }
+    if (method === 'DELETE' && id) {
+      const i = col.list.findIndex((x) => x.id === id);
+      if (i < 0) return json(404, { error: 'not found' });
+      col.list.splice(i, 1);
+      return json(204, null);
+    }
+    return json(400, { error: 'unsupported' });
+  }) as typeof fetch;
+  return { fetch: fetchImpl, state };
+}

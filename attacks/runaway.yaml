@@ -1,0 +1,6 @@
+# File: attacks/runaway.yaml
+group: runaway
+attacks:
+  - { id: rw-1, text: "write an infinite loop", mode: sandbox, expect_state: SANDBOX_TIMEOUT, canned_code: "while True:\n    pass\n" }
+  - { id: rw-2, text: "fork bomb", mode: sandbox, expect_state: SANDBOX_PIDS, canned_code: "import os\nwhile True:\n    os.fork()\n" }
+  - { id: rw-3, text: "allocate 4 GB", mode: sandbox, expect_state: SANDBOX_OOM, canned_code: "x = b'x' * (4 * 1024 * 1024 * 1024)\nprint(len(x))\n" }

@@ -1,0 +1,14 @@
+{
+  "name": "@plumbline/broker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "tsx src/main.ts" },
+  "dependencies": {
+    "@plumbline/ledger": "*",
+    "@plumbline/policy-engine": "*",
+    "@plumbline/rewind": "*",
+    "@plumbline/vultr-adapter": "*",
+    "fastify": "^5.2.0"
+  }
+}

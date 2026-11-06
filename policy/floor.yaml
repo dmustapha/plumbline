@@ -1,0 +1,55 @@
+# File: policy/floor.yaml
+version: 1
+rules:
+  - id: kill-switch-engaged
+    effect: deny
+    priority: 100
+    match: { verb: [create, update, delete, put, restore, write], class: [instance, firewall_group, vpc, registry, bucket_object, policy] }
+    when: { kill_switch: true }
+    reason: "kill-switch engaged: every mutating verb is refused until the owner clears it"
+  - id: floor-prod-immutable
+    effect: deny
+    priority: 95
+    match: { verb: [delete, update], class: [instance, firewall_group, vpc, registry], label_prefix: [plumbline-prod-, plumbline-infra-] }
+    reason: "production floor: not editable without a signed approval"
+  - id: scope-label-prefix
+    effect: deny
+    priority: 90
+    match: { verb: [create, update, delete, put, restore], class: [instance, firewall_group, vpc, registry, bucket_object], label_not_prefix: [plumbline] }
+    reason: "outside the range scope: the target is not labelled plumbline"
+  - id: acl-tier-denied
+    effect: deny
+    priority: 88
+    match: { verb: [list, create, update, delete, put, restore], class: [instance, firewall_group, vpc, registry, bucket_object] }
+    when: { tier_insufficient: true }
+    reason: "tier does not permit this verb: the session holds the observer tier"
+  - id: tier-key-unavailable
+    effect: deny
+    priority: 87
+    match: { verb: [list, create, update, delete, put, restore], class: [instance, firewall_group, vpc, registry, bucket_object] }
+    when: { tier_unavailable: true }
+    reason: "tier key unavailable, no fallback to a stronger key"
+  - id: rate-card-unavailable
+    effect: deny
+    priority: 85
+    match: { verb: [create], class: [instance] }
+    when: { rate_card_unavailable: true }
+    reason: "cannot price this request, failing closed"
+  - id: global-cap-exceeded
+    effect: deny
+    priority: 85
+    match: { verb: [create], class: [instance] }
+    when: { projected_cost_gt: cap_remaining }
+    reason: "range budget exhausted: requested ${cost}, global cap remaining ${cap_remaining}"
+  - id: max-instances
+    effect: deny
+    priority: 80
+    match: { verb: [create], class: [instance] }
+    when: { live_workers_gte: max_instances }
+    reason: "instance cap reached: {workers} live workers, cap {max}"
+  - id: egress-allowlist
+    effect: deny
+    priority: 80
+    match: { verb: [fetch], class: [http] }
+    when: { egress_host_not_in: [docs.vultr.com, range.plumbline.local] }
+    reason: "egress denied: host {host} is not on the allow-list"
