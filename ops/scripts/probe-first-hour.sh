@@ -23,6 +23,19 @@ print('docker0  :', tcp('172.17.0.1', 7443))" 2>&1 | tee -a "$OUT"
   say "U-4 expected: relay CONNECTED, all others FAILED. Anything else means the fallback (--network none + unix socket) is required."
 }
 
+# CO-2 H-4 (hard gate): DNS is an exfiltration channel, so getaddrinfo from the sandbox network must FAIL, and Docker must be >= 26.0.
+h4_dns_docker() {
+  say "H-4 getaddrinfo from the sandbox network must FAIL (DNS exfiltration test)"
+  docker run --rm --network plb-sbx-net --read-only --cap-drop ALL --user 65534:65534 plumbline-sandbox:1 python -c "
+import socket
+try:
+    socket.getaddrinfo('dns-probe.example.com', 80); print('H-4 getaddrinfo: RESOLVED (H-4 FAILED)')
+except OSError as e:
+    print('H-4 getaddrinfo: FAILED', type(e).__name__, '(H-4 PASSED)')" 2>&1 | tee -a "$OUT"
+  local v major; v="$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo 0)"; major="${v%%.*}"
+  if [ "${major:-0}" -ge 26 ] 2>/dev/null; then say "H-4 docker server $v >= 26.0 (H-4 PASSED)"; else say "H-4 docker server $v < 26.0 (H-4 FAILED)"; fi
+}
+
 u1_gvisor() {
   say "U-1/U-2 gVisor: one 30-minute attempt (R2). Claim only if the last line prints GVISOR OK."
   curl -fsSL https://gvisor.dev/archive.key | gpg --dearmor -o /usr/share/keyrings/gvisor-archive-keyring.gpg
@@ -40,8 +53,9 @@ u9_caddy() {
 }
 
 case "$MODE" in
-  vm) u4_egress; u3_kvm; u9_caddy; u1_gvisor ;;
+  vm) u4_egress; h4_dns_docker; u3_kvm; u9_caddy; u1_gvisor ;; # u1_gvisor stays LAST: CL-GV reads the final line
   owner)
+    say "owner-mode probes already executed: U-6, U-10, U-11, U-13 (see evidence/probes/INDEX.md); the rest are printed as instructions below"
     say "U-5  run: npx tsx -e \"import('./packages/vultr-adapter/src/s3.ts')\"  then put, put, delete, listVersions, restore against ewr1 (script lives in the build agent's scratch); fallback: pinned boto3 helper"
     say "U-6  create a throwaway service user with subscriptions_view + billing and GET /v2/billing/pending-charges (costs nothing); fallback: lists only"
     say "U-10 read date_expire in the issueKey response (bootstrap-range prints a WARNING when it is missing)"
