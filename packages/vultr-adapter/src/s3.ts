@@ -9,12 +9,16 @@ import type { SpendGate } from '@plumbline/ledger';
 import type { Ctx } from './resources.ts';
 import { consumeOwnerAction, type OwnerAction } from './owner-action.ts';
 
+/** AG4-PRD-6: throws unless this session may touch this key. The broker passes rewind's assertSessionKey (the adapter cannot import rewind). */
+export type KeyGuard = (sessionId: string, key: string) => void;
+
 export interface S3Config {
   host: string;
   accessKey: string;
   secretKey: string;
   bucket: string;
   region?: string;
+  keyGuard?: KeyGuard;
 }
 
 export interface VersionInfo {
@@ -33,6 +37,8 @@ export interface VersionListing {
 /** Errors that mean "the key is not working" (health), as opposed to "the object is not there" (business answer). */
 const BUSINESS_ERRORS = new Set(['NoSuchKey', 'NotFound', 'NoSuchVersion', 'BucketAlreadyOwnedByYou', 'BucketAlreadyExists']);
 
+const MAX_LIST_PAGES = 10;
+
 export interface S3Sender {
   send(command: unknown): Promise<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
@@ -42,11 +48,13 @@ export class S3Store {
   readonly #client: S3Sender;
   readonly #gate: SpendGate;
   readonly #hasCreds: boolean;
+  readonly #keyGuard: KeyGuard | undefined;
   #lastCallFailed = false;
 
   constructor(cfg: S3Config, gate: SpendGate, client?: S3Sender) {
     this.bucket = cfg.bucket;
     this.#gate = gate;
+    this.#keyGuard = cfg.keyGuard;
     this.#hasCreds = Boolean(cfg.accessKey) && Boolean(cfg.secretKey) && Boolean(cfg.host);
     this.#client = client ?? new S3Client({
       endpoint: `https://${cfg.host}`,
@@ -109,7 +117,9 @@ export class S3Store {
   #objectKey(allow: AllowDecision, req: CallRequest, verb: Verb): { ctx: Ctx; key: string } {
     const key = need(req.params.key, 'key');
     if (req.target?.id !== key) throw new Error('KEY_TARGET_MISMATCH: params.key must equal target.id');
-    return { ctx: guard(allow, req, verb, 'bucket_object'), key };
+    const ctx = guard(allow, req, verb, 'bucket_object');
+    this.#keyGuard?.(ctx.session_id, key);
+    return { ctx, key };
   }
 
   async putObject(allow: AllowDecision, req: CallRequest, body: string): Promise<string> {
@@ -127,26 +137,34 @@ export class S3Store {
   async restoreVersion(allow: AllowDecision, req: CallRequest): Promise<string> {
     const { ctx, key } = this.#objectKey(allow, req, 'restore');
     const versionId = need(req.params.version_id, 'version_id');
-    const source = `${this.bucket}/${encodeURIComponent(key)}?versionId=${encodeURIComponent(versionId)}`;
+    const source = `${this.bucket}/${key.split('/').map(encodeURIComponent).join('/')}?versionId=${encodeURIComponent(versionId)}`;
     const r = await this.#run(ctx, () => this.#client.send(new CopyObjectCommand({ Bucket: this.bucket, Key: key, CopySource: source })));
     return r.VersionId ?? '';
   }
 
-  /** Straight from S3: the independent proof panel and the last-copy classification read this, never the broker's tags. */
+  /**
+   * Straight from S3: the independent proof panel and the last-copy classification read this, never the broker's tags.
+   * A truncated listing that does not complete inside MAX_LIST_PAGES is an error, never a short count (unknown state fails closed).
+   */
   async listVersions(ctx: Ctx, key: string): Promise<VersionListing> {
-    const r = await this.#run(ctx, () => this.#client.send(new ListObjectVersionsCommand({ Bucket: this.bucket, Prefix: key })));
-    return {
-      versions: (r.Versions ?? []).filter((v: { Key?: string }) => v.Key === key).map((v: { VersionId?: string; IsLatest?: boolean; Size?: number; LastModified?: Date }) => ({
-        versionId: v.VersionId ?? '', isLatest: Boolean(v.IsLatest), size: v.Size ?? 0, lastModified: v.LastModified?.toISOString() ?? '',
-      })),
-      deleteMarkers: (r.DeleteMarkers ?? []).filter((m: { Key?: string }) => m.Key === key).map((m: { VersionId?: string; IsLatest?: boolean; LastModified?: Date }) => ({
-        versionId: m.VersionId ?? '', isLatest: Boolean(m.IsLatest), lastModified: m.LastModified?.toISOString() ?? '',
-      })),
-      fetched_at: new Date().toISOString(),
-    };
+    this.#keyGuard?.(ctx.session_id, key);
+    const versions: VersionInfo[] = [];
+    const deleteMarkers: VersionListing['deleteMarkers'] = [];
+    let page: { keyMarker?: string; versionIdMarker?: string } = {};
+    for (let i = 0; i < MAX_LIST_PAGES; i += 1) {
+      const r = await this.#run(ctx, () => this.#client.send(new ListObjectVersionsCommand({
+        Bucket: this.bucket, Prefix: key, KeyMarker: page.keyMarker, VersionIdMarker: page.versionIdMarker,
+      })));
+      for (const v of r.Versions ?? []) if (v.Key === key) versions.push({ versionId: v.VersionId ?? '', isLatest: Boolean(v.IsLatest), size: v.Size ?? 0, lastModified: v.LastModified?.toISOString() ?? '' });
+      for (const m of r.DeleteMarkers ?? []) if (m.Key === key) deleteMarkers.push({ versionId: m.VersionId ?? '', isLatest: Boolean(m.IsLatest), lastModified: m.LastModified?.toISOString() ?? '' });
+      if (!r.IsTruncated) return { versions, deleteMarkers, fetched_at: new Date().toISOString() };
+      page = { keyMarker: r.NextKeyMarker, versionIdMarker: r.NextVersionIdMarker };
+    }
+    throw new Error('LISTING_INCOMPLETE: version listing did not finish, object state unknown');
   }
 
   async getObject(ctx: Ctx, key: string): Promise<string> {
+    this.#keyGuard?.(ctx.session_id, key);
     const r = await this.#run(ctx, () => this.#client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key })));
     return (await r.Body?.transformToString()) ?? '';
   }

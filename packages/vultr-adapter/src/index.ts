@@ -10,7 +10,7 @@ export type { IssuedKey } from './users.ts';
 export { fetchRateCard, RateCardCache } from './plans.ts';
 export { S3Store } from './s3.ts';
 export type { S3Sender } from './s3.ts';
-export type { S3Config, VersionInfo, VersionListing } from './s3.ts';
+export type { S3Config, KeyGuard, VersionInfo, VersionListing } from './s3.ts';
 export { VsiClient, VSI_MODELS, VSI_BASE, priceUsd } from './vsi.ts';
 export type { ChatMessage, ChatRequest, ChatResult } from './vsi.ts';
 export { TierKeys, TierUnavailable } from './tiers.ts';

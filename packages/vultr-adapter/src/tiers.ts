@@ -96,10 +96,11 @@ const INVALID_FIREWALL = { description: '' };
 const INVALID_USER = { name: '' };
 
 const ACL_PROBES: AclProbe[] = [
+// PLAN 2d.2 / GATE-L4 read results [0] (observer create, 403) and [1] (observer list, 200) by position: keep this order.
   { tier: 'observer', method: 'POST', path: '/instances', expect: 403, body: INVALID_INSTANCE },
+  { tier: 'observer', method: 'GET', path: '/instances', expect: 200 },
   { tier: 'observer', method: 'POST', path: '/firewalls', expect: 403, body: INVALID_FIREWALL },
   { tier: 'observer', method: 'POST', path: '/users', expect: 403, body: INVALID_USER },
-  { tier: 'observer', method: 'GET', path: '/instances', expect: 200 },
   { tier: 'deployer', method: 'POST', path: '/firewalls', expect: 403, body: INVALID_FIREWALL },
   { tier: 'deployer', method: 'GET', path: '/users', expect: 403 },
   { tier: 'deployer', method: 'POST', path: '/users', expect: 403, body: INVALID_USER },
