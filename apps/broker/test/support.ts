@@ -57,7 +57,7 @@ export async function makeBroker(opts: { versions?: number; growOnPut?: boolean;
   const s3 = fakeS3(opts.versions ?? 2, { growOnPut: opts.growOnPut });
   const dir = mkdtempSync(join(tmpdir(), 'plb-broker-'));
   const cfg = { ...baseConfig, dataDir: dir, ...opts.config };
-  const policies = new PolicyStore(dir, (opts.floorTransform ?? ((t: string) => t))(readFileSync(cfg.floorPath, 'utf8')), undefined, secrets.policyPubkeyB64, false, readFileSync(cfg.sessionDefaultPath, 'utf8'));
+  const policies = new PolicyStore(dir, (opts.floorTransform ?? ((t: string) => t))(readFileSync(cfg.floorPath, 'utf8')), undefined, secrets.policyPubkeyB64, false, readFileSync(cfg.sessionDefaultPath, 'utf8'), opts.clock);
   const app = await assemble(cfg, secrets, { fetchImpl: mock.fetch, s3: s3.port as never, db: openDb(':memory:'), policies, clock: opts.clock });
   await app.rate.refresh();
   mock.state.calls.length = 0;

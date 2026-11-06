@@ -4,7 +4,7 @@ import {
   ApprovalError, PLAYGROUND_LABEL_RE, VERB_CLASS, canonicalJson, evaluate, isKnownCall, type AllowDecision, type Caller, type CallRequest, type Decision,
   type EscalateDecision, type Params, type PolicyDoc, type ResourceClass, type Target, type Verb,
 } from '@plumbline/policy-engine';
-import { recordDecision, recordEvent, type Bond, type Db, type Ledger } from '@plumbline/ledger';
+import { LIVE_WORKER_WHERE, recordDecision, recordEvent, type Bond, type Db, type Ledger } from '@plumbline/ledger';
 import {
   Firewalls, Instances, Registries, SpendRefused, TierUnavailable, VultrError, Vpcs, type RateCardCache, type S3Store, type TierKeys,
 } from '@plumbline/vultr-adapter';
@@ -202,8 +202,14 @@ type Evaluated =
 const hasMarker = (s: string): boolean => s.toLowerCase().includes('[protected]');
 const short = (): string => randomBytes(3).toString('hex');
 const fingerprint = (t: Target): string => createHash('sha256').update(canonicalJson({ id: t.id ?? null, label: t.label ?? null, tags: [...(t.tags ?? [])].sort(), resolved: t.resolved === true })).digest('hex');
+const FLOOR_OWNED_PREFIXES = ['plumbline-prod-', 'plumbline-infra-', 'plumblinereg'];
+const isFloorOwned = (label: string): boolean => FLOOR_OWNED_PREFIXES.some((p) => label.startsWith(p));
+/** SEC-F4: the reaper selects workers by class and protected, so any plumbline* instance label (never prod/infra) is in cleanup scope. */
 const inCleanupScope = (cls: string, label: string | undefined): boolean =>
-  label !== undefined && (cls === 'instance' ? label.startsWith(WORKER_PREFIX) : (cls === 'vpc' || cls === 'firewall_group') && PLAYGROUND_LABEL_RE.test(label));
+  label !== undefined && (cls === 'instance' ? label.startsWith('plumbline') && !isFloorOwned(label) : (cls === 'vpc' || cls === 'firewall_group') && PLAYGROUND_LABEL_RE.test(label));
+/** SEC-F2a: a session's own VPC or firewall group is labelled plumbline-s<its own sid>-<name>, nothing else. */
+const isOwnPlaygroundLabel = (label: string | undefined, sid: string): boolean =>
+  label !== undefined && label.startsWith(`${SESSION_PREFIX}${sid}-`) && PLAYGROUND_LABEL_RE.test(label);
 
 export class Pipeline {
   constructor(private readonly d: PipelineDeps) {}
@@ -260,8 +266,11 @@ export class Pipeline {
     const owner = this.#ownerOf(target.id);
     const withOwner: WireTarget = { ...target, owner_session: owner };
     const label = target.label ?? '';
+    // SEC-F3: a ledger owner other than the caller makes the resource foreign whatever its label. Rows with no owner keep the label test.
+    // Floor-owned labels (prod, infra, shared registry) stay as they are so the floor's own rule names the denial.
     const scoped = label.startsWith(WORKER_PREFIX) || label.startsWith(SESSION_PREFIX);
-    if (!['update', 'delete'].includes(verb) || !scoped || owner === sid) return withOwner;
+    const foreignOwner = owner !== null && owner !== sid && !isFloorOwned(label);
+    if (!['update', 'delete'].includes(verb) || owner === sid || !(scoped || foreignOwner)) return withOwner;
     return { ...withOwner, label: FOREIGN_LABEL, tags: [...(target.tags ?? []), 'foreign-session'] };
   }
 
@@ -289,6 +298,10 @@ export class Pipeline {
     if (who.cleanup && !inCleanupScope(call.class, resolved.target.label)) {
       recordEvent(this.d.db, 'CLEANUP_REFUSED', who.ledger_session, { class: call.class, id: call.id ?? null, label: resolved.target.label ?? null }, this.d.clock());
       return { refused: 'cleanup path only deletes plumbline-wk-* instances and plumbline-s<sid>-* playground VPCs' };
+    }
+    if (!who.system && call.verb === 'create' && (call.class === 'vpc' || call.class === 'firewall_group') && !isOwnPlaygroundLabel(resolved.target.label, who.ledger_session)) {
+      recordEvent(this.d.db, 'LABEL_REFUSED', who.ledger_session, { class: call.class, label: resolved.target.label ?? null }, this.d.clock());
+      return { refused: `a ${call.class} is created with label plumbline-s${who.ledger_session}-<name> (this session's own prefix)` };
     }
     const request: CallRequest = {
       request_id: requestId ?? `q-${randomBytes(6).toString('hex')}`, task_id: who.task_id, session_id: who.session_id,
@@ -348,7 +361,7 @@ export class Pipeline {
 
   /** Kill-switch fail-closed path: destroys every live worker the ledger knows, independent of any verifier. */
   async destroyWorkers(): Promise<{ destroyed: string[]; failed: { id: string; code: string }[] }> {
-    const rows = this.d.db.prepare("SELECT id, session_id FROM resources WHERE destroyed_at_ms IS NULL AND class='instance' AND label LIKE 'plumbline-wk-%'").all() as { id: string; session_id: string }[];
+    const rows = this.d.db.prepare(`SELECT id, session_id FROM resources WHERE ${LIVE_WORKER_WHERE}`).all() as { id: string; session_id: string }[];
     const out: { destroyed: string[]; failed: { id: string; code: string }[] } = { destroyed: [], failed: [] };
     for (const r of rows) {
       const res = await this.cleanup(r.session_id, 'instance', r.id);

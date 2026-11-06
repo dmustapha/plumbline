@@ -7,6 +7,7 @@ export const cfg: ApiConfig = {
   host: '127.0.0.1', port: 0, brokerSocket: '/x', runnerSocket: '/y', apiToken: 't', runnerToken: 'r', verifierUrl: null,
   evidenceDir: '/nonexistent', publicDir: new URL('../public', import.meta.url).pathname, keyExpiryIso: null, demoCaps: false, maxInFlight: 4,
   sessionsPerIp: 3, sessionWindowMs: 600_000, sessionsPerMinute: 10, maxSessions: 20, ipSpendCapUsd: 1.5,
+  liveSessionsPerIp: 99, liveIdleMs: 600_000, maxStreamsPerIp: 3, maxStreams: 200,
 };
 
 export interface BrokerState {
@@ -18,11 +19,13 @@ export interface BrokerState {
   created: string[];
   /** Extra fields the scripted /v1/session answer carries (e.g. playground_error). */
   sessionExtra: Record<string, unknown>;
+  /** Session ids the broker no longer holds (answered by /v1/sessions/alive). */
+  dead: string[];
 }
 
 /** A scripted stand-in for the broker socket client: records every call, answers by path. */
 export function fakeBroker(init: Partial<BrokerState> = {}) {
-  const state: BrokerState = { sessions: 0, killed: false, spend: {}, approvals: {}, approvalStatus: 'DECIDED', created: [], sessionExtra: {}, ...init };
+  const state: BrokerState = { sessions: 0, killed: false, spend: {}, approvals: {}, approvalStatus: 'DECIDED', created: [], sessionExtra: {}, dead: [], ...init };
   const calls: { method: string; path: string; body?: unknown }[] = [];
   const call = async (method: string, path: string, body?: unknown): Promise<{ status: number; json: unknown }> => {
     calls.push({ method, path, body });
@@ -32,6 +35,8 @@ export function fakeBroker(init: Partial<BrokerState> = {}) {
       state.created.push(sid);
       return { status: 200, json: { session_id: sid, tier: 'standard', playground: null, ...state.sessionExtra } };
     }
+    if (path === '/v1/sessions/alive') return { status: 200, json: { alive: ((body as { ids?: string[] } | undefined)?.ids ?? []).filter((i) => !state.dead.includes(i)) } };
+    if (path.startsWith('/v1/live-list')) return { status: 200, json: { instances: { ok: true, data: [] } } };
     if (path.startsWith('/v1/spend/')) return { status: 200, json: { session_usd: state.spend[path.slice('/v1/spend/'.length)] ?? 0 } };
     if (path.startsWith('/v1/approvals')) {
       const sid = new URL(path, 'http://x').searchParams.get('session_id') ?? '';

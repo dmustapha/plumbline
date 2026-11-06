@@ -41,6 +41,11 @@ export class SessionRegistry {
     return s;
   }
 
+  /** SEC-F1: existence only. Unlike get() this never refreshes last_seen, so the reap sweep cannot keep a session alive. */
+  has(id: string): boolean {
+    return this.#sessions.has(id);
+  }
+
   tier(id: string): 'observer' | 'standard' {
     return this.#sessions.get(id)?.tier ?? 'standard';
   }

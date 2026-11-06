@@ -17,6 +17,7 @@ import type { Pipeline, S3Port } from './pipeline.ts';
 import type { PolicyStore } from './policyStore.ts';
 import { capacityError, pickPlaygroundRegion, Serial } from './playground.ts';
 import { PLAYGROUND_SUBNET_SIZE, playgroundSubnet, type Session, type SessionRegistry } from './sessions.ts';
+import type { TaskState } from './taskState.ts';
 import type { TokenService } from './tokens.ts';
 
 export interface InternalDeps {
@@ -37,11 +38,12 @@ export interface InternalDeps {
   approvals: Approvals;
   egress: Egress;
   s3: S3Port;
-  taskModels: Map<string, string>;
+  tasks: TaskState;
   startedAt: number;
   clock: () => number;
 }
 
+const SESSION_ID = /^[0-9a-f]{8}$/;
 const same = (a: string, b: string): boolean => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
 /**
@@ -94,6 +96,13 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     return { session_id: s.id, tier: s.tier, playground: s.playground, playground_error: made.error, canary };
   });
 
+  // SEC-H1: which of these session ids does the broker still hold? has() only, so asking never keeps a session alive.
+  app.post<{ Body: { ids?: unknown } }>('/v1/sessions/alive', async (req, reply) => {
+    const ids = req.body?.ids;
+    if (!Array.isArray(ids) || ids.length > 50 || !ids.every((i) => typeof i === 'string' && SESSION_ID.test(i))) return reply.code(400).send({ status: 'ARGS_INVALID' });
+    return { alive: (ids as string[]).filter((i) => d.sessions.has(i)) };
+  });
+
   app.post<{ Params: { sid: string }; Body: { tier: 'observer' | 'standard' } }>('/v1/session/:sid/tier', async (req, reply) => {
     if (!['observer', 'standard'].includes(req.body?.tier)) return reply.code(400).send({ status: 'ARGS_INVALID' });
     return { ok: d.sessions.setTier(req.params.sid, req.body.tier) };
@@ -104,7 +113,7 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     if (d.kill.engaged()) return reply.code(423).send({ status: 'kill-switch-engaged' });
     const task_id = `t-${d.clock().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
     const t = d.tokens.mint(task_id, req.body.session_id);
-    if (req.body.model) d.taskModels.set(task_id, req.body.model);
+    d.tasks.register(task_id, t.exp, req.body.model);
     return { task_id, token: t.token, exp: t.exp };
   });
 
@@ -172,8 +181,6 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     sessions: d.sessions.count(), tiers: d.tiers.availability(), spend: d.ledger.display('system'),
     budget_left_pct: Math.max(0, Math.round((1 - d.ledger.globalSpend() / d.config.globalCapUsd) * 100)),
   }));
-
-  const SESSION_ID = /^[0-9a-f]{8}$/;
 
   app.get<{ Querystring: { session_id: string } }>('/v1/rewind', async (req, reply) => {
     const sid = req.query.session_id;

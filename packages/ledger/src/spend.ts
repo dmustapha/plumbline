@@ -39,6 +39,13 @@ export interface DisplaySpend {
 
 const round = (n: number): number => Math.round(n * 1e6) / 1e6;
 
+/**
+ * SEC-F4: a worker is a live, unprotected instance row that a session made. Selection is by class and protected, not by label, so an
+ * instance created under any label counts toward the cap and is reaped. Bootstrap infrastructure (owner session 'system', plumbline-infra-*,
+ * plumbline-prod-*) is excluded explicitly.
+ */
+export const LIVE_WORKER_WHERE = "class='instance' AND protected = 0 AND destroyed_at_ms IS NULL AND session_id <> 'system' AND label NOT LIKE 'plumbline-infra-%' AND label NOT LIKE 'plumbline-prod-%'";
+
 export class Ledger implements SpendGate {
   constructor(
     private readonly db: Db,
@@ -109,7 +116,7 @@ export class Ledger implements SpendGate {
   }
 
   liveWorkerCount(): number {
-    const row = this.db.prepare("SELECT COUNT(*) AS n FROM resources WHERE class='instance' AND label LIKE 'plumbline-wk-%' AND destroyed_at_ms IS NULL").get() as { n: number };
+    const row = this.db.prepare(`SELECT COUNT(*) AS n FROM resources WHERE ${LIVE_WORKER_WHERE}`).get() as { n: number };
     return row.n;
   }
 

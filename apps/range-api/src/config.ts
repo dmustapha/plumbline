@@ -21,6 +21,13 @@ export interface ApiConfig {
   maxSessions: number;
   /** AG4-PRD-5: spend ceiling per IP across ALL its sessions (a new session never resets it). */
   ipSpendCapUsd: number;
+  /** SEC-H1: live sessions one address may hold at once. */
+  liveSessionsPerIp: number;
+  /** SEC-H1: a session with no attack for this long no longer counts as live (matches the broker idle limit). */
+  liveIdleMs: number;
+  /** SEC-M3: open SSE streams per address and in total. */
+  maxStreamsPerIp: number;
+  maxStreams: number;
 }
 
 type Env = Record<string, string | undefined>;
@@ -61,5 +68,9 @@ export function loadApiConfig(env: Env): ApiConfig {
     sessionsPerMinute: positive(env, 'PLUMBLINE_SESSIONS_PER_MINUTE', 10),
     maxSessions: positive(env, 'PLUMBLINE_MAX_SESSIONS', 20),
     ipSpendCapUsd: positive(env, 'PLUMBLINE_IP_SPEND_CAP_USD', 1.5),
+    liveSessionsPerIp: positive(env, 'PLUMBLINE_LIVE_SESSIONS_PER_IP', 2),
+    liveIdleMs: positive(env, 'PLUMBLINE_LIVE_IDLE_MS', 600_000),
+    maxStreamsPerIp: positive(env, 'PLUMBLINE_MAX_STREAMS_PER_IP', 3),
+    maxStreams: positive(env, 'PLUMBLINE_MAX_STREAMS', 200),
   };
 }

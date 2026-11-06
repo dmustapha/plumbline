@@ -27,9 +27,24 @@ function ipCapReached(d: ApiDeps, spent: number): boolean {
   return spent >= d.config.ipSpendCapUsd;
 }
 
+/**
+ * SEC-H1: live sessions this address holds. A session counts while it is inside its 60 minute life, had an attack within the idle
+ * window (env-proof and reads do not count) and the broker still has it. If the broker cannot answer, the local view stands.
+ */
+async function liveCount(d: ApiDeps, ip: string): Promise<number> {
+  const mine = d.book.liveSessionsOf(ip, d.config.liveIdleMs);
+  if (mine.length < d.config.liveSessionsPerIp) return mine.length;
+  const r = await d.broker.call<{ alive?: unknown }>('POST', '/v1/sessions/alive', { ids: mine }).catch(() => null);
+  const alive = r && r.status === 200 && Array.isArray(r.json?.alive) ? new Set(r.json.alive as string[]) : null;
+  return alive ? mine.filter((sid) => alive.has(sid)).length : mine.length;
+}
+
 async function createSession(d: ApiDeps, req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
   const current = credsOf(req);
   if (current.sid && d.book.check(current.sid, current.key) === 'OK') return reply.send({ session_id: current.sid, reused: true });
+  if (await liveCount(d, req.ip) >= d.config.liveSessionsPerIp) {
+    return reply.code(429).send({ status: 'SESSIONS_PER_IP_LIVE', detail: `this address already holds ${d.config.liveSessionsPerIp} live sessions; use one of them or wait for it to idle out` });
+  }
   const perIp = d.sessionIpLimit.take(req.ip);
   if (!perIp.ok) return rateLimited(reply, perIp.retryAfterS);
   const overall = d.sessionGlobalLimit.take('all');
@@ -56,6 +71,7 @@ async function startAttack(d: ApiDeps, req: FastifyRequest<{ Body: AttackBody }>
   if (!sid) return reply;
   const gate = d.attackLimit.take(sid);
   if (!gate.ok) return rateLimited(reply, gate.retryAfterS);
+  d.book.touch(sid);
   if (ipCapReached(d, await ipSpendUsd(d, req.ip))) return reply.code(429).send({ status: 'IP_SPEND_CAP', detail: 'this address has used its spend allowance across all its sessions' });
   const st = await d.broker.call<{ kill_switch?: { engaged: boolean }; budget_left_pct?: number }>('GET', '/v1/status').catch(() => null);
   if (!st || st.json.kill_switch?.engaged || (st.json.budget_left_pct ?? 100) <= 0) return reply.code(503).send({ status: 'REPLAY', detail: 'the live range is capped; see /replay' });
@@ -70,12 +86,16 @@ async function envProof(d: ApiDeps, req: FastifyRequest<{ Body: { session_id?: u
   if (!sid) return reply;
   const gate = d.attackLimit.take(sid);
   if (!gate.ok) return rateLimited(reply, gate.retryAfterS);
+  // SEC REVIEW (opus) #5: the probe takes a runner slot, so it shares the global in-flight gate with real attacks
+  if (!d.inFlight.tryEnter()) return reply.code(503).send({ status: 'OPERATOR_BUSY' });
   try {
     const t = await d.broker.mint(sid, 'direct-sandbox-probe');
     const result = await d.runner.run({ code: ENV_PROOF_CODE, capability: t.capability });
     return { label: 'direct sandbox probe, no model involved', result };
   } catch (e) {
     return reply.code(503).send({ status: 'OPERATOR_BUSY', detail: String((e as Error).message).slice(0, 80) });
+  } finally {
+    d.inFlight.leave();
   }
 }
 

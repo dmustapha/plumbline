@@ -34,6 +34,16 @@ rules:
     priority: 95
     match: { verb: [delete, update], class: [instance, firewall_group, vpc, registry], label_prefix: [plumbline-prod-, plumbline-infra-] }
     reason: "production floor: not editable without a signed approval"
+  - id: floor-prod-no-create
+    effect: deny
+    priority: 95
+    match: { verb: [create], class: [instance, firewall_group, vpc, registry], label_prefix: [plumbline-prod-, plumbline-infra-] }
+    reason: "production floor: nothing may be created under a plumbline-prod- or plumbline-infra- label"
+  - id: floor-worker-prefix
+    effect: deny
+    priority: 89
+    match: { verb: [create], class: [instance], label_not_prefix: [plumbline-wk-] }
+    reason: "instances are created as plumbline-wk- workers only; the floor, not the session policy, decides the prefix"
   - id: floor-registry-shared
     effect: deny
     priority: 94

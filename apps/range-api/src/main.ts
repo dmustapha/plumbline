@@ -3,7 +3,7 @@ import Fastify from 'fastify';
 import { BrokerClient, RunnerClient } from './brokerClient.ts';
 import { loadApiConfig, type ApiConfig } from './config.ts';
 import type { ApiDeps } from './deps.ts';
-import { InFlight, SlidingWindow } from './rateLimit.ts';
+import { Coalescer, InFlight, SlidingWindow, StreamGate } from './rateLimit.ts';
 import { registerRoutes } from './routes.ts';
 import { SessionBook } from './sessionBook.ts';
 import { SseHub } from './sse.ts';
@@ -21,6 +21,9 @@ export async function buildApi(config: ApiConfig, overrides: Partial<ApiDeps> = 
     sessionIpLimit: new SlidingWindow(config.sessionsPerIp, config.sessionWindowMs),
     sessionGlobalLimit: new SlidingWindow(config.sessionsPerMinute, 60_000),
     inFlight: new InFlight(config.maxInFlight),
+    liveListLimit: new SlidingWindow(30, 60_000),
+    liveListCache: new Coalescer(3000, overrides.clock ?? Date.now),
+    streamGate: new StreamGate(config.maxStreamsPerIp, config.maxStreams),
     ...overrides,
   };
   await registerRoutes(app, deps);

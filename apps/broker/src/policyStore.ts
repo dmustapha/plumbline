@@ -47,15 +47,18 @@ export class PolicyStore {
     return new PolicyStore(dir, readFileSync(floorPath, 'utf8'), sig, pubkey, requireSig, readFileSync(defaultPath, 'utf8'));
   }
 
+  /** SEC-M1: a session with no edited copy gets the default; nothing is stored, so an arbitrary sid cannot grow the map. */
   get(sid: string): SessionPolicy {
     const have = this.#copies.get(sid);
     if (have) {
       have.touched = this.clock();
       return have;
     }
-    const fresh: SessionPolicy = { text: this.defaultText, doc: this.defaultDoc, touched: this.clock() };
-    this.#copies.set(sid, fresh);
-    return fresh;
+    return { text: this.defaultText, doc: this.defaultDoc, touched: this.clock() };
+  }
+
+  copies(): number {
+    return this.#copies.size;
   }
 
   put(sid: string, text: string): { ok: true; version: number; hash: string; diff: string[] } | { ok: false; errors: PolicyError[] } {
@@ -72,10 +75,11 @@ export class PolicyStore {
     this.#copies.delete(sid);
   }
 
-  sweep(idleMs: number): string[] {
+  /** Drops copies idle longer than idleMs; a copy whose session is still live (keep returns true) is left alone. */
+  sweep(idleMs: number, keep: (sid: string) => boolean = () => false): string[] {
     const gone: string[] = [];
     for (const [sid, c] of this.#copies) {
-      if (this.clock() - c.touched > idleMs) {
+      if (this.clock() - c.touched > idleMs && !keep(sid)) {
         this.#copies.delete(sid);
         gone.push(sid);
       }

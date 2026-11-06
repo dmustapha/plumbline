@@ -1,11 +1,11 @@
 // File: apps/range-api/src/routes.ts
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { CANNED } from '@plumbline/operator';
 import { SessionBook } from './sessionBook.ts';
-import { relay, sessionFor, type ApiDeps } from './deps.ts';
+import { rateLimited, relay, sessionFor, type ApiDeps } from './deps.ts';
 import { registerSessionRoutes } from './routes-session.ts';
 import { SseHub } from './sse.ts';
 
@@ -32,6 +32,8 @@ async function sendStatic(d: ApiDeps, reply: FastifyReply, file: string): Promis
   }
 }
 
+const knownSession = (d: ApiDeps, sid: unknown): sid is string => SessionBook.isSessionId(sid) && d.book.has(sid);
+
 function registerStatic(app: FastifyInstance, d: ApiDeps): void {
   app.addHook('onSend', async (_req, reply) => {
     reply.header('x-content-type-options', 'nosniff').header('referrer-policy', 'no-referrer').header('x-frame-options', 'DENY');
@@ -44,7 +46,14 @@ function registerStatic(app: FastifyInstance, d: ApiDeps): void {
 function registerReads(app: FastifyInstance, d: ApiDeps): void {
   const now = d.clock ?? Date.now;
   app.get('/healthz', async () => ({ ok: true, in_flight: d.inFlight.count }));
-  app.get<{ Querystring: { session_id?: string } }>('/api/live-list', async (req, reply) => relay(reply, d.broker.call('GET', `/v1/live-list?session_id=${encodeURIComponent(req.query.session_id ?? 'system')}`)));
+  // SEC-H3: only 'system' or a session that exists; 30 answers a minute per address; one broker call per session id per 3 s.
+  app.get<{ Querystring: { session_id?: string } }>('/api/live-list', async (req, reply) => {
+    const sid = req.query.session_id ?? 'system';
+    if (sid !== 'system' && !knownSession(d, sid)) return reply.code(404).send({ status: 'SESSION_UNKNOWN' });
+    const gate = d.liveListLimit.take(req.ip);
+    if (!gate.ok) return rateLimited(reply, gate.retryAfterS);
+    return relay(reply, d.liveListCache.get(sid, () => d.broker.call('GET', `/v1/live-list?session_id=${encodeURIComponent(sid)}`)));
+  });
   app.get('/api/canned', async () => CANNED);
   app.get('/api/status', async (_r, reply) => {
     const st = await d.broker.call<Record<string, unknown>>('GET', '/v1/status').catch(() => null);
@@ -64,8 +73,13 @@ function registerReads(app: FastifyInstance, d: ApiDeps): void {
 }
 
 function registerPolicy(app: FastifyInstance, d: ApiDeps): void {
-  app.get<{ Params: { sid: string } }>('/api/policy/:sid', async (req, reply) => relay(reply, d.broker.call('GET', `/v1/policy/${encodeURIComponent(req.params.sid)}`)));
+  // SEC-M1: a policy exists only for a session that exists ('production' is the one read-only name).
+  app.get<{ Params: { sid: string } }>('/api/policy/:sid', async (req, reply) => {
+    if (req.params.sid !== 'production' && !knownSession(d, req.params.sid)) return reply.code(404).send({ status: 'SESSION_UNKNOWN' });
+    return relay(reply, d.broker.call('GET', `/v1/policy/${encodeURIComponent(req.params.sid)}`));
+  });
   app.put<{ Params: { sid: string }; Body: { text?: unknown } }>('/api/policy/:sid', { bodyLimit: 70 * 1024 }, async (req, reply) => {
+    if (!knownSession(d, req.params.sid)) return reply.code(404).send({ status: 'SESSION_UNKNOWN' });
     if (typeof req.body?.text !== 'string') return reply.code(400).send({ status: 'ARGS_INVALID' });
     const sid = sessionFor(d, req, reply, req.params.sid);
     if (!sid) return reply;
@@ -78,18 +92,44 @@ function registerPolicy(app: FastifyInstance, d: ApiDeps): void {
   });
 }
 
+const EVIDENCE_TTL_MS = 10_000;
+
+/** Newest mtime and file count of the evidence directory: a stat per file, no reads. */
+function evidenceStamp(dir: string): { newest: number; count: number } {
+  const names = readdirSync(dir).filter((n) => n.endsWith('.json'));
+  const newest = names.reduce((m, n) => { try { return Math.max(m, statSync(join(dir, n)).mtimeMs); } catch { return m; } }, 0);
+  return { newest, count: names.length };
+}
+
+function readEvidence(dir: string): Record<string, unknown> {
+  const evidence: Record<string, unknown> = {};
+  for (const f of readdirSync(dir).filter((n) => n.endsWith('.json'))) {
+    try { evidence[f] = JSON.parse(readFileSync(join(dir, f), 'utf8')); } catch { evidence[f] = { error: 'unreadable' }; }
+  }
+  return evidence;
+}
+
+/** SEC-L1: the evidence map is kept for 10 s; a newer file (or a changed file count) replaces it at once. */
+function evidenceReader(d: ApiDeps): () => Record<string, unknown> {
+  const now = d.clock ?? Date.now;
+  let cache: { at: number; newest: number; count: number; data: Record<string, unknown> } | null = null;
+  return () => {
+    if (!existsSync(d.config.evidenceDir)) return {};
+    const stamp = evidenceStamp(d.config.evidenceDir);
+    const fresh = cache !== null && now() - cache.at < EVIDENCE_TTL_MS && stamp.newest <= cache.newest && stamp.count === cache.count;
+    if (fresh && cache) return cache.data;
+    cache = { at: now(), ...stamp, data: readEvidence(d.config.evidenceDir) };
+    return cache.data;
+  };
+}
+
 function registerProof(app: FastifyInstance, d: ApiDeps): void {
   const bf = d.fetchImpl ?? fetch;
+  const evidenceNow = evidenceReader(d);
   app.get('/api/proof', async (_r, reply) => {
     const proof = await d.broker.call<Record<string, unknown>>('GET', '/v1/proof').catch(() => null);
     if (!proof) return reply.code(502).send({ status: 'BROKER_UNREACHABLE' });
-    const evidence: Record<string, unknown> = {};
-    if (existsSync(d.config.evidenceDir)) {
-      for (const f of readdirSync(d.config.evidenceDir).filter((n) => n.endsWith('.json'))) {
-        try { evidence[f] = JSON.parse(readFileSync(join(d.config.evidenceDir, f), 'utf8')); } catch { evidence[f] = { error: 'unreadable' }; }
-      }
-    }
-    return { ...proof.json, evidence, containers_now: await d.runner.containers().catch(() => null) };
+    return { ...proof.json, evidence: evidenceNow(), containers_now: await d.runner.containers().catch(() => null) };
   });
 
   const verifier = async (path: string, method: string): Promise<{ status: number; json: unknown }> => {
@@ -106,13 +146,20 @@ function registerProof(app: FastifyInstance, d: ApiDeps): void {
 }
 
 function registerStream(app: FastifyInstance, d: ApiDeps): void {
+  // SEC-M3: the stream carries a judge's attack text and verdicts, so it needs that session's key (the browser EventSource sends the
+  // SameSite=Strict cookie) and is capped per address and in total.
   app.get<{ Params: { sid: string } }>('/api/stream/:sid', (req, reply) => {
-    if (!SessionBook.isSessionId(req.params.sid) || !d.book.has(req.params.sid)) return reply.code(404).send({ status: 'SESSION_UNKNOWN' });
+    if (!knownSession(d, req.params.sid)) return reply.code(404).send({ status: 'SESSION_UNKNOWN' });
+    if (!sessionFor(d, req, reply, req.params.sid)) return reply;
+    const release = d.streamGate.open(req.ip);
+    if (!release) return reply.code(429).send({ status: 'TOO_MANY_STREAMS' });
     reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive', 'x-accel-buffering': 'no' });
+    reply.raw.write(': open\n\n'); // flushes the headers now; without it the client waits for the first 15 s ping
     const last = Number(req.headers['last-event-id'] ?? 0) || 0;
     const off = d.hub.subscribe(req.params.sid, (e) => reply.raw.write(SseHub.format(e)), last);
     const ping = setInterval(() => reply.raw.write(': ping\n\n'), 15000);
-    req.raw.on('close', () => { clearInterval(ping); off(); });
+    // the response socket's close fires when the client goes away (the request's own close can fire as soon as the GET is read)
+    reply.raw.once('close', () => { clearInterval(ping); off(); release(); });
     return reply;
   });
 }

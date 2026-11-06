@@ -298,9 +298,9 @@ describe('dollar and capacity rules', () => {
     expect(run(create(), state({ rate_card: null })).rule_id).toBe('rate-card-unavailable');
     expect(run(create(), state({ rate_card: { fetched_at_ms: 1, hourly: { 'vc2-1c-1gb': 0.007 } } })).rule_id).toBe('rate-card-unavailable');
   });
-  it('a foreign label on create is default-deny, not allow', () => {
+  it('a plumbline label that is not a worker label on create is refused by the floor worker prefix (SEC-F4), not allowed', () => {
     const r = req({ verb: 'create', class: 'instance', params: { plan: 'vc2-1c-1gb', region: 'ewr', label: 'plumbline-other' } });
-    expect(run(r).rule_id).toBe('default-deny');
+    expect(run(r).rule_id).toBe('floor-worker-prefix');
   });
 });
 

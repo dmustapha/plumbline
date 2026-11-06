@@ -13,3 +13,13 @@ Limits stated on screen and in the README. Each line is a promise not to claim m
 - That receipts, hash chains or logs are the proof: the headline is reconciliation against the live account (Thesis DRIFT TRIPWIRES).
 - That any code, policy or document from leash or Backstop was reused (concern 15 override condition).
 - That registry push works unless U-8 passed; that gVisor works unless U-1 passed; that a read-only key can read billing unless U-6 passed.
+
+## Limits found on the real Vultr account (2026-11-06, each with evidence)
+- Isolation tier: the sandbox is a hardened Docker container run under gVisor (`runsc`, U-1 evidence/probe-first-hour.txt). The VM has no /dev/kvm (U-3), so it is NOT a microVM and not claimed to be unescapable.
+- Registry: Vultr allows one free registry per account and the protected shared `plumblinereg` holds it. A registry create is engine-gated (the engine ALLOWs, Vultr then answers 422); we do not claim a live registry create/delete cycle. Registry push is not claimed (U-8).
+- Playgrounds: Vultr allows 5 VPCs per location on this account. Hot-edit playgrounds are VPCs spread over ewr and ord, capped at 4 per region; when full, a session still attacks but shows "playground at capacity".
+- Verifier ACL check: a view-only key is 403 on GET /account, so the verifier cannot read its own ACL list. It proves its shape by status codes (read-only probes); the exact ACL set is asserted by the owner when the keys are created (bootstrap).
+- Rewind proof: the L6 gate reads object versions through the broker's own S3 store, not an independent client.
+- Spend shown is broker arithmetic from public hourly prices, not Vultr's invoice.
+- New Vultr instances answer 409 "Server is currently locked" until installed (~20 s); gates and cleanup retry on it.
+- Instance creation showed one transient "maximum number of active instances" refusal from Vultr that cleared on its own; provisioning under load is subject to Vultr account limits.

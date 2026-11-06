@@ -5,6 +5,8 @@ interface Entry {
   keyHash: Buffer;
   ip: string;
   at: number;
+  /** SEC-H1: time of the last attack; env-proof and reads never move it. */
+  lastAttack: number;
 }
 
 export type KeyCheck = 'OK' | 'KEY_REQUIRED' | 'SESSION_UNKNOWN' | 'KEY_MISMATCH';
@@ -19,7 +21,12 @@ const hashOf = (key: string): Buffer => createHash('sha256').update(key).digest(
  */
 export class SessionBook {
   readonly #entries = new Map<string, Entry>();
-  constructor(private readonly ttlMs: number = 3 * 60 * 60_000, private readonly clock: () => number = Date.now) {}
+  /**
+   * ttlMs: how long an entry is remembered (spend accounting per IP outlives the credential).
+   * lifetimeMs: SEC-H1, the total life of a session's credential. Past it the session is unknown to every route, so activity
+   * cannot keep a session (and its broker-side playground) alive for ever.
+   */
+  constructor(private readonly ttlMs: number = 3 * 60 * 60_000, private readonly clock: () => number = Date.now, private readonly lifetimeMs: number = 60 * 60_000) {}
 
   static isSessionId(v: unknown): v is string {
     return typeof v === 'string' && SESSION_ID.test(v);
@@ -29,17 +36,34 @@ export class SessionBook {
   register(sid: string, ip: string): { key: string; expired: string[] } {
     const expired = this.#prune();
     const key = randomBytes(16).toString('hex');
-    this.#entries.set(sid, { keyHash: hashOf(key), ip, at: this.clock() });
+    this.#entries.set(sid, { keyHash: hashOf(key), ip, at: this.clock(), lastAttack: this.clock() });
     return { key, expired };
   }
 
+  #usable(sid: unknown): Entry | undefined {
+    const e = typeof sid === 'string' ? this.#entries.get(sid) : undefined;
+    return e && this.clock() - e.at < this.lifetimeMs ? e : undefined;
+  }
+
   has(sid: string): boolean {
-    return this.#entries.has(sid);
+    return this.#usable(sid) !== undefined;
+  }
+
+  /** Records an attack: the session counts as live for another idle window. */
+  touch(sid: string): void {
+    const e = this.#entries.get(sid);
+    if (e) e.lastAttack = this.clock();
+  }
+
+  /** SEC-H1: sessions of this address that are inside their lifetime and had an attack (or were created) within idleMs. */
+  liveSessionsOf(ip: string, idleMs: number): string[] {
+    const now = this.clock();
+    return [...this.#entries].filter(([sid, e]) => e.ip === ip && this.#usable(sid) !== undefined && now - e.lastAttack < idleMs).map(([sid]) => sid);
   }
 
   check(sid: unknown, key: unknown): KeyCheck {
     if (typeof key !== 'string' || key.length === 0) return 'KEY_REQUIRED';
-    const e = typeof sid === 'string' ? this.#entries.get(sid) : undefined;
+    const e = this.#usable(sid);
     if (!e) return 'SESSION_UNKNOWN';
     return timingSafeEqual(e.keyHash, hashOf(key)) ? 'OK' : 'KEY_MISMATCH';
   }

@@ -28,6 +28,7 @@ export const RULE_IDS = [
   'allow-ledger-read', 'allow-instance-update',
   'policy-write-owner-only', 'policy-production-immutable', 'floor-registry-shared', 'target-unresolved',
   'playground-label-malformed', 'object-state-unknown', 'ttl-invalid', 'args-invalid',
+  'floor-prod-no-create', 'floor-worker-prefix',
 ] as const;
 
 export function isAllowedRuleId(id: string): boolean {

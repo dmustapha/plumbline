@@ -3,7 +3,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { ApiConfig } from './config.ts';
 import { credsOf } from './creds.ts';
 import type { BrokerClient, JsonResponse, RunnerClient } from './brokerClient.ts';
-import type { InFlight, SlidingWindow } from './rateLimit.ts';
+import type { Coalescer, InFlight, SlidingWindow, StreamGate } from './rateLimit.ts';
 import type { SessionBook } from './sessionBook.ts';
 import type { SseHub } from './sse.ts';
 
@@ -22,6 +22,12 @@ export interface ApiDeps {
   /** AG4-PRD-5: session creations per minute across all callers. */
   sessionGlobalLimit: SlidingWindow;
   inFlight: InFlight;
+  /** SEC-H3: /api/live-list answers per address, 30 a minute. */
+  liveListLimit: SlidingWindow;
+  /** SEC-H3: one broker call per session id per 3 s, shared by concurrent callers. */
+  liveListCache: Coalescer<JsonResponse>;
+  /** SEC-M3: open SSE streams per address and in total. */
+  streamGate: StreamGate;
   fetchImpl?: typeof fetch;
   clock?: () => number;
 }
