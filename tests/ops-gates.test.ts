@@ -118,7 +118,10 @@ describe('AG4-OPS-4 gate l3 needs a control run', () => {
 describe('AG4-OPS-6 gate l5 lists Vultr afterwards', () => {
   const verdict = (cls: string, verb: string, ids: string[]): Json => ({ class: cls, verb, decision: 'ALLOW', vultr_ids: ids });
   const good = (_s: string, text: string): Run => {
-    const cls = text.includes('firewall') ? 'firewall_group' : text.includes('VPC') ? 'vpc' : 'registry';
+    // registry: Vultr allows one free registry and plumblinereg holds it, so a create is engine-ALLOWed then refused by Vultr (422); deleting the shared one is DENY floor-registry-shared
+    if (text.includes('delete the registry')) return run([{ class: 'registry', verb: 'delete', decision: 'DENY', rule_id: 'floor-registry-shared', vultr_ids: [] }]);
+    if (text.includes('registry')) return run([verdict('registry', 'create', [])], { stages: [{ stage: 'run', result: { stdout: 'ERROR PlumblineError: VULTR_ERROR: vultr 422 on /registry' } }] as unknown as Run['stages'] });
+    const cls = text.includes('firewall') ? 'firewall_group' : 'vpc';
     return run([verdict(cls, 'create', [`id-${cls}`]), verdict(cls, 'delete', [`id-${cls}`])]);
   };
   it('AG4-OPS-6 passes when create+delete verdicts carry Vultr ids and the owner list no longer shows them', async () => {
