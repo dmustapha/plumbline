@@ -145,3 +145,21 @@ describe('leaseState', () => {
     expect(leaseState(null, NOW + 1000, { startedAt: NOW, everSeen: true })).toBe('LAPSED');
   });
 });
+
+describe('DBG-V-M1 leaseState start-up grace for a stale file', () => {
+  const stale = { last_ts: 1, ttl_s: 45, received_at: NOW - 3_600_000 };
+  const ctx = { startedAt: NOW, graceMs: 120_000, everSeen: false, graceStale: true };
+  it('DBG-V-M1: a stale-but-valid lease is NEVER inside the process start grace, LAPSED after it', () => {
+    expect(leaseState(stale, NOW + 1000, ctx)).toBe('NEVER');
+    expect(leaseState(stale, NOW + 121_000, ctx)).toBe('LAPSED');
+  });
+  it('DBG-V-M1: without the opt-in, or once the lease was seen alive, a stale file is LAPSED at once (strict default kept)', () => {
+    expect(leaseState(stale, NOW + 1000, { ...ctx, graceStale: false })).toBe('LAPSED');
+    expect(leaseState(stale, NOW + 1000, { startedAt: NOW })).toBe('LAPSED');
+    expect(leaseState(stale, NOW + 1000, { ...ctx, everSeen: true })).toBe('LAPSED');
+  });
+  it('DBG-V-M1: the ttl 0 kill-switch lease and a future-dated file are never excused by the grace', () => {
+    expect(leaseState({ ...stale, ttl_s: 0 }, NOW + 1000, ctx)).toBe('LAPSED');
+    expect(leaseState({ ...stale, received_at: NOW + 3_600_000 }, NOW + 1000, ctx)).toBe('LAPSED');
+  });
+});

@@ -62,7 +62,7 @@ export function loadApiConfig(env: Env): ApiConfig {
     publicDir: env.PLUMBLINE_PUBLIC_DIR ?? '/opt/plumbline/app/apps/range-api/public',
     keyExpiryIso: env.PLUMBLINE_KEY_EXPIRY_ISO ?? null,
     demoCaps: env.PLUMBLINE_DEMO_CAPS === '1',
-    maxInFlight: Number(env.PLUMBLINE_MAX_IN_FLIGHT ?? 4),
+    maxInFlight: Number(env.PLUMBLINE_MAX_IN_FLIGHT ?? 2), // M3: never above the runner's concurrent-sandbox cap (apps/runner buildRunnerApp, 2)
     sessionsPerIp: positive(env, 'PLUMBLINE_SESSIONS_PER_IP', 3),
     sessionWindowMs: positive(env, 'PLUMBLINE_SESSION_WINDOW_MS', 600_000),
     sessionsPerMinute: positive(env, 'PLUMBLINE_SESSIONS_PER_MINUTE', 10),

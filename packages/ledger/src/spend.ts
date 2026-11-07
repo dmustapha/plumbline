@@ -1,5 +1,6 @@
 // File: packages/ledger/src/spend.ts
 import type { Db } from './db.ts';
+import { listUnknownOutcomes } from './export.ts';
 
 export type SpendKind = 'vultr' | 's3' | 'vsi';
 
@@ -74,8 +75,9 @@ export class Ledger implements SpendGate {
     const globalSpent = this.globalSpend();
     const remainingGlobal = round(this.limits.global_cap_usd - globalSpent);
     const remainingSession = round(this.limits.session_ceiling_usd - sessionSpent);
-    if (estimateUsd > remainingGlobal) return { ok: false, reason: 'global-cap-exceeded' };
-    if (kind !== 'vsi' && estimateUsd > remainingSession) return { ok: false, reason: 'session-cap-exceeded' };
+    // M2: the caps gate real spend only. A zero-cost call (read, delete, S3) is never refused, so cleanup and the kill switch work at the cap.
+    if (estimateUsd > 0 && estimateUsd > remainingGlobal) return { ok: false, reason: 'global-cap-exceeded' };
+    if (estimateUsd > 0 && kind !== 'vsi' && estimateUsd > remainingSession) return { ok: false, reason: 'session-cap-exceeded' };
     let settled = false;
     const add = (usd: number): void => {
       if (kind === 'vsi') return;
@@ -113,6 +115,11 @@ export class Ledger implements SpendGate {
 
   markDestroyed(id: string): void {
     this.db.prepare('UPDATE resources SET destroyed_at_ms = ? WHERE id = ? AND destroyed_at_ms IS NULL').run(this.clock(), id);
+  }
+
+  /** M4: POST /instances calls whose outcome is still unknown. Each may be a live instance the ledger has no row for, so each counts against max_instances. */
+  unknownCreateCount(): number {
+    return listUnknownOutcomes(this.db).filter((u) => u.outcome.method === 'POST' && u.outcome.path === '/instances').length;
   }
 
   liveWorkerCount(): number {

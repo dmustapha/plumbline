@@ -26,7 +26,7 @@ const baselineIds = (): ReadonlySet<string> | null => {
   return entries === null ? null : new Set(entries.map((e) => e.id));
 };
 const dryRun = resolveDryRun(process.env);
-const dog = new Watchdog({ http, floor: loaded.floor, sharedDir: config.sharedDir, dryRun, verifierUid: config.verifierUid, leaseGraceMs: config.leaseGraceMs, baselineIds });
+const dog = new Watchdog({ http, floor: loaded.floor, sharedDir: config.sharedDir, dryRun, verifierUid: config.verifierUid, leaseGraceMs: config.leaseGraceMs, bootGrace: true, baselineIds });
 console.log(JSON.stringify({ evt: 'watchdog-running', dry_run: dryRun, tick_ms: config.tickMs, key_acls: acls, floor: loaded.floor.hash.slice(0, 12) }));
 
 let stop = false;

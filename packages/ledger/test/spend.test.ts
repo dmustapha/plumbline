@@ -40,3 +40,17 @@ describe('spend()', () => {
     expect(mk().display('s').basis).toBe('BROKER ARITHMETIC');
   });
 });
+
+describe('DBG spend gate', () => {
+  it('DBG-M2: charge(kind, 0) is ok:true over the global and session caps; positive cost over the cap is refused', () => {
+    const l = mk(1, 1);
+    l.recordInference('s', 'm', 1, 1, 1.01);
+    for (const kind of ['vultr', 's3', 'vsi'] as const) expect(l.charge(kind, 0, { session_id: 's' }).ok).toBe(true);
+    const over = l.charge('vultr', 0.001, { session_id: 's' });
+    expect(over.ok === false && over.reason).toBe('global-cap-exceeded');
+    const l2 = mk(0.01, 10);
+    l2.charge('vultr', 0.01, { session_id: 's' });
+    expect(l2.charge('vultr', 0, { session_id: 's' }).ok).toBe(true);
+    expect(l2.charge('vultr', 0.001, { session_id: 's' }).ok).toBe(false);
+  });
+});

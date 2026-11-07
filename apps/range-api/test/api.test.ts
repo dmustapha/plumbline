@@ -57,6 +57,16 @@ describe('range api', () => {
     expect(f.calls.filter((c) => c.method === 'PUT')).toHaveLength(1);
   });
 
+  it('DBG-1: a full-size production policy reaches the broker (signature check runs) instead of a 413', async () => {
+    const f = fakeBroker();
+    const { app } = await makeApi(f);
+    const r = await app.inject({ method: 'POST', url: '/api/policy/production', payload: { policy: 'x'.repeat(5000), signature: 'AAAA' } });
+    expect(r.statusCode).not.toBe(413);
+    expect(f.calls.some((c) => c.path === '/v1/policy-production')).toBe(true);
+    const big = await app.inject({ method: 'POST', url: '/api/policy/production', payload: { policy: 'x'.repeat(80 * 1024) } });
+    expect(big.statusCode).toBe(413);
+  });
+
   it('a body over 2 KiB is refused', async () => {
     const { app } = await makeApi(fakeBroker());
     const r = await app.inject({ method: 'POST', url: '/api/attack', payload: { session_id: 's', text: 'a'.repeat(3000) } });

@@ -26,6 +26,8 @@ export interface BootstrapOptions {
   rotate: boolean;
   /** `id -u plumbline-watchdog` on VM 2; only known after bootstrap-vm.sh has run there */
   watchdogUid?: string;
+  /** `id -u plumbline-verifier` on VM 2: the watchdog refuses to boot without it (assertOwnUser) */
+  verifierUid?: string;
   fetchImpl?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
   s3Client?: S3Sender;
@@ -42,6 +44,8 @@ export interface BootstrapSummary {
   tokens: 'reused' | 'generated';
   ledger: { decisions: number; resources: number; gaps: string[] };
   pending: string[];
+  /** watchdog.env items the owner must still settle on VM 2 (uid, dry-run flip); kept apart from `pending` */
+  pending_watchdog_env: string[];
   key_expiry: string;
   env_dir: string;
   next: string;
@@ -226,7 +230,17 @@ const dashed = (ip: string): string => `${ip.replaceAll('.', '-')}.sslip.io`;
 
 interface Built { files: Record<string, string> }
 
-function buildEnvFiles(o: BootstrapOptions, broker: InstanceView, verifier: InstanceView, keys: Record<string, string>, tk: ReturnType<typeof pickTokens>['t']): Built {
+/**
+ * M4: values the owner sets by hand on a generated file survive a re-run or a rotation. An explicit flag wins over the kept value;
+ * dry-run defaults to 1 only when no watchdog.env exists yet.
+ */
+export function keptHandSet(o: Pick<BootstrapOptions, 'watchdogUid' | 'verifierUid'>, existing: Record<string, EnvMap>): { watchdogUid?: string; verifierUid?: string; dryRun: string } {
+  const watchdogUid = o.watchdogUid ?? existing['verifier.env']?.PLUMBLINE_WATCHDOG_UID;
+  const verifierUid = o.verifierUid ?? existing['watchdog.env']?.PLUMBLINE_VERIFIER_UID;
+  return { ...(watchdogUid ? { watchdogUid } : {}), ...(verifierUid ? { verifierUid } : {}), dryRun: existing['watchdog.env']?.PLUMBLINE_WATCHDOG_DRY_RUN ?? '1' };
+}
+
+function buildEnvFiles(o: BootstrapOptions, broker: InstanceView, verifier: InstanceView, keys: Record<string, string>, tk: ReturnType<typeof pickTokens>['t'], kept: ReturnType<typeof keptHandSet>): Built {
   const e = o.env;
   const pub = e.PLUMBLINE_POLICY_PUBKEY as string;
   const hosts = { verifier: dashed(verifier.main_ip), broker: dashed(broker.main_ip) };
@@ -239,14 +253,17 @@ function buildEnvFiles(o: BootstrapOptions, broker: InstanceView, verifier: Inst
     VULTR_INFERENCE_API_KEY: e.VULTR_INFERENCE_API_KEY as string, VULTR_S3_HOST: e.VULTR_S3_HOST as string,
     VULTR_S3_ACCESS_KEY: e.VULTR_S3_ACCESS_KEY as string, VULTR_S3_SECRET_KEY: e.VULTR_S3_SECRET_KEY as string,
   };
-  const verifierOver: EnvMap = { PLUMBLINE_VERIFIER_KEY: keys['plumbline-verifier-ro'] as string, PLUMBLINE_LEASE_SECRET: tk.lease, PLUMBLINE_POLICY_PUBKEY: pub, ...(o.watchdogUid ? { PLUMBLINE_WATCHDOG_UID: o.watchdogUid } : {}) };
+  const verifierOver: EnvMap = { PLUMBLINE_VERIFIER_KEY: keys['plumbline-verifier-ro'] as string, PLUMBLINE_LEASE_SECRET: tk.lease, PLUMBLINE_POLICY_PUBKEY: pub, ...(kept.watchdogUid ? { PLUMBLINE_WATCHDOG_UID: kept.watchdogUid } : {}) };
   return {
     files: {
       'broker.env': renderEnv(exampleOf('broker.env'), brokerOver, hosts),
       'api.env': renderEnv(exampleOf('api.env'), { PLUMBLINE_API_TOKEN: tk.api, PLUMBLINE_RUNNER_TOKEN: tk.runner, PLUMBLINE_VERIFIER_URL: verifierUrl, PLUMBLINE_KEY_EXPIRY_ISO: o.expiry }, hosts),
       'runner.env': renderEnv(exampleOf('runner.env'), { PLUMBLINE_RUNNER_TOKEN: tk.runner }, hosts),
       'verifier.env': renderEnv(exampleOf('verifier.env'), verifierOver, hosts, ['PLUMBLINE_WATCHDOG_UID']),
-      'watchdog.env': checkedLines([`PLUMBLINE_WATCHDOG_KEY=${keys['plumbline-watchdog']}`, `PLUMBLINE_POLICY_PUBKEY=${pub}`, 'PLUMBLINE_WATCHDOG_DRY_RUN=1']),
+      'watchdog.env': checkedLines([
+        `PLUMBLINE_WATCHDOG_KEY=${keys['plumbline-watchdog']}`, `PLUMBLINE_POLICY_PUBKEY=${pub}`,
+        ...(kept.verifierUid ? [`PLUMBLINE_VERIFIER_UID=${kept.verifierUid}`] : []), `PLUMBLINE_WATCHDOG_DRY_RUN=${kept.dryRun}`,
+      ]),
     },
   };
 }
@@ -257,6 +274,13 @@ interface RawInstance { os?: unknown; os_id?: unknown; power_status?: unknown }
 async function baselineEntry(o: OwnerContext, i: InstanceView) {
   const raw = (await o.http.request<{ instance: RawInstance }>('GET', `/instances/${encodeURIComponent(i.id)}`, o.ctx)).instance;
   return { id: i.id, class: 'instance', label: i.label, plan: i.plan, region: i.region, power_status: String(raw.power_status ?? i.power_status), os: String(raw.os ?? ''), os_id: Number(raw.os_id ?? 0), tags: i.tags };
+}
+
+function pendingWatchdogEnv(kept: ReturnType<typeof keptHandSet>): string[] {
+  const out: string[] = [];
+  if (!kept.verifierUid) out.push('PLUMBLINE_VERIFIER_UID: on VM 2 run `id -u plumbline-verifier`, append it to /etc/plumbline/watchdog.env (or re-run with --verifier-uid N); the watchdog refuses to boot without it');
+  if (kept.dryRun !== '0') out.push('PLUMBLINE_WATCHDOG_DRY_RUN=1: the watchdog only reports; set it to 0 in /etc/plumbline/watchdog.env to go live (a re-run keeps your value)');
+  return out;
 }
 
 function secretsIn(text: string, secrets: string[]): boolean {
@@ -290,7 +314,8 @@ async function bootstrapWith(o: OwnerContext, opts: BootstrapOptions, sleep: (ms
   await seedBucket(o, opts.env, opts.s3Client);
   const tk = pickTokens(existing, opts.rotate);
   const keys = Object.fromEntries(Object.entries(users).map(([n, u]) => [n, u.key]));
-  const built = buildEnvFiles(opts, broker, verifier, keys, tk.t);
+  const kept = keptHandSet(opts, existing);
+  const built = buildEnvFiles(opts, broker, verifier, keys, tk.t, kept);
   for (const [name, text] of Object.entries(built.files)) writeAtomic(`${opts.out}/${name}`, text);
   const baseline = [...(await Promise.all([broker, verifier, prod].map((i) => baselineEntry(o, i)))), { id: registryId, class: 'registry', label: REGISTRY, plan: 'start_up', region: 'ewr' }];
   writeAtomic(`${opts.out}/baseline.json`, JSON.stringify({ generated_at: new Date().toISOString(), resources: baseline }, null, 2));
@@ -299,7 +324,8 @@ async function bootstrapWith(o: OwnerContext, opts: BootstrapOptions, sleep: (ms
     broker_ip: broker.main_ip, verifier_ip: verifier.main_ip, verifier_region: region2, prod_db: prod.id, registry: registryId,
     users: Object.fromEntries(Object.entries(users).map(([n, u]) => [n, { id: u.id, how: u.how }])), tokens: tk.reused ? 'reused' : 'generated',
     ledger: { decisions: count('decisions'), resources: count('resources'), gaps },
-    pending: opts.watchdogUid ? [] : ['PLUMBLINE_WATCHDOG_UID: on VM 2 after bootstrap-vm.sh run `id -u plumbline-watchdog`, append it to /etc/plumbline/verifier.env (or re-run with --watchdog-uid N)'],
+    pending: kept.watchdogUid ? [] : ['PLUMBLINE_WATCHDOG_UID: on VM 2 after bootstrap-vm.sh run `id -u plumbline-watchdog`, append it to /etc/plumbline/verifier.env (or re-run with --watchdog-uid N)'],
+    pending_watchdog_env: pendingWatchdogEnv(kept),
     key_expiry: `UNVERIFIED (U-10): Vultr's create response carries no date_expire; ${opts.expiry} is only the banner value. Check expiry in the console.`,
     env_dir: opts.out,
     next: 'scp ledger.sqlite to the broker data dir, the env files and baseline.json to the VMs (ops/scripts/vm-create.md), then run bootstrap-vm.sh on each',
@@ -315,7 +341,7 @@ const arg = (n: string): string | undefined => { const i = process.argv.indexOf(
 async function main(): Promise<void> {
   if (existsSync(OWNER_ENV_FILE)) process.loadEnvFile(OWNER_ENV_FILE);
   const sshKeyId = arg('ssh-key-id') ?? process.env.VULTR_SSH_KEY_ID;
-  const summary = await runBootstrap({ env: process.env, out: arg('out') ?? DEFAULT_OUT, sshKeyId, expiry: arg('expiry') ?? DEFAULT_EXPIRY, rotate: process.argv.includes('--rotate'), watchdogUid: arg('watchdog-uid') });
+  const summary = await runBootstrap({ env: process.env, out: arg('out') ?? DEFAULT_OUT, sshKeyId, expiry: arg('expiry') ?? DEFAULT_EXPIRY, rotate: process.argv.includes('--rotate'), watchdogUid: arg('watchdog-uid'), verifierUid: arg('verifier-uid') });
   console.log(JSON.stringify(summary));
   if (summary.ledger.gaps.length > 0) process.exitCode = 2;
 }

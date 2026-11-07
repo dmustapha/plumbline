@@ -25,18 +25,42 @@ export function cleanEnv(): NodeJS.ProcessEnv {
   return keep;
 }
 
+const TAIL_BYTES = 16 * 1024;
+const TRUNCATED = '\n...[truncated]\n';
+
+/**
+ * M2: keeps a head of `max - TAIL_BYTES` and a rolling tail of the last TAIL_BYTES, so a runaway printer still hands the host the final
+ * `PLB_RESULT` trailer (the harness writes it last). Total kept stays within about `max` plus the marker.
+ */
+export function boundedCapture(max: number, tailMax: number = TAIL_BYTES): { push: (s: string) => void; text: () => string } {
+  const headMax = Math.max(0, max - tailMax);
+  let head = '';
+  let tail = '';
+  let cut = false;
+  return {
+    push(s) {
+      const room = headMax - head.length;
+      if (room > 0) { head += s.slice(0, room); s = s.slice(room); }
+      if (s === '') return;
+      cut = true;
+      tail = (tail + s).slice(-tailMax);
+    },
+    text: () => (cut ? head + TRUNCATED + tail : head),
+  };
+}
+
 export const dockerExec: DockerExec = (args, opts = {}) =>
   new Promise((resolve) => {
     const max = opts.maxBytes ?? 64 * 1024;
     const child = spawn('docker', args, { env: cleanEnv(), stdio: ['pipe', 'pipe', 'pipe'] });
-    let stdout = '';
-    let stderr = '';
+    const out = boundedCapture(max);
+    const err = boundedCapture(max);
     let timedOut = false;
     const timer = opts.timeoutMs ? setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, opts.timeoutMs) : null;
-    child.stdout.on('data', (d: Buffer) => { if (stdout.length < max) stdout += d.toString('utf8'); });
-    child.stderr.on('data', (d: Buffer) => { if (stderr.length < max) stderr += d.toString('utf8'); });
-    child.on('error', (e) => { if (timer) clearTimeout(timer); resolve({ code: null, stdout, stderr: stderr + String(e.message), timedOut }); });
-    child.on('close', (code) => { if (timer) clearTimeout(timer); resolve({ code, stdout, stderr, timedOut }); });
+    child.stdout.on('data', (d: Buffer) => out.push(d.toString('utf8')));
+    child.stderr.on('data', (d: Buffer) => err.push(d.toString('utf8')));
+    child.on('error', (e) => { if (timer) clearTimeout(timer); resolve({ code: null, stdout: out.text(), stderr: err.text() + String(e.message), timedOut }); });
+    child.on('close', (code) => { if (timer) clearTimeout(timer); resolve({ code, stdout: out.text(), stderr: err.text(), timedOut }); });
     child.stdin.on('error', () => undefined);
     child.stdin.end(opts.stdin ?? '');
   });

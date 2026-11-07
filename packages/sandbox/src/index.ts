@@ -1,6 +1,6 @@
 export { SandboxRunner } from './runner.ts';
 export type { RunRequest, RunResult, HostObserved } from './runner.ts';
-export { buildRunArgs, assertSandboxSocketDir, dockerExec, cleanEnv } from './docker.ts';
+export { buildRunArgs, assertSandboxSocketDir, dockerExec, cleanEnv, boundedCapture } from './docker.ts';
 export type { DockerExec, ExecResult, ExecOptions, RunSpec, SandboxTransport } from './docker.ts';
 export {
   clampLimits, isLimitsInput, DEFAULT_LIMITS, DEMO_LIMITS, MAX_LIMITS, MIN_LIMITS, SANDBOX_NETWORK, SANDBOX_BRIDGE, SANDBOX_SUBNET,

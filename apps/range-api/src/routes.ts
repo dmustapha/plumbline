@@ -87,7 +87,7 @@ function registerPolicy(app: FastifyInstance, d: ApiDeps): void {
   });
   // Static path wins over /api/policy/:sid: no HTTP verb writes the production policy, the broker only checks a signature.
   app.route<{ Body: { policy?: string; signature?: string } }>({
-    method: ['PUT', 'POST', 'PATCH', 'DELETE'], url: '/api/policy/production',
+    method: ['PUT', 'POST', 'PATCH', 'DELETE'], url: '/api/policy/production', bodyLimit: 70 * 1024,
     handler: async (req, reply) => relay(reply, d.broker.call('POST', '/v1/policy-production', { text: req.body?.policy ?? '', signature: req.body?.signature })),
   });
 }

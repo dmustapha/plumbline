@@ -4,9 +4,9 @@ import {
   ApprovalError, PLAYGROUND_LABEL_RE, VERB_CLASS, canonicalJson, evaluate, isKnownCall, type AllowDecision, type Caller, type CallRequest, type Decision,
   type EscalateDecision, type Params, type PolicyDoc, type ResourceClass, type Target, type Verb,
 } from '@plumbline/policy-engine';
-import { LIVE_WORKER_WHERE, recordDecision, recordEvent, type Bond, type Db, type Ledger } from '@plumbline/ledger';
+import { LIVE_WORKER_WHERE, listUnknownOutcomes, recordDecision, recordEvent, recordUnknownOutcome, type Bond, type Db, type Ledger } from '@plumbline/ledger';
 import {
-  Firewalls, Instances, Registries, SpendRefused, TierUnavailable, VultrError, Vpcs, type RateCardCache, type S3Store, type TierKeys,
+  Firewalls, Instances, OutcomeUnknown, Registries, SpendRefused, TierUnavailable, VultrError, Vpcs, type RateCardCache, type S3Store, type TierKeys,
 } from '@plumbline/vultr-adapter';
 import { ensureCanaryVersions, sessionCanaryKey } from '@plumbline/rewind';
 import { canaryKeyFor } from './canary.ts';
@@ -16,6 +16,7 @@ import { EgressRefused, type Egress } from './egress.ts';
 import type { KillSwitch } from './killswitch.ts';
 import type { PolicyStore } from './policyStore.ts';
 import type { SessionRegistry } from './sessions.ts';
+import { Serial } from './playground.ts';
 import { buildState } from './state.ts';
 
 export type S3Port = Pick<S3Store, 'listVersions' | 'putObject' | 'deleteObject' | 'restoreVersion' | 'getObject'>;
@@ -211,8 +212,17 @@ const inCleanupScope = (cls: string, label: string | undefined): boolean =>
 const isOwnPlaygroundLabel = (label: string | undefined, sid: string): boolean =>
   label !== undefined && label.startsWith(`${SESSION_PREFIX}${sid}-`) && PLAYGROUND_LABEL_RE.test(label);
 
+const isInstanceCreate = (c: ParsedCall): boolean => c.verb === 'create' && c.class === 'instance';
+
 export class Pipeline {
+  /** M1: evaluate (reads the live worker count) through recordResource must be atomic per instance create, or N parallel creates all pass the cap. */
+  readonly #createLock = new Serial();
+
   constructor(private readonly d: PipelineDeps) {}
+
+  #serialized<T>(call: ParsedCall, task: () => Promise<T>): Promise<T> {
+    return isInstanceCreate(call) ? this.#createLock.run(task) : task();
+  }
 
   #ownerOf(id: string | undefined): string | null {
     if (!id) return null;
@@ -372,7 +382,11 @@ export class Pipeline {
     return out;
   }
 
-  async #run(call: ParsedCall, who: Who, model: string | null, extraCall: Record<string, unknown> = {}): Promise<Outcome> {
+  #run(call: ParsedCall, who: Who, model: string | null, extraCall: Record<string, unknown> = {}): Promise<Outcome> {
+    return this.#serialized(call, () => this.#runInner(call, who, model, extraCall));
+  }
+
+  async #runInner(call: ParsedCall, who: Who, model: string | null, extraCall: Record<string, unknown>): Promise<Outcome> {
     const d = await this.#evaluate(call, who);
     if ('refused' in d) return { status: 'ARGS_INVALID', errors: [d.refused] };
     if ('unavailable' in d) return { status: 'REWIND_UNAVAILABLE', message: String(d.unavailable) };
@@ -394,22 +408,26 @@ export class Pipeline {
   async approve(sid: string, decisionId: string, nonce: string, approve: boolean): Promise<ApproveOutcome> {
     const a = this.d.approvals.take(decisionId, sid, nonce, approve, this.d.clock());
     if (a.kind !== 'ok') return { status: a.kind === 'denied' ? 'DENIED' : a.kind === 'bad_nonce' ? 'BAD_NONCE' : 'NOT_FOUND' };
+    return this.#serialized(a.call, () => this.#approveTaken(sid, decisionId, nonce, a.call, a.binding));
+  }
+
+  async #approveTaken(sid: string, decisionId: string, nonce: string, call: ParsedCall, binding: Binding): Promise<ApproveOutcome> {
     const who: Who = { task_id: `appr-${short()}`, session_id: sid, ledger_session: sid, system: false, caller: 'owner' };
-    const d = await this.#evaluate(a.call, who, a.binding.request_id);
+    const d = await this.#evaluate(call, who, binding.request_id);
     if ('refused' in d) return { status: 'ARGS_INVALID', errors: [d.refused] };
     if ('unavailable' in d) return { status: 'REWIND_UNAVAILABLE', message: String(d.unavailable) };
-    const allow = this.#authorize(d, a.binding, nonce);
+    const allow = this.#authorize(d, binding, nonce);
     if (!allow) {
-      recordEvent(this.d.db, 'APPROVAL_STALE', sid, { decision_id: decisionId, was: a.binding.rule_id, now: d.decision.rule_id, now_decision: d.decision.decision }, this.d.clock());
+      recordEvent(this.d.db, 'APPROVAL_STALE', sid, { decision_id: decisionId, was: binding.rule_id, now: d.decision.rule_id, now_decision: d.decision.decision }, this.d.clock());
       return { status: 'STALE' };
     }
-    const rec = this.#record({ ...d, decision: allow }, a.call, who, null, { approved_from: decisionId });
+    const rec = this.#record({ ...d, decision: allow }, call, who, null, { approved_from: decisionId });
     const pub = this.#publicOf(allow, rec, null);
-    const bonded = this.d.config.bondEnabled && a.call.class === 'bucket_object' && a.call.verb === 'delete';
+    const bonded = this.d.config.bondEnabled && call.class === 'bucket_object' && call.verb === 'delete';
     if (bonded && !this.d.bond.hold(sid, decisionId, this.d.config.bondBurnUsd)) {
       return { status: 'DECIDED', decision: { ...pub, decision: 'DENY', rule_id: 'bond-insufficient', reason: 'bond could not be held' } };
     }
-    const out = await this.#execute(allow, d.request, a.call, who, pub, rec.id);
+    const out = await this.#execute(allow, d.request, call, who, pub, rec.id);
     if (bonded) {
       if (out.status === 'DECIDED' && !out.error) this.d.bond.burn(decisionId);
       else this.d.bond.release(decisionId);
@@ -433,14 +451,22 @@ export class Pipeline {
       const result = await this.#dispatch(allow, req, call, who, decisionId);
       return { status: 'DECIDED', decision: pub, result };
     } catch (e) {
+      if (e instanceof OutcomeUnknown) this.#noteUnknown(e);
       return { status: 'DECIDED', decision: pub, error: this.#mapError(e, call.class) };
     }
+  }
+
+  /** M4: the http hook records ambiguous 5xx/timeouts; this covers an OutcomeUnknown the adapter threw itself (2xx without a body), once per request. */
+  #noteUnknown(e: OutcomeUnknown): void {
+    if (listUnknownOutcomes(this.d.db).some((u) => u.outcome.request_id === e.request_id)) return;
+    recordUnknownOutcome(this.d.db, { request_id: e.request_id, session_id: e.session_id, method: e.method, path: e.path, estimate_usd: e.estimate_usd, cause: e.cause_message }, this.d.clock());
   }
 
   #mapError(e: unknown, cls: ResourceClass): { code: string; message: string; body?: unknown } {
     if (e instanceof EgressRefused) return { code: e.code, message: e.message };
     if (e instanceof SpendRefused) return { code: 'SPEND_REFUSED', message: e.reason };
     if (e instanceof TierUnavailable) return { code: 'tier-key-unavailable', message: e.message };
+    if (e instanceof OutcomeUnknown) return { code: 'OUTCOME_UNKNOWN', message: e.message.slice(0, 200) };
     if (e instanceof VultrError) {
       if (e.status === 401) {
         for (const t of ['observer', 'deployer', 'network', 'registry'] as const) this.d.tiers.noteFailure(t, e);
@@ -502,12 +528,21 @@ export class Pipeline {
       case 'update':
         return new Instances(t.http('deployer')).update(allow, req, { firewall_group_id: params.firewall_group_id as string });
       case 'delete':
-        await new Instances(t.http('deployer')).delete(allow, req);
-        this.d.ledger.markDestroyed(id as string);
-        return { deleted: id };
+        return this.#deleteInstance(allow, req, id as string);
       default:
         throw new Error(`DISPATCH_UNHANDLED: instance:${verb}`);
     }
+  }
+
+  /** M3: a 404 means the instance is already gone, which is what the delete wanted; close the row instead of leaving it live. */
+  async #deleteInstance(allow: AllowDecision, req: CallRequest, id: string): Promise<unknown> {
+    try {
+      await new Instances(this.d.tiers.http('deployer')).delete(allow, req);
+    } catch (e) {
+      if (!(e instanceof VultrError && e.status === 404)) throw e;
+    }
+    this.d.ledger.markDestroyed(id);
+    return { deleted: id };
   }
 
   async #firewall(allow: AllowDecision, req: CallRequest, call: ParsedCall, sid: string, decisionId: string): Promise<unknown> {

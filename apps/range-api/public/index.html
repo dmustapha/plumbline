@@ -2,9 +2,16 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline</title><link rel="stylesheet" href="/style.css"></head>
 <body data-page="index"><main>
-<div class="hero">Attack an AI agent that owns a real Vultr account. The verdict is checked against Vultr itself.</div>
-<div class="row"><a href="/range"><button class="primary">Attack it</button></a></div>
-<div class="panel"><h2>Earned counter</h2><div id="counter" class="mut">loading from the decision store...</div></div>
-<div class="panel"><h2>The real account, right now</h2><div id="live" class="mut">fetching from Vultr...</div></div>
+<div class="landing">
+<div>
+<div class="eyebrow"><b>BLAST RADIUS ZERO</b> · live Vultr account · attackable</div>
+<div class="hero">An agent holds a <em>real cloud.</em> <s>Try to make it break something.</s></div>
+<p class="mut" style="max-width:34em;font-size:16px">Every verdict comes from a coded policy engine outside the model. After every attack the live Vultr account is re-read by a second host. The line hangs true, or it doesn't.</p>
+<div class="cta"><a href="/range?fire=prod"><button class="fire">Attack prod-db</button></a><a href="/range"><button>Open the range</button></a></div>
+</div>
+<div id="stagehost"></div>
+</div>
+<div id="board" class="board" style="margin-top:22px"></div>
+<div class="panel" style="margin-top:16px"><h2>Latest real verdicts · from the decision store</h2><div class="tablewrap"><table><thead><tr><th>time</th><th>verdict</th><th>rule id</th><th>call</th><th>model</th></tr></thead><tbody id="recent"><tr><td class="mut" colspan="5">loading from the decision store...</td></tr></tbody></table></div></div>
 <div id="trust"></div>
 </main><script src="/app.js"></script></body></html>

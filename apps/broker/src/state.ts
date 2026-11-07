@@ -27,7 +27,7 @@ export function buildState(d: StateDeps, sessionId: string, bucket: { versions: 
     session_ceiling_usd: limits.session_ceiling_usd,
     global_spent_usd: d.ledger.globalSpend(),
     global_cap_usd: limits.global_cap_usd,
-    live_worker_count: d.ledger.liveWorkerCount(),
+    live_worker_count: d.ledger.liveWorkerCount() + d.ledger.unknownCreateCount(),
     max_instances: d.config.maxInstances,
     kill_switch: d.kill.engaged(),
     session_tier: d.sessions.tier(sessionId),

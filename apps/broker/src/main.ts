@@ -2,9 +2,9 @@
 import { chmodSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import Fastify from 'fastify';
-import { Bond, Ledger, LIVE_WORKER_WHERE, openDb, type Db } from '@plumbline/ledger';
+import { Bond, Ledger, LIVE_WORKER_WHERE, openDb, recordUnknownOutcome, type Db } from '@plumbline/ledger';
 import { PLAYGROUND_LABEL_RE } from '@plumbline/policy-engine';
-import { Firewalls, RateCardCache, S3Store, TierKeys, VsiClient, VultrHttp, Vpcs } from '@plumbline/vultr-adapter';
+import { Firewalls, OutcomeUnknown, RateCardCache, S3Store, TierKeys, VsiClient, VultrHttp, Vpcs } from '@plumbline/vultr-adapter';
 import { brokerKeyGuard } from './canary.ts';
 import { ApprovalAuthority, Approvals } from './approvals.ts';
 import { loadConfig, type Config, type Secrets } from './config.ts';
@@ -15,6 +15,7 @@ import { LiveList } from './liveList.ts';
 import { LlmProxy } from './llmProxy.ts';
 import { Pipeline, type S3Port } from './pipeline.ts';
 import { PolicyStore } from './policyStore.ts';
+import { makeInstanceReconciler } from './reclaim.ts';
 import { registerInternalRoutes } from './routes-internal.ts';
 import { registerSandboxRoutes } from './routes-sandbox.ts';
 import { SessionRegistry } from './sessions.ts';
@@ -37,8 +38,10 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
   const bond = new Bond(db, config.bondUsd);
   const tokens = new TokenService(secrets.taskHmac, clock);
   const kill = new KillSwitch(join(config.dataDir, 'killswitch'), tokens);
-  const tiers = new TierKeys(secrets.vultr, ledger, inject.fetchImpl);
-  const rate = new RateCardCache(new VultrHttp({ apiKey: null, gate: ledger, fetchImpl: inject.fetchImpl }), clock);
+  // M4: an ambiguous mutation (5xx/timeout) is ledgered as an unknown outcome, which counts against max_instances until reconciled.
+  const onUnknown = (u: OutcomeUnknown): void => recordUnknownOutcome(db, { request_id: u.request_id, session_id: u.session_id, method: u.method, path: u.path, estimate_usd: u.estimate_usd, cause: u.cause_message }, clock());
+  const tiers = new TierKeys(secrets.vultr, ledger, inject.fetchImpl, onUnknown);
+  const rate = new RateCardCache(new VultrHttp({ apiKey: null, gate: ledger, fetchImpl: inject.fetchImpl, onUnknown }), clock);
   const realS3 = inject.s3 ? null : new S3Store({ host: config.s3Host, accessKey: secrets.s3.accessKey, secretKey: secrets.s3.secretKey, bucket: config.bucket, keyGuard: brokerKeyGuard(config.bondEnabled) }, ledger);
   const s3: S3Port = inject.s3 ?? (realS3 as S3Store);
   // AG4-ADP-7: object storage counts as available only while a real store is healthy (the injected fake is test-only).
@@ -72,8 +75,11 @@ export async function assemble(config: Config, secrets: Secrets, inject: Inject 
     return rows.filter((r) => (r.class === 'vpc' && r.protected === 1) || PLAYGROUND_LABEL_RE.test(r.label));
   };
 
+  const reconcileInstances = makeInstanceReconciler({ db, ledger, tiers, clock, cleanup: (sid, cls, id) => pipeline.cleanup(sid, cls, id) });
+
   const reap = async (): Promise<void> => {
     const now = clock();
+    await reconcileInstances(); // M3/M4: close rows whose instance is gone first, so the TTL pass below only deletes what still exists
     // CO-B / SEC-F4: the TTL reaper selects live, unprotected, session-made instances (class + protected, never a label LIKE), whatever ttl a row carries.
     const due = db.prepare(`SELECT id, class, session_id FROM resources WHERE ${LIVE_WORKER_WHERE} AND created_at_ms + ttl_h * 3600000 < ?`).all(now) as { id: string; class: 'instance'; session_id: string }[];
     for (const r of due) await pipeline.cleanup(r.session_id, 'instance', r.id);

@@ -442,3 +442,52 @@ describe('boot guards', () => {
     expect(new OutcomeUnknown('r', 'DELETE', '/instances/x', 'watchdog', 'boom', 0)).toBeInstanceOf(Error);
   });
 });
+
+describe('DBG-V-M1 a stale lease.json after a reboot gets the start-up grace', () => {
+  const boot = (r: Rig): Watchdog => new Watchdog({
+    http: r.http, floor: FLOOR, sharedDir: r.dir, dryRun: false, verifierUid: MY_UID, leaseGraceMs: 120_000, bootGrace: true, baselineIds: () => new Set(), clock: () => r.clock.now,
+  });
+
+  it('DBG-V-M1: stale lease.json after a VM2 reboot gets first-contact grace, watchdog does not destroy', async () => {
+    const r = rig();
+    stock(r.f);
+    lapsed(r);
+    const dog = boot(r);
+    expect(await dog.tick()).toBe('NEVER');
+    expect(r.f.deletes).toEqual([]);
+    expect(status(r).lease).toBe('NEVER');
+  });
+
+  it('DBG-V-M1: the broker renews inside the grace window, so the watchdog goes ALIVE and still sweeps nothing', async () => {
+    const r = rig();
+    stock(r.f);
+    lapsed(r);
+    const dog = boot(r);
+    await dog.tick();
+    r.clock.now += 5000;
+    writeLease(r.dir, { last_ts: r.clock.now, ttl_s: 45, received_at: r.clock.now });
+    expect(await dog.tick()).toBe('ALIVE');
+    expect(r.f.deletes).toEqual([]);
+  });
+
+  it('DBG-V-M1: a broker that stays dead past the grace window is still swept, strictly in scope (dead hand intact)', async () => {
+    const r = rig();
+    stock(r.f);
+    lapsed(r);
+    const dog = boot(r);
+    expect(await dog.tick()).toBe('NEVER');
+    r.clock.now += 121_000;
+    expect(await dog.tick()).toBe('DESTROYING');
+    expect(r.f.deletes.sort()).toEqual(['g-play', 'i-wk1', 'i-wk2', 'v-play']);
+    const left = [...r.f.instances, ...r.f.vpcs, ...r.f.firewalls].map((x) => x.id);
+    for (const id of SURVIVORS) expect(left).toContain(id);
+  });
+
+  it('DBG-V-M1: the ttl 0 kill-switch lease sweeps at once even inside the grace window', async () => {
+    const r = rig();
+    stock(r.f);
+    writeLease(r.dir, { last_ts: 1, ttl_s: 0, received_at: r.clock.now });
+    expect(await boot(r).tick()).toBe('DESTROYING');
+    expect(r.f.deletes.sort()).toEqual(['g-play', 'i-wk1', 'i-wk2', 'v-play']);
+  });
+});

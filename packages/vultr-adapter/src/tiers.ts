@@ -1,7 +1,7 @@
 // File: packages/vultr-adapter/src/tiers.ts
 import type { Tier } from '@plumbline/policy-engine';
 import type { SpendGate } from '@plumbline/ledger';
-import { VultrError, VultrHttp } from './http.ts';
+import { VultrError, VultrHttp, type OutcomeUnknown } from './http.ts';
 
 export interface TierKeyConfig {
   observer: string | null;
@@ -29,10 +29,10 @@ export class TierKeys {
   readonly #down = new Set<Tier>();
   #objstore: { healthy(): boolean } | null = null;
 
-  constructor(keys: TierKeyConfig, gate: SpendGate, fetchImpl?: typeof fetch) {
+  constructor(keys: TierKeyConfig, gate: SpendGate, fetchImpl?: typeof fetch, onUnknown?: (u: OutcomeUnknown) => void) {
     for (const tier of ['observer', 'deployer', 'network', 'registry'] as const) {
       const k = keys[tier];
-      if (k) this.#http[tier] = new VultrHttp({ apiKey: k, gate, fetchImpl, onFailure: (e) => this.noteFailure(tier, e) });
+      if (k) this.#http[tier] = new VultrHttp({ apiKey: k, gate, fetchImpl, onFailure: (e) => this.noteFailure(tier, e), onUnknown });
     }
   }
 

@@ -156,6 +156,8 @@ export interface WatchdogDeps {
   verifierUid: number | null;
   /** first-contact grace before a missing lease counts as lapsed (AG4-VER-3) */
   leaseGraceMs?: number;
+  /** M1: a stale (not only a missing) lease.json is excused during the start-up grace window. Production wiring sets it; default off. */
+  bootGrace?: boolean;
   /** ids of the baseline manifest: never deleted, whatever their label says. null = the manifest could not be read */
   baselineIds?: () => ReadonlySet<string> | null;
   clock?: () => number;
@@ -263,7 +265,7 @@ export class Watchdog {
     const lease = readLease(this.d.sharedDir, this.d.verifierUid === null ? {} : { uid: this.d.verifierUid });
     // a lease claiming more than the verifier's own ceiling is not trusted either (AG4-VER-2, defence in depth)
     if (lease && lease.ttl_s > DEFAULT_LEASE_MAX_TTL_S) return { state: 'LAPSED', reason: `over-ttl lease (${lease.ttl_s} s)` };
-    const state = leaseState(lease, now, { startedAt: this.#startedAt, graceMs: this.d.leaseGraceMs ?? DEFAULT_GRACE_MS, everSeen: this.#everSeen });
+    const state = leaseState(lease, now, { startedAt: this.#startedAt, graceMs: this.d.leaseGraceMs ?? DEFAULT_GRACE_MS, everSeen: this.#everSeen, graceStale: this.d.bootGrace === true });
     if (state === 'ALIVE') this.#everSeen = true;
     return { state, reason: lease ? null : diagnoseLease(this.d.sharedDir, this.d.verifierUid) };
   }

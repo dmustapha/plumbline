@@ -108,13 +108,17 @@ export interface LeaseContext {
   graceMs?: number;
   /** true once the caller has ever read an ALIVE lease: a vanished file is then LAPSED at once */
   everSeen?: boolean;
+  /**
+   * M1: the grace also covers a PRESENT but stale file (lease.json survives a VM reboot, the broker is about to renew it). Opt-in so a
+   * caller that is not a fresh process keeps the strict behaviour. A ttl<=0 kill-switch lease and a future-dated file are never excused.
+   */
+  graceStale?: boolean;
 }
 
 export function leaseState(l: LeaseFile | null, now: number, ctx?: LeaseContext): LeaseState {
-  if (!l) {
-    const inGrace = ctx !== undefined && ctx.everSeen !== true && now - ctx.startedAt <= (ctx.graceMs ?? DEFAULT_GRACE_MS);
-    return inGrace ? 'NEVER' : 'LAPSED';
-  }
+  const inGrace = ctx !== undefined && ctx.everSeen !== true && now - ctx.startedAt <= (ctx.graceMs ?? DEFAULT_GRACE_MS);
+  if (!l) return inGrace ? 'NEVER' : 'LAPSED';
   if (l.ttl_s <= 0 || l.received_at - now > FUTURE_SLACK_MS) return 'LAPSED';
-  return now - l.received_at > l.ttl_s * 1000 ? 'LAPSED' : 'ALIVE';
+  if (now - l.received_at <= l.ttl_s * 1000) return 'ALIVE';
+  return inGrace && ctx?.graceStale === true ? 'NEVER' : 'LAPSED';
 }
