@@ -6,5 +6,9 @@
   {
     "commit": "58224178973b790f509c8f751f82be0288a4d3b4",
     "reason": "Gate rerun after the debug fixes (DBG regression set) were deployed: all seven live gates were run at this commit; the tree was dirty only through evidence/ (gate JSON and gate-run-log.md written by the gate harness itself). Commits after it change only evidence/ and docs (verify: git diff --name-only 5822417..HEAD lists nothing outside evidence/ and docs/)."
+  },
+  {
+    "commit": "45a2ffbf837ea0ba31e3445ae9b4850b8b850a9f",
+    "reason": "Clean-tree rerun of gate l1 and two gate l2 runs on the deployed range after the debug fixes (the first l2 attempt failed verify_green_after_destroy, a one-shot 8 s wait that also failed in the build phase before these fixes; see gate-run-log.md). Commits after it change only evidence/ and docs."
   }
 ]
