@@ -84,7 +84,7 @@ describe('SEC-H3 /api/live-list cannot be turned into a Vultr flood', () => {
     expect(liveCalls(f)).toBe(0);
     expect((await app.inject({ method: 'GET', url: '/api/live-list?session_id=system' })).statusCode).toBe(200);
     const s = await openSession(app);
-    expect((await app.inject({ method: 'GET', url: `/api/live-list?session_id=${s.sid}` })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: `/api/live-list?session_id=${s.sid}`, headers: s.headers })).statusCode).toBe(200); // DBG-W1: the owner presents its key
   });
   it('SEC-H3 twenty concurrent identical requests make one broker call, and a repeat inside 3 s makes none', async () => {
     const f = fakeBroker();
@@ -139,7 +139,7 @@ describe('SEC-M1 /api/policy/:sid only for sessions that exist', () => {
     const f = fakeBroker();
     const { app } = await makeApi(f);
     const s = await openSession(app);
-    expect((await app.inject({ method: 'GET', url: `/api/policy/${s.sid}` })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: `/api/policy/${s.sid}`, headers: s.headers })).statusCode).toBe(200); // DBG-W1: the owner presents its key
   });
 });
 

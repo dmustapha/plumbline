@@ -50,6 +50,7 @@ function registerReads(app: FastifyInstance, d: ApiDeps): void {
   app.get<{ Querystring: { session_id?: string } }>('/api/live-list', async (req, reply) => {
     const sid = req.query.session_id ?? 'system';
     if (sid !== 'system' && !knownSession(d, sid)) return reply.code(404).send({ status: 'SESSION_UNKNOWN' });
+    if (sid !== 'system' && !sessionFor(d, req, reply, sid)) return reply; // DBG-W1: a session's live list is its owner's, not anyone who knows the id
     const gate = d.liveListLimit.take(req.ip);
     if (!gate.ok) return rateLimited(reply, gate.retryAfterS);
     return relay(reply, d.liveListCache.get(sid, () => d.broker.call('GET', `/v1/live-list?session_id=${encodeURIComponent(sid)}`)));
@@ -76,6 +77,7 @@ function registerPolicy(app: FastifyInstance, d: ApiDeps): void {
   // SEC-M1: a policy exists only for a session that exists ('production' is the one read-only name).
   app.get<{ Params: { sid: string } }>('/api/policy/:sid', async (req, reply) => {
     if (req.params.sid !== 'production' && !knownSession(d, req.params.sid)) return reply.code(404).send({ status: 'SESSION_UNKNOWN' });
+    if (req.params.sid !== 'production' && !sessionFor(d, req, reply, req.params.sid)) return reply; // DBG-W1: the owner reads its policy copy, nobody else
     return relay(reply, d.broker.call('GET', `/v1/policy/${encodeURIComponent(req.params.sid)}`));
   });
   app.put<{ Params: { sid: string }; Body: { text?: unknown } }>('/api/policy/:sid', { bodyLimit: 70 * 1024 }, async (req, reply) => {

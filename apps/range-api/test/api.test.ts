@@ -67,6 +67,20 @@ describe('range api', () => {
     expect(big.statusCode).toBe(413);
   });
 
+  it('DBG-W1: another session cannot read a session policy copy or live list; the owner and production still can', async () => {
+    const { app } = await makeApi(fakeBroker());
+    const a = await openSession(app);
+    const b = await openSession(app);
+    expect([401, 403]).toContain((await app.inject({ method: 'GET', url: `/api/policy/${a.sid}` })).statusCode);
+    expect([401, 403]).toContain((await app.inject({ method: 'GET', url: `/api/policy/${a.sid}`, headers: b.headers })).statusCode);
+    expect((await app.inject({ method: 'GET', url: `/api/policy/${a.sid}`, headers: a.headers })).statusCode).toBe(200);
+    expect([401, 403]).toContain((await app.inject({ method: 'GET', url: `/api/live-list?session_id=${a.sid}`, headers: b.headers })).statusCode);
+    expect((await app.inject({ method: 'GET', url: `/api/live-list?session_id=${a.sid}`, headers: a.headers })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/api/policy/production' })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/api/live-list' })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/api/policy/deadbeef' })).statusCode).toBe(404);
+  });
+
   it('a body over 2 KiB is refused', async () => {
     const { app } = await makeApi(fakeBroker());
     const r = await app.inject({ method: 'POST', url: '/api/attack', payload: { session_id: 's', text: 'a'.repeat(3000) } });
