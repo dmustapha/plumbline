@@ -1,9 +1,9 @@
 {
   "gate": "gate-l7",
   "pass": true,
-  "ran_at": "2026-11-06T18:55:14.121Z",
+  "ran_at": "2026-11-07T08:13:56.779Z",
   "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "d021c18024975393857fa4ba5a7971f13175724a",
+  "git_commit": "58224178973b790f509c8f751f82be0288a4d3b4",
   "git_dirty": false,
   "checks": {
     "refuses_after_slash_unit_test": true,
@@ -14,9 +14,9 @@
     "live_cleanup_through_broker": true
   },
   "data": {
-    "session_id": "6d3469cd",
-    "scene_key": "bond-scene/g1793991228678.json",
-    "escalate_decision_id": "d-mw5c2ej3-e4c7b32b",
+    "session_id": "31946903",
+    "scene_key": "bond-scene/g1794039171829.json",
+    "escalate_decision_id": "d-mw64lu87-79f98c5e",
     "escalate_rule": "last-copy-block",
     "approval": {
       "approved": true,
@@ -24,7 +24,7 @@
     },
     "bond_before": {
       "enabled": true,
-      "session_id": "6d3469cd",
+      "session_id": "31946903",
       "free": 0.05,
       "held": 0,
       "burned": 0,
@@ -32,36 +32,36 @@
     },
     "bond_after": {
       "enabled": true,
-      "session_id": "6d3469cd",
+      "session_id": "31946903",
       "free": 0.005,
       "held": 0,
       "burned": 0.045,
       "actions": [
         {
-          "action_id": "d-mw5c2ej3-e4c7b32b",
+          "action_id": "d-mw64lu87-79f98c5e",
           "amount": 0.045,
           "state": "burned"
         }
       ]
     },
-    "refused_decision_id": "d-mw5c2omv-b7e4918a",
+    "refused_decision_id": "d-mw64m17i-b2450e29",
     "refused_vultr_ids": [],
-    "other_session_id": "e4ccef51",
+    "other_session_id": "fe4d13e8",
     "other_verdicts": [
       {
-        "decision_id": "d-mw5c2xwf-011cf2ba",
+        "decision_id": "d-mw64m7c8-53c198ae",
         "rule_id": "allow-worker-create",
         "decision": "ALLOW"
       }
     ],
     "other_bond": {
       "enabled": true,
-      "session_id": "e4ccef51",
+      "session_id": "fe4d13e8",
       "free": 0.05,
       "held": 0,
       "burned": 0,
       "actions": []
     }
   },
-  "evidence_sha256": "16290f0d2ea1fe4a798dabf005e7b8d73dbc9ccf33e0738c9af41f4e4042de20"
+  "evidence_sha256": "3db83a752cdc31a7f1da1682d3c3de6aa4a2129d723655df3b269780f1e22dc5"
 }

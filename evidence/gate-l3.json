@@ -1,9 +1,9 @@
 {
   "gate": "gate-l3",
   "pass": true,
-  "ran_at": "2026-11-06T18:59:08.392Z",
+  "ran_at": "2026-11-07T08:17:50.435Z",
   "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "d021c18024975393857fa4ba5a7971f13175724a",
+  "git_commit": "58224178973b790f509c8f751f82be0288a4d3b4",
   "git_dirty": false,
   "checks": {
     "control_broker_alive": true,
@@ -15,12 +15,12 @@
   "data": {
     "control_window_s": 120,
     "control_samples": 18,
-    "seconds_to_destroy": 58,
+    "seconds_to_destroy": 52,
     "survivors": [
       "plumbline-infra-broker",
       "plumbline-infra-verifier",
       "plumbline-prod-db"
     ]
   },
-  "evidence_sha256": "c7b6787c832da54a4cfe1f18cfa466342717aace2eabbbf72589ddb01831a14e"
+  "evidence_sha256": "7da6cafc6db8c51fe8f58a3a200aa74862d751c56488a811e34896293e6559c4"
 }
