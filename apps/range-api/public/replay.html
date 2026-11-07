@@ -1,7 +1,12 @@
 <!-- File: apps/range-api/public/replay.html -->
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline replay</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600;800&family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet"><meta name="theme-color" content="#05080a"><link rel="stylesheet" href="/style.css"></head>
-<body data-page="replay"><main class="sheet">
-<div class="panel"><h2><span class="badge REPLAY">REPLAY</span> recorded real decisions, not live</h2><div id="rout" class="mut">loading...</div></div>
-<div id="trust"></div>
-</main><script src="/app.js"></script></body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline ledger</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="replay">
+<main>
+<div class="panel fade-up" style="--d:0.00s"><h2>Every verdict · append-only ledger</h2>
+<p id="rsum" class="mut" style="font-size:12.5px">loading...</p>
+<div class="row ledger-f" style="margin-bottom:10px"><button data-f="ALL" class="primary f">All</button><button data-f="DENY">DENY</button><button data-f="ESCALATE">ESCALATE</button><button data-f="ALLOW">ALLOW</button></div>
+<div class="tablewrap"><table><thead><tr><th></th><th>time</th><th>verdict</th><th>rule id</th><th>call · layer · model</th><th>decision id</th></tr></thead><tbody id="rout"><tr><td colspan="6" class="mut">loading...</td></tr></tbody></table></div></div>
+<div id="trust" style="margin-top:14px"></div>
+</main>
+<script src="/app.js"></script></body></html>

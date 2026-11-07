@@ -1,17 +1,53 @@
 <!-- File: apps/range-api/public/index.html -->
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline</title><link rel="stylesheet" href="/style.css"></head>
-<body data-page="index"><main>
-<div class="landing">
-<div>
-<div class="eyebrow"><b>BLAST RADIUS ZERO</b> · live Vultr account · attackable</div>
-<div class="hero">An agent holds a <em>real cloud.</em> <s>Try to make it break something.</s></div>
-<p class="mut" style="max-width:34em;font-size:16px">Every verdict comes from a coded policy engine outside the model. After every attack the live Vultr account is re-read by a second host. The line hangs true, or it doesn't.</p>
-<div class="cta"><a href="/range?fire=prod"><button class="fire">Attack prod-db</button></a><a href="/range"><button>Open the range</button></a></div>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline</title><meta name="theme-color" content="#111a1e">
+<script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="index">
+<main>
+<section class="scene hero">
+<div class="eyebrow fade-up" style="--d:0s"><b>BLAST RADIUS ZERO</b> · an agent holds a live Vultr account · you may attack it</div>
+<h1 class="h1 mask-swipe">Try to make it <span class="loud">break</span> something.</h1>
+<p class="lede fade-up" style="--d:.25s">A coded policy engine outside the model gives the verdict. A second host re-reads the live account. The line hangs true, or it does not.</p>
+<div class="heroset">
+<div id="stagehost" class="fade-up" style="--d:.2s"></div>
+<div id="payoff" class="payoff fade-up" style="--d:.45s"></div>
 </div>
-<div id="stagehost"></div>
+<div class="ctas fade-up" style="--d:.5s;margin-top:36px"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/verify">Reconcile the account</a></div>
+</section>
+
+<section class="scene" id="how">
+<div class="scene-head">
+<h2 class="fade-up" style="--d:0s">The agent never touches the key. The engine never asks the model. Vultr has the last word.</h2>
+<p class="fade-up" style="--d:.1s">Three layers, each one outside the one before it. A judge attacks the first; the third one answers.</p>
 </div>
-<div id="board" class="board" style="margin-top:22px"></div>
-<div class="panel" style="margin-top:16px"><h2>Latest real verdicts · from the decision store</h2><div class="tablewrap"><table><thead><tr><th>time</th><th>verdict</th><th>rule id</th><th>call</th><th>model</th></tr></thead><tbody id="recent"><tr><td class="mut" colspan="5">loading from the decision store...</td></tr></tbody></table></div></div>
-<div id="trust"></div>
-</main><script src="/app.js"></script></body></html>
+<div class="split">
+<div class="claims">
+<div class="claim fade-up" style="--d:0s"><div class="rule">layer 1 · the sandbox</div><h3>No credential in the agent process</h3><p>The operator runs inside a hardened container under gVisor with no Vultr key. Every cloud call is a request to a broker on a different process boundary.</p></div>
+<div class="claim fade-up" style="--d:.1s"><div class="rule">layer 2 · the engine</div><h3>A coded policy decides, with a rule id</h3><p>Rules are data, unit-tested, loaded outside the model. ALLOW, ESCALATE or DENY, every time, with the rule that fired. A dollar ceiling the agent cannot raise.</p></div>
+<div class="claim fade-up" style="--d:.2s"><div class="rule">layer 3 · the verifier</div><h3>Reconciled against the live account</h3><p>A second host in a second region, with its own read-only key, re-reads Vultr and compares it to authority. GREEN hangs true. RED names the resource.</p></div>
+</div>
+<div class="diagram fade-up" style="--d:.15s" id="diagram"></div>
+</div>
+</section>
+
+<section class="scene" id="verdicts">
+<div class="scene-head">
+<h2 class="fade-up" style="--d:0s">Every verdict is real. None of them are seeded.</h2>
+<p class="fade-up" style="--d:.1s">The last hundred decisions from the append-only store, oldest on the left. A tall red tick is an attack the box held.</p>
+</div>
+<div class="panel fade-up" style="--d:.1s"><div id="vgrid" class="vgrid"></div><div class="vlegend"><span><i style="background:var(--deny)"></i>held (DENY)</span><span><i style="background:var(--esc)"></i>escalated</span><span><i style="background:var(--true-30)"></i>allowed, in scope</span><span id="vgridsum"></span></div></div>
+<div class="panel fade-up" style="--d:.2s;margin-top:24px"><div class="tablewrap"><table><thead><tr><th></th><th>time</th><th>verdict</th><th>rule id</th><th>call · layer · model</th><th></th></tr></thead><tbody id="recent"><tr><td class="mut" colspan="6"><span class="skel"></span></td></tr></tbody></table></div><div class="row"><a class="btn" href="/replay">Open the full ledger</a><a class="btn primary ghost" href="/verify">Reconcile the account now</a></div></div>
+</section>
+
+<section class="scene closer" id="closer">
+<div class="inner">
+<svg id="closerplumb" class="closerplumb fade-up" viewBox="0 0 160 220" aria-hidden="true" style="--d:0s"></svg>
+<div class="big fade-up" id="closerN" style="--d:.1s">…</div>
+<h2 class="fade-up" style="--d:.2s">breaches · the line hangs true · reconciled against the live Vultr account</h2>
+<div class="ctas fade-up" style="--d:.3s"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/about">What we do not claim</a></div>
+</div>
+</section>
+<div id="trust" style="margin-top:32px"></div>
+</main>
+<script src="/app.js"></script></body></html>

@@ -1,26 +1,25 @@
 <!-- File: apps/range-api/public/verify.html -->
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline verify</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600;800&family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet"><meta name="theme-color" content="#05080a"><link rel="stylesheet" href="/style.css"></head>
-<body data-page="verify"><main><div id="board" class="board" style="margin-bottom:16px"></div>
-<div class="panel"><h2>Independent verifier</h2>
-<p class="mut">Runs on a different VM, in a different region, with a different read-only key. It lists the live Vultr account twice, 3 seconds apart, and compares it to the broker's hash-chained ledger export and to an owner-written baseline. It re-runs the policy engine on what Vultr reports, so a forged ALLOW row for a plan the floor forbids still turns RED. A Vultr error, a stale export or a missing baseline shows DEGRADED, never GREEN.</p>
-<div class="row"><button id="vrun" class="primary">Run verify</button></div>
-<div id="vout" class="mut">loading...</div></div>
-<div class="panel" id="vprod"><h2>The second host's own read of plumbline-prod-db</h2>
-<p class="mut">Read by the verifier host from the Vultr API, not relayed by the broker: status, power state, plan, region and operating system, with the time it was read.</p>
-<div id="vprodout" class="mut">loading...</div></div>
-<div class="panel" id="vlimits"><h2>Stated limits</h2>
-<ul>
-<li>Point-in-time: a resource created and destroyed between two polls is not seen. A destroy is visible within about 0.8 s, so a rogue VM is declared only when it is present at both polls. Create-then-delete inside one gap is not prevented and not detected.</li>
-<li>The ledger is the broker's own record. The verifier checks its hash chain, its freshness and that it only ever grows, but a broker that lies consistently from its first row is caught only by the live comparison and the policy re-run.</li>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline reconcile</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="verify">
+<main>
+<div class="verify-top">
+<div class="panel fade-up" style="--d:0.00s"><h2>Independent verifier</h2><h3 class="display">A second host, a second region, its own read-only key</h3>
+<div id="vstate" class="mut">loading...</div>
+<div class="row"><button id="vrun" class="primary ghost">Re-read the account now</button><span class="mut" style="font-size:12px">lists the live Vultr account twice, 3 s apart; compares it to the hash-chained ledger export and the owner baseline; re-runs the policy engine on what Vultr reports</span></div></div>
+<div id="stagehost"></div>
+</div>
+<div class="two" style="margin-top:14px">
+<div class="panel fade-up" style="--d:0.08s" id="vprod"><h3>The second host&#39;s own read of plumbline-prod-db</h3>
+<p class="mut" style="font-size:12.5px">Read by the verifier host from the Vultr API, not relayed by the broker.</p>
+<div id="vprodout" class="mut mono" style="font-size:11.5px">loading...</div></div>
+<div class="panel fade-up" style="--d:0.16s" id="vlimits"><h3>Stated limits</h3>
+<ul style="font-size:12.5px">
+<li>Point-in-time: a resource created and destroyed between two polls is not seen. A destroy is visible within about 0.8 s, so a rogue VM is declared only when it is present at both polls.</li>
+<li>The ledger is the broker&#39;s own record. The verifier checks its hash chain, its freshness and that it only ever grows; a broker that lies consistently from its first row is caught only by the live comparison and the policy re-run.</li>
+<li>Not covered with a view-only key: firewall groups (403), Object Storage buckets (403), dollar ceiling and session spend. Covered: instances, VPCs, container registries.</li>
 </ul></div>
-<div class="panel" id="vcover"><h2>Not covered</h2>
-<p class="mut">What the verifier cannot see with a view-only key, and says so on every verdict:</p>
-<ul id="vnot">
-<li>Firewall groups: the view-only key gets 403 on /firewalls, so the per-session playground firewall group is not compared (it is a VPC now, which is).</li>
-<li>Object Storage buckets and object versions: 403 on /object-storage.</li>
-<li>Dollar ceiling and session spend: the export carries no session state. Plan, region, label and scope rules are replayed on live state; the dollar rule is the broker's.</li>
-</ul>
-<p class="mut">Covered: instances, VPCs and container registries.</p></div>
-<div id="trust"></div>
-</main><script src="/app.js"></script></body></html>
+</div>
+<div id="trust" style="margin-top:14px"></div>
+</main>
+<script src="/app.js"></script></body></html>

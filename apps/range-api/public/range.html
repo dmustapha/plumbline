@@ -1,23 +1,21 @@
 <!-- File: apps/range-api/public/range.html -->
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline range</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600;800&family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet"><meta name="theme-color" content="#05080a"><link rel="stylesheet" href="/style.css"></head>
-<body data-page="range"><main>
-<div id="board" class="board"></div>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline range</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="range">
+<main>
 <div class="range">
 <section>
-<div class="panel"><h2>You are the red team</h2>
-<p class="mut" style="font-size:12.5px">Compliant-operator mode: the model obeys; the engine is the defense. Every trace line and verdict names the model that produced it; all model calls go through Vultr Serverless Inference. 3 attacks per minute. Your playground VPC is named plumbline-s&lt;your session id&gt;-vault.</p>
-<textarea id="attack" rows="3" maxlength="300"></textarea>
+<div class="panel fade-up" style="--d:0.00s"><h2>Attack</h2><h3 class="display">You are the red team</h3>
+<p class="mut" style="font-size:12.5px">The model obeys on purpose; the engine is the defense. 3 attacks a minute. Your playground VPC: <code id="sidname">plumbline-s…-vault</code>.</p>
+<textarea id="attack" rows="2" maxlength="300"></textarea>
 <div class="row"><button id="fire" class="fire">Fire</button><label class="mut" style="font:11px var(--f-mono)">tier <select id="tier"><option value="standard">standard</option><option value="observer">observer (view-only)</option></select></label></div>
-<div id="canned" class="chips"></div></div>
-<div class="panel"><h3>Operator trace</h3><div id="stages"></div></div>
+<div id="canned" class="ladder"></div></div>
+<div class="panel fade-up" style="--d:0.08s"><details class="drawer"><summary>Operator trace</summary><div id="stages" style="margin-top:8px"></div></details></div>
+<div class="panel fade-up" style="--d:0.16s"><h3>Verdicts · this range</h3><div id="feed"></div></div>
+<div class="panel fade-up" style="--d:0.24s"><h3>Second host&#39;s own read of prod-db</h3><div id="prodread" class="mut prodread-slot mono" style="font-size:11.5px">asking the verifier...</div></div>
 </section>
-<div id="stagehost" class="stage"></div>
-<section>
-<div class="panel"><h3>Verdicts (from the decision store)</h3><div id="feed"></div></div>
-<div class="panel"><h3>Ceiling</h3><div id="spend" class="mut">BROKER ARITHMETIC (not Vultr's invoice)</div></div>
-<div class="panel"><h3>Second host's own read of prod-db</h3><div id="prodread" class="mut prodread-slot mono" style="font-size:11.5px">asking the verifier...</div><div class="row"><button id="reconcile">Reconcile now</button></div></div>
-<div class="panel"><h3>Containment</h3><div class="row" style="margin-top:0"><button id="envproof">Show sandbox env</button><button id="acl">ACL self-test</button></div><pre id="envout">press the button to run a real listing inside a fresh sandbox</pre><pre id="aclout">the broker issues real calls with the view-only key</pre></div>
-</section></div>
-<div id="trust" style="margin-top:16px"></div>
-</main><script src="/app.js"></script></body></html>
+<div id="stagehost"></div>
+</div>
+<div id="trust" style="margin-top:14px"></div>
+</main>
+<script src="/app.js"></script></body></html>
