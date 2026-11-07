@@ -10,5 +10,9 @@
   {
     "commit": "45a2ffbf837ea0ba31e3445ae9b4850b8b850a9f",
     "reason": "Clean-tree rerun of gate l1 and two gate l2 runs on the deployed range after the debug fixes (the first l2 attempt failed verify_green_after_destroy, a one-shot 8 s wait that also failed in the build phase before these fixes; see gate-run-log.md). Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "a9218f7ec88c2bf532946439b98ef542e8d64795",
+    "reason": "gate l1 rerun on a clean tree after the wire isolation fix (CO-W1: session policy copy and live list readable only by the owning session). Only range-api read routes changed after the l2-l7 gates at the earlier declared commits; l1 is the gate that exercises those routes. Commits after it change only evidence/ and docs."
   }
 ]
