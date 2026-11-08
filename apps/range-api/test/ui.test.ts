@@ -166,7 +166,7 @@ describe('structure for the real users (platform leads first)', () => {
   });
   it('colour semantics: DENY is a calm block colour, red is reserved for a differing account or an error', () => {
     const css = read('style.css');
-    expect(css).toMatch(/\.badge\.DENY \{[^}]*var\(--block/); expect(css).not.toMatch(/\.badge\.DENY[^{]*\{[^}]*var\(--deny/);
+    expect(css).toMatch(/\.badge\.DENY(, \.badge\.CONTAINED)? \{[^}]*var\(--block/); expect(css).not.toMatch(/\.badge\.DENY[^{]*\{[^}]*var\(--deny/);
     expect(css).toMatch(/\.badge\.ALLOW \{[^}]*var\(--ink/);
   });
   it('the swinging gauge is gone from the pages: a reconcile table with match chips replaces it', () => {
@@ -216,6 +216,21 @@ describe('a visitor can check the ledger without trusting the page', () => {
   });
   it('every verdict on Try it links to its own row in the ledger', () => {
     const js = read('app.js'); expect(js).toContain('checkItBlock(v)'); expect(js).toContain('/audit/ledger?id=');
+  });
+});
+
+describe('an attack the sandbox stops resolves on screen', () => {
+  it('captures the run stage and replaces the in-flight panel with a containment card', () => {
+    const js = read('app.js'); const css = read('style.css');
+    expect(js).toContain("s.stage === 'run' && s.result"); expect(js).toContain('function containedBig'); expect(js).toContain('containedBig(state.lastRun)');
+    for (const t of ['SANDBOX_TIMEOUT', 'SANDBOX_OOM', 'never reached Vultr']) expect(js, t).toContain(t);
+    expect(css).toContain('.badge.CONTAINED');
+  });
+});
+
+describe('the status strip stays fresh while someone watches', () => {
+  it('re-reads the verifier report every 30 s, not mid-attack and not in a hidden tab', () => {
+    const js = read('app.js'); expect(js).toContain('refreshTruth(false); }, 30000)'); expect(js).toContain('!document.hidden && !state.busy');
   });
 });
 

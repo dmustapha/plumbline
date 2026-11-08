@@ -855,6 +855,17 @@ function onVerdict(v, feed) {
   announce(`${v.decision}, rule ${fmt(v.rule_id)}.`);
   if (v.decision === 'ESCALATE') approvalCard(v, feed);
 }
+// an attack that is stopped by the sandbox itself (time cap, memory cap) never reaches Vultr, so it has no policy verdict:
+// without this the panel would say "in flight" forever while the answer sat in the collapsed trace
+function containedBig(run) {
+  const box = $("#verdictbig"); if (!box || !run || !/ATTACK IN FLIGHT/.test(box.textContent || "")) return;
+  const st = String(run.state || "unknown");
+  const says = { SANDBOX_TIMEOUT: "It ran past its time cap and was killed.", SANDBOX_OOM: "It hit its memory cap and was killed.", OK: "It ran inside the sandbox and finished normally." };
+  const bits = [run.destroyed === true ? "container destroyed" : "container state " + fmt(run.state), run.container ? "id " + run.container : null].filter(Boolean).join(" · ");
+  box.replaceChildren(h("div", {}, h("span", { class: "badge CONTAINED" }, st === "OK" ? "RAN" : "CONTAINED"), " ", h("span", { class: "mut mono" }, "inside the sandbox · never reached Vultr, so no policy verdict was needed")),
+    h("div", { class: "plain" }, (says[st] || "The sandbox returned " + st + ".") + " The agent's process held no credential and could not touch the account."),
+    h("div", { class: "rid" }, st), h("div", { class: "why" }, bits + ". The next task runs normally."));
+}
 async function onResult(r, stages) {
   try {
     stages.prepend(h('div', {}, `result: ${fmt(r.status)}` + (r.models && r.models.executor ? ` | planner ${r.models.planner} | executor ${r.models.executor} | advisory ${r.models.advisory}` : '')));
@@ -864,6 +875,7 @@ async function onResult(r, stages) {
     const [p] = await Promise.all([api('/api/proof'), refreshStage()]);
     if (p.ok && p.json) state.proof = p.json;
     if (state.live) showDelta(state.live);
+    containedBig(state.lastRun);
     announce(`Result ${fmt(r.status)}; account re-read, ${state.live ? PROD_SAY[prodWord(state.live)] : 'prod-db unread'}.`);
   } finally { endFlight(); }
 }
@@ -893,7 +905,7 @@ function openStream() {
   es.onopen = () => { STREAM.tries = 0; hideBanner(STREAM_LOST); };
   es.onerror = () => { if (es.readyState === EventSource.CLOSED) streamLost(es); };
   es.addEventListener('verdict', safe((e) => { const v = frame(e); if (v) onVerdict(v, feed); }));
-  es.addEventListener('stage', safe((e) => { const s = frame(e); if (s) stages.prepend(h('div', { class: 'mut' }, stageText(s))); }));
+  es.addEventListener('stage', safe((e) => { const s = frame(e); if (!s) return; if (s.stage === 'start') state.lastRun = null; if (s.stage === 'run' && s.result) state.lastRun = s.result; stages.prepend(h('div', { class: 'mut' }, stageText(s))); }));
   es.addEventListener('livelist', safe((e) => { const live = frame(e); if (!live) return; state.live = live; stageBody($('#plumb'), live); showDelta(live); }));
   es.addEventListener('spend', safe((e) => { const m = $('#spend'); const s = frame(e); if (m && s) spendView(s, m); }));
   es.addEventListener('approval', safe((e) => { const a = frame(e); if (a) stages.prepend(h('div', { class: 'mut' }, `approval ${fmt(a.decision_id)}: ${fmt(a.status)}`)); }));
@@ -1434,4 +1446,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const boot = run(); reveals(); scrollProgress(); stepper(); boot.catch((e) => showBanner('page error: ' + e.message)).finally(() => { reveals(); });
   statusBanner();
   setInterval(drawTruth, 5000);
+  // the strip must not age into amber while someone is simply watching: re-read the verifier report every 30 s (never mid-attack)
+  setInterval(() => { if (!document.hidden && !state.busy) refreshTruth(false); }, 30000);
 });

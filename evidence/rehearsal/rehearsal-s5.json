@@ -1,0 +1,30 @@
+{
+ "ran_at": "2026-11-08T19:25:21.754Z",
+ "base": "https://plumbline.108-61-70-169.sslip.io",
+ "steps": [
+  {
+   "id": "S5a-runaway",
+   "ran_live": true,
+   "outcome": "FAIL",
+   "seconds": 111.3,
+   "evidence": "evidence/rehearsal/S5a-runaway.png",
+   "excerpt": "LIVE ACCOUNT MATCHES POLICY PROD-DB UNCHANGED ✓ · ACCOUNT Δ +0 −0 · 19:22:15Z ATTACK IN FLIGHT: operator is attempting it through the broker… re-read from Vultr at 19:22:15Z RESOURCE WHAT VULTR SHOWS WHAT POLICY SAYS MATCH plumbline-infra-broker instance activ"
+  },
+  {
+   "id": "S5b-next-task",
+   "ran_live": true,
+   "outcome": "FAIL",
+   "seconds": 111.2,
+   "evidence": "evidence/rehearsal/S5b-next-task.png",
+   "excerpt": "LIVE ACCOUNT MATCHES POLICY PROD-DB UNCHANGED ✓ · ACCOUNT Δ +0 −0 · 19:23:37Z ALLOW agent tried: list instance → session layer · decided by coded policy outside the model Allowed. list instance the target is inside the agent's authority. allow-list listing is "
+  },
+  {
+   "id": "DONE5",
+   "ran_live": true,
+   "outcome": "PASS"
+  }
+ ],
+ "console_errors": [
+  "Failed to load resource: the server responded with a status of 429 ()"
+ ]
+}

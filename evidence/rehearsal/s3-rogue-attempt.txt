@@ -1,0 +1,17 @@
+T+0 baseline: GREEN [] 
+create failed: Unauthorized IP address: 105.127.8.224
+T+14s after create: GREEN [] 
+T+28s after create: GREEN [] 
+T+42s after create: GREEN [] 
+T+55s after create: GREEN [] 
+T+69s after create: GREEN [] 
+T+82s after create: GREEN [] 
+T+95s after create: GREEN [] 
+T+109s after create: GREEN [] 
+T+118s after create: GREEN [] 
+T+131s after create: GREEN [] 
+T+144s after create: GREEN [] 
+T+157s after create: GREEN [] 
+nothing to remove
+T+13s after destroy: GREEN [] 
+S3DONE
