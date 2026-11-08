@@ -1,0 +1,76 @@
+{
+  "claims": [
+    {
+      "id": "CL-L1",
+      "claim": "Protected resources cannot be destroyed through the range; the live Vultr list is unchanged after the attack",
+      "evidence": "evidence/gate-l1.json",
+      "regenerate": "npm run gate -- l1",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    },
+    {
+      "id": "CL-L2",
+      "claim": "The verifier turns RED naming an out-of-band instance, then GREEN",
+      "evidence": "evidence/gate-l2.json",
+      "regenerate": "npm run gate -- l2",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    },
+    {
+      "id": "CL-L3",
+      "claim": "A dead broker lease makes VM 2 destroy workers and playgrounds only",
+      "evidence": "evidence/gate-l3.json",
+      "regenerate": "npm run gate -- l3",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    },
+    {
+      "id": "CL-L4",
+      "claim": "A view-only tier key gets Vultr 403 on create",
+      "evidence": "evidence/gate-l4.json",
+      "regenerate": "npm run gate -- l4",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    },
+    {
+      "id": "CL-L5",
+      "claim": "Firewall group and VPC create/delete go through the engine and the live list confirms them gone; registry create is engine-gated (Vultr allows one free registry and the protected shared one holds it) and the shared registry cannot be deleted",
+      "evidence": "evidence/gate-l5.json",
+      "regenerate": "npm run gate -- l5",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    },
+    {
+      "id": "CL-L6",
+      "claim": "A deleted canary object is restored as a new version from S3 truth",
+      "evidence": "evidence/gate-l6.json",
+      "regenerate": "npm run gate -- l6",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    },
+    {
+      "id": "CL-L7",
+      "claim": "After a bond slash the next provision is refused",
+      "evidence": "evidence/gate-l7.json",
+      "regenerate": "npm run gate -- l7",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    },
+    {
+      "id": "CL-GV",
+      "claim": "gVisor isolation (claim only if U-1 printed GVISOR OK)",
+      "evidence": "evidence/probe-first-hour.txt",
+      "regenerate": "grep 'GVISOR OK'",
+      "tier": "VERIFIED",
+      "value": "CITABLE",
+      "limitation": "see LIMITATIONS.md and the Limits page (/about): the verifier is point-in-time; spend is broker arithmetic"
+    }
+  ]
+}
