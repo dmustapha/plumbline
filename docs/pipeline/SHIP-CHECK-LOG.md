@@ -1,0 +1,1 @@
+| ship-check | SHIP-FAIL | 2026-11-08T11:30:38Z | fails: links: DEAD: https://github.com/dmustapha/plumbline.git(000) | warns: funds-key: .gitignore does not hard-ignore .env*.bak* (add a '.env*.bak*' line)|env: no required_env declared (Step 9f should list them) |

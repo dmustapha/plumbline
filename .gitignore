@@ -44,3 +44,6 @@ evidence/inputs.md
 .url-identity.json
 .judge-artifacts.json
 .provenance-surfaces.json
+
+# Secrets
+.env*.bak*

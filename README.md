@@ -185,7 +185,7 @@ The live gates (`npm run gate -- l1` to `l7`) run against the deployed range and
 **Tier 0: offline, no credentials.**
 
 ```bash
-git clone https://github.com/dmustapha/plumbline.git
+git clone https://github.com/dmustapha/plumbline
 cd plumbline
 npm ci
 npm test
