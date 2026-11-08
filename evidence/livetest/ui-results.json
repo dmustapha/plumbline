@@ -1,10 +1,15 @@
 {
  "base": "https://plumbline.108-61-70-169.sslip.io",
- "ran_at": "2026-11-08T12:56:21.143Z",
+ "ran_at": "2026-11-08T14:14:21.087Z",
  "domains": {
   "console_errors": {
-   "status": "PASS",
-   "errors": []
+   "status": "FAIL",
+   "errors": [
+    {
+     "page": "/verify",
+     "err": "Failed to load resource: the server responded with a status of 409 ()"
+    }
+   ]
   },
   "visual": {
    "status": "PASS",
@@ -72,13 +77,13 @@
    ]
   },
   "mobile": {
-   "status": "WARN",
+   "status": "PASS",
    "pages": [
     {
      "page": "/",
      "overflow": false,
-     "small": 1,
-     "minFont": 10.5
+     "small": 2,
+     "minFont": 11
     },
     {
      "page": "/range",
@@ -108,13 +113,13 @@
      "page": "/verify",
      "overflow": false,
      "small": 1,
-     "minFont": 10
+     "minFont": 11
     },
     {
      "page": "/replay",
      "overflow": false,
      "small": 1,
-     "minFont": 10.5
+     "minFont": 11
     },
     {
      "page": "/status",
@@ -131,7 +136,7 @@
     {
      "page": "/about",
      "overflow": false,
-     "small": 1,
+     "small": 2,
      "minFont": 11.5
     }
    ]
@@ -145,10 +150,9 @@
   },
   "core_flows": {
    "status": "PASS",
-   "verdictPanel": "DENY agent tried: delete instance plumbline-prod-db \u2192 session layer \u00b7 decided by coded policy outside the model | protect-tagged-destroy | protected resources cannot be destroyed or changed | also den",
-   "uiDecisionId": "d-mw7u8mzv-1b212772",
-   "idInLedger": true,
-   "note": "id parsed from the card text; the regex first captured the following word, corrected here and in ui.mjs"
+   "verdictPanel": "DENY agent tried: delete instance plumbline-prod-db → session layer · decided by coded policy outside the model | Blocked. The agent tried to delete instance plumbline-prod-db and the policy engine re",
+   "uiDecisionId": "d-mw7x1eeu-dbbeaec2",
+   "idInLedger": true
   }
  }
 }
