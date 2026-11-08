@@ -1,0 +1,19 @@
+{
+  "schema": "craft-law/1",
+  "produced_by": "craft-lint.sh",
+  "src": "apps/range-api/public",
+  "design_system": "DESIGN_SYSTEM.md",
+  "exit_code": 0,
+  "verdict": "pass",
+  "cf_checks": {
+    "CF-1": { "ran": true, "violations": 0, "desc": "ad-hoc border-radius literal" },
+    "CF-2": { "ran": true, "violations": 0, "desc": "flat-box: bordered card/panel/surface with no elevation (shadow/bg-delta)" },
+    "CF-3": { "ran": true, "violations": 0, "desc": "glass without inset highlight" },
+    "CF-4": { "ran": true, "violations": 0, "desc": "no :focus-visible app-wide" },
+    "CF-5": { "ran": true, "violations": 0, "desc": "banned generic single shadow" },
+    "CF-6": { "ran": true, "violations": 0, "desc": "no clamp() fluid sizing" },
+    "CF-7": { "ran": true, "violations": 0, "desc": "component fidelity: ad-hoc flat-box drift off the crafted system (>20% of styled surfaces)" }
+  },
+  "totals": { "violations": 0 },
+  "exemptions": []
+}
