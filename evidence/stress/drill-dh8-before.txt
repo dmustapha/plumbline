@@ -1,0 +1,10 @@
+# dh8 BEFORE the fix: parent of dae96c8, the new test copied in
+# command: npx vitest run apps/verifier/test/server.test.ts -t 'STRESS DH-8'
+   × verifier server > STRESS DH-8: a GREEN older than five minutes is served as STALE (last_status GREEN), a fresh one is GREEN with its age, and a new run restores GREEN 298ms
+     → expected { …(14) } to match object { status: 'GREEN', age_s: +0 }
+   × verifier server > STRESS DH-8: an old RED is never softened into STALE; it stays RED and is marked stale 291ms
+     → expected { …(14) } to match object { status: 'RED', stale: true }
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  apps/verifier/test/server.test.ts > verifier server > STRESS DH-8: a GREEN older than five minutes is served as STALE (last_status GREEN), a fresh one is GREEN with its age, and a new run restores GREEN
+AssertionError: expected { …(14) } to match object { status: 'GREEN', age_s: +0 }
+ FAIL  apps/verifier/test/server.test.ts > verifier server > STRESS DH-8: an old RED is never softened into STALE; it stays RED and is marked stale

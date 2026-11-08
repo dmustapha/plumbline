@@ -1,0 +1,5 @@
+# w2 AFTER the fix: HEAD 37c6408
+# command: npx vitest run apps/range-api/test/stress-api.test.ts -t 'FIXED W2'
+ Test Files  1 passed (1)
+      Tests  1 passed | 68 skipped (69)
+exit=0

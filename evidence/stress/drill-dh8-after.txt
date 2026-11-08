@@ -1,0 +1,5 @@
+# dh8 AFTER the fix: HEAD 37c6408
+# command: npx vitest run apps/verifier/test/server.test.ts -t 'STRESS DH-8'
+ Test Files  1 passed (1)
+      Tests  2 passed | 15 skipped (17)
+exit=0

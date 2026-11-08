@@ -1,0 +1,10 @@
+# w2 BEFORE the fix: parent of 1bcf56e, the new test copied in
+# command: npx vitest run apps/range-api/test/stress-api.test.ts -t 'FIXED W2'
+   ↓ 3 numbers where strings/booleans are expected, and non-finite tokens > a JSON number in a string/boolean field is 400
+   ↓ 3 numbers where strings/booleans are expected, and non-finite tokens > a numeric session_id claim is ignored (credential wins) and never 5xx; without creds it is 401
+   ↓ 3 numbers where strings/booleans are expected, and non-finite tokens > Infinity, NaN and other non-JSON number tokens are 400 on every body route
+   ↓ 3 numbers where strings/booleans are expected, and non-finite tokens > numeric-looking query session_id on live-list is 404
+   ↓ 3 numbers where strings/booleans are expected, and non-finite tokens > Last-Event-ID of any numeric shape opens the stream and replays the right suffix
+   ↓ 4 malformed JSON, content types, empty/array bodies, nesting, size limits > array, scalar and null bodies where an object is expected never 5xx; body routes answer 400
+   × 8 state after mutation > FIXED W2: /api/policy/production forwards non-string policy/signature to the broker unvalidated (the sibling PUT /api/policy/:sid rejects non-string text with 400) 55ms
+     → expected 403 to be 400 // Object.is equality
