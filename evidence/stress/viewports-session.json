@@ -1,0 +1,225 @@
+[
+ {
+  "path": "/range",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()",
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "failedRequests": [
+   "https://108-61-70-169.sslip.io/api/stream/8d4306a5",
+   "https://108-61-70-169.sslip.io/api/stream/8d4306a5"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()",
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()",
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()",
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ }
+]

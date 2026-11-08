@@ -70,7 +70,7 @@ export function loadApiConfig(env: Env): ApiConfig {
     ipSpendCapUsd: positive(env, 'PLUMBLINE_IP_SPEND_CAP_USD', 1.5),
     liveSessionsPerIp: positive(env, 'PLUMBLINE_LIVE_SESSIONS_PER_IP', 4),
     liveIdleMs: positive(env, 'PLUMBLINE_LIVE_IDLE_MS', 600_000),
-    maxStreamsPerIp: positive(env, 'PLUMBLINE_MAX_STREAMS_PER_IP', 3),
+    maxStreamsPerIp: positive(env, 'PLUMBLINE_MAX_STREAMS_PER_IP', 8),
     maxStreams: positive(env, 'PLUMBLINE_MAX_STREAMS', 200),
   };
 }

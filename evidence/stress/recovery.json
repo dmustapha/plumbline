@@ -1,0 +1,56 @@
+[
+ {
+  "name": "R1 corrupted storage",
+  "ok": true,
+  "pageerrors": [],
+  "note": "fire enabled=true"
+ },
+ {
+  "name": "R2 503 html on /api/attack",
+  "ok": false,
+  "pageerrors": [],
+  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+ },
+ {
+  "name": "R3 200 non-JSON on /api/attack",
+  "ok": false,
+  "pageerrors": [],
+  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+ },
+ {
+  "name": "R3b 429 on /api/attack",
+  "ok": false,
+  "pageerrors": [],
+  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+ },
+ {
+  "name": "R4 offline on /api/attack",
+  "ok": false,
+  "pageerrors": [],
+  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+ },
+ {
+  "name": "R5 garbage /api/live-list and /api/spend",
+  "ok": true,
+  "pageerrors": [],
+  "note": "page rendered, body length 2119"
+ },
+ {
+  "name": "R6 SSE dropped mid-attack (live)",
+  "ok": false,
+  "pageerrors": [],
+  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+ },
+ {
+  "name": "R7 rapid double-click (live)",
+  "ok": false,
+  "pageerrors": [],
+  "note": "THROW locator.dblclick: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolve"
+ },
+ {
+  "name": "R8 refresh mid-attack then back (live)",
+  "ok": false,
+  "pageerrors": [],
+  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+ }
+]
