@@ -1,0 +1,324 @@
+[
+ {
+  "path": "/",
+  "w": 320,
+  "iw": 320,
+  "sw": 367,
+  "overflow": true,
+  "wide": [
+   "SPAN.@367"
+  ],
+  "smallTargets": 9,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 768,
+  "iw": 768,
+  "sw": 821,
+  "overflow": true,
+  "wide": [
+   "DIV.cta@821",
+   "DIV.truth@771",
+   "SPAN.br@771",
+   "BUTTON.themebtn@821"
+  ],
+  "smallTargets": 9,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 9,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 9,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 9,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 101,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 101,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 102,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 102,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 102,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "errs": [
+   "Failed to load resource: the server responded with a status of 429 ()"
+  ],
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ }
+]

@@ -1,0 +1,3 @@
+boto3 sees: [('DTjmOVUx60KfeLsg4AXFhuABQF-3Olb', False, 66), ('j.ChumRmxhlc4k4XorX-NYb-e9.Ufi4', True, 66)]
+range reports: [('DTjmOVUx60KfeLsg4AXFhuABQF-3Olb', False, 66), ('j.ChumRmxhlc4k4XorX-NYb-e9.Ufi4', True, 66)]
+AGREE

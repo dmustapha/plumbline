@@ -1,0 +1,24 @@
+GET /healthz (allowed)                                     -> HTTP/1.1 200 OK
+POST /v1/call no auth (allowed route, broker rejects)      -> HTTP/1.1 401 Unauthorized
+absolute-URI GET http://1.1.1.1/                           -> HTTP/1.1 404 Not Found
+absolute-URI POST http://172.17.0.1:7443/v1/call           -> HTTP/1.1 404 Not Found
+CONNECT 1.1.1.1:80                                         -> (no response)
+path /v1/call?x=1                                          -> HTTP/1.1 404 Not Found
+path /v1/call/                                             -> HTTP/1.1 404 Not Found
+path /v1/../v1/status                                      -> HTTP/1.1 404 Not Found
+path //v1/call                                             -> HTTP/1.1 404 Not Found
+path %2e%2e traversal                                      -> HTTP/1.1 404 Not Found
+GET /v1/policy-production                                  -> HTTP/1.1 404 Not Found
+POST /v1/policy-production                                 -> HTTP/1.1 404 Not Found
+smuggling CL+TE                                            -> HTTP/1.1 400 Bad Request
+CRLF in path                                               -> HTTP/1.1 400 Bad Request
+oversized body 17 KiB                                      -> HTTP/1.1 413 Payload Too Large
+unsupported method TRACE                                   -> HTTP/1.1 404 Not Found
+--- direct egress from the sandbox network
+internet 1.1.1.1:80                      -> blocked (OSError)
+internet 8.8.8.8:53                      -> blocked (OSError)
+docker0 gateway :22                      -> blocked (OSError)
+broker port direct 172.17.0.1:7443       -> blocked (OSError)
+metadata 169.254.169.254:80              -> blocked (OSError)
+dns example.com -> fails (gaierror)
+leftover sandbox containers: 0
