@@ -6,7 +6,7 @@
 <p class="mut">Object Storage versioning is the only live undo here. A VM snapshot takes minutes, so no VM undo is claimed. You act on your own copy of the canary object; the shared orders.json is never touched.</p>
 <div class="row"><button id="del">Delete your orders.json</button><button id="rew" class="primary">Rewind</button><button id="approve" hidden>Approve irreversible delete</button></div>
 <p id="state" class="mut">loading...</p>
-<pre id="rwout"></pre></div>
+<pre id="rwout" role="status"></pre></div>
 <div class="panel"><h3>Independent version list</h3>
 <p class="mut">Read straight from Object Storage ListObjectVersions on every refresh. It is not this page's state.</p>
 <div id="versions" class="mut">loading...</div>
@@ -134,7 +134,6 @@
     });
   }
 
-  $('rwout').setAttribute('role', 'status');
   $('del').addEventListener('click', function () { act('delete'); });
   $('rew').addEventListener('click', function () { act('restore'); });
   $('approve').addEventListener('click', approve);
