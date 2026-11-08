@@ -1,0 +1,8 @@
+# Sensitive paths require review
+/policy/ @dmustapha
+/packages/policy-engine/ @dmustapha
+/packages/sandbox/ @dmustapha
+/apps/broker/ @dmustapha
+/ops/ @dmustapha
+/.github/ @dmustapha
+SECURITY.md @dmustapha

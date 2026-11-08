@@ -10,6 +10,10 @@ Built for the Vultr Agent Rush hackathon, challenge **Blast Radius Zero**.
 
 ![Plumbline range: an attack on prod-db is denied, the live account is re-fetched and unchanged](docs/images/range-deny.png)
 
+## The problem
+
+Agents now act with real power: they create servers, delete databases and spend money. The common safeguard is a prompt that says "do not delete production", and a prompt is text the agent can be talked out of. The usual evidence is a log, and a log only shows what the system says it did. Neither proves the account is intact.
+
 ## What is Plumbline?
 
 Most agent demos show an agent that can act. Plumbline shows the box the agent acts inside.
