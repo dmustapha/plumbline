@@ -1010,7 +1010,9 @@ function rangeFire(box, stages) {
     let launched = false;
     try {
       const r = await api('/api/attack', { body: { session_id: state.sid, text: box.value } });
+      // a 2xx that is not an attack receipt (a proxy page, a truncated body) is a failure, not a launch
       if (!r.ok) { attackFailure(r, stages); return; }
+      if (!r.json || !r.json.attack_id) { attackFailure({ ok: false, status: r.status, json: { status: 'MALFORMED_REPLY' } }, stages); return; }
       launched = true; flightWatch(stages);
     } finally { if (!launched) endFlight(); }
   };

@@ -1,10 +1,10 @@
 {
   "gate": "gate-l5",
   "pass": true,
-  "ran_at": "2026-11-07T08:11:19.150Z",
+  "ran_at": "2026-11-08T09:31:37.907Z",
   "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "58224178973b790f509c8f751f82be0288a4d3b4",
-  "git_dirty": false,
+  "git_commit": "a332a4584b69fccc01cbf337fcc65c5425fe7462",
+  "git_dirty": true,
   "checks": {
     "firewall_create_delete": true,
     "vpc_create_delete": true,
@@ -16,10 +16,10 @@
   "data": {
     "created_ids": {
       "firewall": [
-        "4feeddea-95b0-4592-8205-b58e56f11d4e"
+        "916a8648-a74c-4f84-998a-16243bfd379c"
       ],
       "vpc": [
-        "2a73a8a7-f7df-4765-8bc2-422fd331ed37"
+        "858222bf-205d-4fb7-906f-e2a7344136c7"
       ]
     },
     "still_listed": [],
@@ -35,7 +35,7 @@
         "run:OK"
       ],
       "result": {
-        "attack_id": "a-mw64jijs-7440",
+        "attack_id": "a-mw7mune9-ebfe",
         "status": "RAN",
         "models": {
           "planner": "glm-5.3",
@@ -48,14 +48,14 @@
     },
     "shared_registry_verdicts": [
       {
-        "decision_id": "d-mw64jmn7-b1f55068",
+        "decision_id": "d-mw7mur1q-a5c6b64b",
         "decision": "ALLOW",
         "rule_id": "allow-list",
         "verb": "list",
         "class": "registry"
       },
       {
-        "decision_id": "d-mw64jmzt-bef8798a",
+        "decision_id": "d-mw7murk4-9489a9bb",
         "decision": "DENY",
         "rule_id": "floor-registry-shared",
         "verb": "delete",
@@ -63,5 +63,5 @@
       }
     ]
   },
-  "evidence_sha256": "6adc4ce4047534cc413b805f0842b748dc97b6f007bb3e12e55023c1a1522133"
+  "evidence_sha256": "eeb0a53c23a165499a8d1a84a5a538880a602735a01ddceb756920d7073340ca"
 }

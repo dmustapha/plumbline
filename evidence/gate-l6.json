@@ -1,10 +1,10 @@
 {
   "gate": "gate-l6",
   "pass": true,
-  "ran_at": "2026-11-07T08:12:05.309Z",
+  "ran_at": "2026-11-08T08:53:30.128Z",
   "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "58224178973b790f509c8f751f82be0288a4d3b4",
-  "git_dirty": false,
+  "git_commit": "a332a4584b69fccc01cbf337fcc65c5425fe7462",
+  "git_dirty": true,
   "checks": {
     "two_versions_before": true,
     "delete_allowed": true,
@@ -14,8 +14,8 @@
     "new_version_written": true
   },
   "data": {
-    "restore_round_trip_ms": 691,
+    "restore_round_trip_ms": 1300,
     "note": "last-copy ESCALATE is asserted by apps/broker/test/pipeline.test.ts and attacks/rewind.yaml rwd-1; content equality is asserted by packages/rewind tests"
   },
-  "evidence_sha256": "4186411360e3d0e71ef9d7823ee51cbb22291cd0e48711b3fab656bdefbaac9d"
+  "evidence_sha256": "a60fb3cf3c9f74a22fba74da3ef0f3992bfd990a12a459fb3cafc7364bd44624"
 }

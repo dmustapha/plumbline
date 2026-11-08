@@ -1,10 +1,10 @@
 {
   "gate": "gate-l7",
   "pass": true,
-  "ran_at": "2026-11-07T08:13:56.779Z",
+  "ran_at": "2026-11-08T08:54:43.710Z",
   "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "58224178973b790f509c8f751f82be0288a4d3b4",
-  "git_dirty": false,
+  "git_commit": "a332a4584b69fccc01cbf337fcc65c5425fe7462",
+  "git_dirty": true,
   "checks": {
     "refuses_after_slash_unit_test": true,
     "bond_enabled_on_deployment": true,
@@ -14,9 +14,9 @@
     "live_cleanup_through_broker": true
   },
   "data": {
-    "session_id": "31946903",
-    "scene_key": "bond-scene/g1794039171829.json",
-    "escalate_decision_id": "d-mw64lu87-79f98c5e",
+    "session_id": "e72091b6",
+    "scene_key": "bond-scene/g1794128014988.json",
+    "escalate_decision_id": "d-mw7li2ky-bead3238",
     "escalate_rule": "last-copy-block",
     "approval": {
       "approved": true,
@@ -24,7 +24,7 @@
     },
     "bond_before": {
       "enabled": true,
-      "session_id": "31946903",
+      "session_id": "e72091b6",
       "free": 0.05,
       "held": 0,
       "burned": 0,
@@ -32,36 +32,36 @@
     },
     "bond_after": {
       "enabled": true,
-      "session_id": "31946903",
+      "session_id": "e72091b6",
       "free": 0.005,
       "held": 0,
       "burned": 0.045,
       "actions": [
         {
-          "action_id": "d-mw64lu87-79f98c5e",
+          "action_id": "d-mw7li2ky-bead3238",
           "amount": 0.045,
           "state": "burned"
         }
       ]
     },
-    "refused_decision_id": "d-mw64m17i-b2450e29",
+    "refused_decision_id": "d-mw7li9of-fc7ee3c1",
     "refused_vultr_ids": [],
-    "other_session_id": "fe4d13e8",
+    "other_session_id": "97718b3e",
     "other_verdicts": [
       {
-        "decision_id": "d-mw64m7c8-53c198ae",
+        "decision_id": "d-mw7lift2-206e39f7",
         "rule_id": "allow-worker-create",
         "decision": "ALLOW"
       }
     ],
     "other_bond": {
       "enabled": true,
-      "session_id": "fe4d13e8",
+      "session_id": "97718b3e",
       "free": 0.05,
       "held": 0,
       "burned": 0,
       "actions": []
     }
   },
-  "evidence_sha256": "3db83a752cdc31a7f1da1682d3c3de6aa4a2129d723655df3b269780f1e22dc5"
+  "evidence_sha256": "71a882f1a60eaed37c4fd1accfabf6b3791b6c296b0b42285ee75fa33a0bd161"
 }

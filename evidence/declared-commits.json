@@ -18,5 +18,9 @@
   {
     "commit": "7319792ce592f6cb107cfe9215475ea35fe3e5a9",
     "reason": "Clean-tree rerun of gate l1 on the deployed range after the design-forge changes (UI integration, per-page CSP, a11y and error handling in app.js, logo and nav mark). L1 needs temporary session-limit overrides to run from one IP; they were reverted (0 PER_IP lines left in api.env)."
+  },
+  {
+    "commit": "a332a4584b69fccc01cbf337fcc65c5425fe7462",
+    "reason": "Stress-test regression: gates l2 to l7 were run live on 2026-11-08 (l4/l6/l7 08:53Z, l2 09:06Z, l5/l3 09:31Z; l1 earlier on a clean tree). The tree was dirty only through apps/range-api/public/app.js (the MALFORMED_REPLY guard in the attack call, deployed, committed right after), tests/stress/recovery.mjs and evidence/. An earlier attempt at 08:36Z failed on the owner-side harness (PLUMBLINE_SSH_BROKER unset, session-creation limit) and is kept under evidence/stress/gate-attempt-0836/. Commits after it change only evidence/ and docs."
   }
 ]

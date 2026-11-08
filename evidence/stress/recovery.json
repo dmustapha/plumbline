@@ -1,9 +1,9 @@
 [
  {
   "name": "R1 corrupted storage",
-  "ok": true,
+  "ok": false,
   "pageerrors": [],
-  "note": "fire enabled=true"
+  "note": "fire enabled=false"
  },
  {
   "name": "R2 503 html on /api/attack",
@@ -33,10 +33,10 @@
   "name": "R5 garbage /api/live-list and /api/spend",
   "ok": true,
   "pageerrors": [],
-  "note": "page rendered, body length 2119"
+  "note": "page rendered, body length 2112"
  },
  {
-  "name": "R6 SSE dropped mid-attack (live)",
+  "name": "R6 SSE dropped mid-attack, 120 s watchdog (live)",
   "ok": false,
   "pageerrors": [],
   "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
