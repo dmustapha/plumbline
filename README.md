@@ -96,7 +96,7 @@ The invariants below are the product. Each one names the code that a violating p
 - **The agent never holds a credential.** No Vultr, inference or storage key exists in the sandbox, the operator runtime or the public API. The `Print environment` scene dumps the sandbox environment, and gate L1 asserts it carries no credential pattern (`sandbox_env_clean`).
 - **Only an `ALLOW` decision mutates the account.** Every mutating adapter method takes a branded `AllowDecision` value that only the engine can mint. Unknown verbs and classes fall through to `default-deny`.
 - **Production is immutable.** `protect-tagged-destroy` and `floor-prod-immutable` deny deletes and edits of protected resources. A change to the production floor answers `SIG_REQUIRED` or `SIG_INVALID` without an Ed25519 signature.
-- **Spend has a ceiling the agent cannot raise.** `ceiling-dollar-deny`, `global-cap-exceeded` and `session-cap-exceeded` are enforced at one `spend()` choke point before any network call.
+- **Spend has a ceiling the agent cannot raise ($1.50 per session, $10 across the broker).** `ceiling-dollar-deny`, `global-cap-exceeded` and `session-cap-exceeded` are enforced at one `spend()` choke point before any network call.
 - **Breach is defined by the live account.** The verifier reconciles it from another host with another key. If it cannot read the account it answers `RECONCILE_DEGRADED`, never GREEN.
 - **Every verdict is earned.** A decision row is written only by `recordDecision()` after the engine returns. The store has no seed, import or demo insert path.
 
@@ -213,7 +213,7 @@ Each claim carries a verdict, the file that proves it, and the command that rege
 ## Tests
 
 ```bash
-npm test          # 1189 tests across 81 files, offline, no credentials
+npm test          # 1189 tests across 82 files, offline, no credentials
 npm run typecheck
 ```
 
@@ -280,7 +280,7 @@ docs/            interfaces, domain guide, acceptance-criteria traceability, str
 
 | Layer | Technology |
 |---|---|
-| Language | TypeScript on Node 24 with `tsx`, no build step. About 9,400 lines of source and 80 test files. |
+| Language | TypeScript on Node 24 with `tsx`, no build step. About 9,400 lines of source and 82 test files. |
 | Web | Fastify, server-sent events, static HTML with one script and per-page CSP hashes |
 | Policy | YAML policy data, a pure evaluator, Ed25519-signed production changes |
 | Storage | SQLite with append-only triggers for the decision ledger |
