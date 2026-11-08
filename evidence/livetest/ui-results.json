@@ -1,6 +1,6 @@
 {
  "base": "https://plumbline.108-61-70-169.sslip.io",
- "ran_at": "2026-11-08T15:30:02.300Z",
+ "ran_at": "2026-11-08T17:47:43.814Z",
  "domains": {
   "console_errors": {
    "status": "PASS",
@@ -16,55 +16,73 @@
      "todo": false
     },
     {
-     "page": "/range",
+     "page": "/try",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/range/policy",
+     "page": "/controls/policy",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/range/rewind",
+     "page": "/controls/limits",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/range/bond",
+     "page": "/controls/recovery",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/verify",
+     "page": "/audit/ledger",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/replay",
+     "page": "/audit/reconcile",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/status",
+     "page": "/audit/evidence",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/proof",
+     "page": "/docs/safety",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
     },
     {
-     "page": "/about",
+     "page": "/docs/architecture",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/docs/concepts",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/docs/integrate",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/deploy",
      "badTokens": [],
      "brokenImages": [],
      "todo": false
@@ -77,61 +95,79 @@
     {
      "page": "/",
      "overflow": false,
+     "small": 13,
+     "minFont": 11.5
+    },
+    {
+     "page": "/try",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11
+    },
+    {
+     "page": "/controls/policy",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/controls/limits",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/controls/recovery",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/audit/ledger",
+     "overflow": false,
      "small": 2,
      "minFont": 11
     },
     {
-     "page": "/range",
-     "overflow": false,
-     "small": 1,
-     "minFont": 11
-    },
-    {
-     "page": "/range/policy",
+     "page": "/audit/reconcile",
      "overflow": false,
      "small": 1,
      "minFont": 11.5
     },
     {
-     "page": "/range/rewind",
+     "page": "/audit/evidence",
      "overflow": false,
      "small": 1,
      "minFont": 11.5
     },
     {
-     "page": "/range/bond",
-     "overflow": false,
-     "small": 1,
-     "minFont": 11.5
-    },
-    {
-     "page": "/verify",
-     "overflow": false,
-     "small": 1,
-     "minFont": 11
-    },
-    {
-     "page": "/replay",
-     "overflow": false,
-     "small": 1,
-     "minFont": 11
-    },
-    {
-     "page": "/status",
-     "overflow": false,
-     "small": 1,
-     "minFont": 11.5
-    },
-    {
-     "page": "/proof",
-     "overflow": false,
-     "small": 1,
-     "minFont": 11.5
-    },
-    {
-     "page": "/about",
+     "page": "/docs/safety",
      "overflow": false,
      "small": 2,
+     "minFont": 11.5
+    },
+    {
+     "page": "/docs/architecture",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/docs/concepts",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/docs/integrate",
+     "overflow": false,
+     "small": 2,
+     "minFont": 11.5
+    },
+    {
+     "page": "/deploy",
+     "overflow": false,
+     "small": 4,
      "minFont": 11.5
     }
    ]
@@ -146,7 +182,7 @@
   "core_flows": {
    "status": "PASS",
    "verdictPanel": "DENY agent tried: delete instance plumbline-prod-db → session layer · decided by coded policy outside the model | Blocked. The agent tried to delete instance plumbline-prod-db and the policy engine re",
-   "uiDecisionId": "d-mw7zqahu-758f7b98",
+   "uiDecisionId": "d-mw84o1e3-331516bf",
    "idInLedger": true
   }
  }

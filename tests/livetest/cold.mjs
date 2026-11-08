@@ -6,10 +6,10 @@ const BASE = process.env.URL; if (!BASE) throw new Error('URL required');
 const leaked = Object.keys(process.env).filter((k) => /VULTR|PLUMBLINE|API_?KEY|TOKEN|SECRET/i.test(k));
 const t0 = Date.now(); const b = await chromium.launch(); const ctx = await b.newContext(); const p = await ctx.newPage();
 await p.goto(BASE + '/'); await p.waitForTimeout(2500);
-await p.getByText(/Attack prod-db/i).first().click();
-// a cold judge lands on /range with the attack loaded; if it has not fired by itself after 8 s, click Fire like a person would
+await p.locator('a[href="/try?fire=prod"]').first().click();
+// a cold visitor lands on /try with the attack loaded; if it has not fired by itself after 8 s, click Fire like a person would
 let clickedFire = false; let prefilled = '';
-for (let i = 0; i < 16; i++) { await p.waitForTimeout(500); prefilled = await p.locator('textarea').first().inputValue().catch(() => ''); if (prefilled) break; }
+for (let i = 0; i < 16; i++) { await p.waitForTimeout(500); prefilled = await p.locator('#attack').inputValue().catch(() => ''); if (prefilled) break; }
 await p.waitForTimeout(8000);
 if (!/DENY|ALLOW|ESCALATE/.test(await p.locator('#verdictbig').innerText().catch(() => '')) && !(await p.locator('#fire').isDisabled().catch(() => true))) { await p.locator('#fire').click(); clickedFire = true; }
 let big = ''; for (let i = 0; i < 40; i++) { await p.waitForTimeout(2000); big = await p.locator('#verdictbig').innerText().catch(() => ''); if (/DENY|ALLOW|ESCALATE/.test(big)) break; }
