@@ -50,3 +50,4 @@ evidence/inputs.md
 
 # Secrets
 .env*.bak*
+.account-standing.json
