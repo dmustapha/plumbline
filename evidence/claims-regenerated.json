@@ -1,8 +1,8 @@
 {
   "generated_by": "verify-claims",
-  "regenerated_at": "2026-11-08T11:22:05.680Z",
+  "regenerated_at": "2026-11-08T11:31:10.879Z",
   "judged_url": "https://108-61-70-169.sslip.io",
-  "head": "0bbc84fc22f448b118aae0c1e618aed41b29b150",
+  "head": "ca043e47b40da71d40f853738657f5d5b48b2a1e",
   "citable": [
     "CL-L1",
     "CL-L2",
@@ -27,6 +27,6 @@
       "last_ts": 1794136441644
     },
     "floor_hash": "49aafd52f822a5bf431e5b412613c8bba96a509937421e3643433e68a0adf802",
-    "fetched_at": "2026-11-08T11:22:06.611Z"
+    "fetched_at": "2026-11-08T11:31:11.793Z"
   }
 }
