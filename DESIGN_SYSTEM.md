@@ -93,10 +93,11 @@ Radii: 1 (`--r-tick`, severity ticks), 4 (`--r-chip`, badges and code chips), 6 
 | flat | page ground `--void`, no shadow | body |
 | raised | `--lv-raised`: inset 0 1px 0 ink 10%, `--card` gradient (surface-2 to surface-1), 1px hairline, r 16 | `.panel` |
 | lifted | `--lv-lifted-{true,deny,esc}`: inset highlight + 1px under-edge + `0 48px 140px -48px` glow in the verdict colour, `--card-lift`, r 22 | `.panel.stage` only (the set-piece) |
+| lifted, quiet | `.panel.lift`: the lifted card with NO coloured glow (inset highlight + under-edge only) | first card of Rewind, Bond and Limits, pages that have no stage |
 | floating | not implemented (the site has no overlays; the dead token was removed) | none |
 | protruding | not implemented | none |
 
-Exactly one coloured glow sits on the page, on the stage; it follows the verdict (`html[data-m="red|amber"]`). No glass: `backdrop-filter` count is 0.
+Exactly one coloured glow sits on a page, on the stage (pages without a stage have none; the neutral lamp stays); it follows the verdict (`html[data-m="red|amber"]`). No glass: `backdrop-filter` count is 0.
 
 ### Hover / focus
 
@@ -121,7 +122,7 @@ Primary: accent fill, `--on-accent` text, small accent glow. FIRE: ink fill, mon
 | ALLOW swing | same curve, amplitude 7deg | |
 | ESCALATE | 500ms ease to 6deg, held | |
 | RED hold | cord held off-true at 13deg | verifier names an unauthorised resource |
-| ghost | line dims, state UNDER TEST / UNREAD | broker or verifier unreachable |
+| ghost | line dims and goes dashed, label NOT VERIFIED (verifier unreachable) or UNDER TEST (attack in flight) | the line never claims true without a verifier answer: it starts as READING... |
 | lamp pulse on DENY | 1500ms opacity .34 to .9 to .34 | ground lamp |
 | lamp breathe | 11s ease-sine | ground |
 | arrive / fadeInUp / cardin / rowFlash / settleTrue | .7s / .9s / .5s / 1.6s / 3.2s, `--ease-quart` | page entry, new rows |
@@ -140,3 +141,24 @@ No horizontal-bar family (progress bars, bar charts, stat bars; severity is a 5-
 ## Logo
 
 Pending Phase 3. Concept: a plumb bob hanging true; chalk cord, true-green bob, graphite ground; must survive 16px favicon, 32px nav mark, 512px social and one-colour mono. To be generated with image gen and chosen by Dami, not by the agent.
+
+## Honesty states (what the UI may claim)
+
+- The plumb starts `READING...` and may hang true only after the verifier answered GREEN and the report is under 120 s old; a stale GREEN is amber, never red, never green. `/api/verify/run` is POSTed on page load when the cached report is stale or not GREEN.
+- Numbers come from `/api/proof`, `/api/verify`, `/api/replay`, `/api/status` only. "Attacks" (352) is distinct operator tasks; "tool calls judged" (532) is every verdict row. The proof page prints a regenerate command for each.
+- Ledger rows from the broker's own `system` session are labelled `system housekeeping` and are not counted as visitor attacks.
+- Reconcile arithmetic uses the verifier report alone: baseline + visitor playgrounds = live (playgrounds = live - baseline - unauthorized).
+- `UNCHANGED` is printed only after diffing id, status and power state of prod-db before and after; with no baseline it says `PRESENT`.
+- Anything the API omits renders as `not reported`, never `undefined` or `NaN`.
+
+## Responsive and accessibility floor
+
+- At 600px and below: the sidebar becomes a scrolling row (fade at the right edge, current page scrolled into view), the strip stacks, the stage shrinks its middle column to 88px and drops the degree scale. At 1100px and below the Range page orders attack form, verdict stage, supporting panels, with the attack list capped at 176px.
+- Measured: layout viewport stays 375 on the pages listed in `.design-render-375.json`; axe (wcag2a, wcag2aa, wcag21aa) reports 0 violations on all ten pages dark (see `evidence/design-forge/axe-summary.json`).
+- Light theme raises `--muted` to ink 74% and `--faint` to ink 64%, `--true` to oklch(50% .15 160), and underlines in-text links, to clear 4.5:1 on the paper ground.
+- Motion: every animation goes through one `anim()` wrapper; under `prefers-reduced-motion` it applies the final frame and does not run. The idle swing and brand mark pause after 5 s without interaction. Tab hidden pauses all of it.
+- Screen readers: one polite `#announce` region speaks each verdict, result and verifier change; `#banner` is `role=alert`; skip link first in the body.
+
+## Security headers (served by range-api)
+
+`Content-Security-Policy` is built per page from the inline scripts actually present (sha256 of each), `script-src 'self'` plus those hashes, `style-src 'self' 'unsafe-inline' fonts.googleapis.com` (inline style attributes carry the stagger delays and plumb geometry), `font-src fonts.gstatic.com`, `connect-src 'self'` plus the two font hosts, `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'none'`, `form-action 'none'`. Also `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: no-referrer`. Tested in `ui.test.ts`.

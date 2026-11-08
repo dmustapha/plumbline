@@ -1,0 +1,13 @@
+{
+  "tool": "axe-core 4.10.0, tags wcag2a + wcag2aa + wcag21aa, run in the page via the devtools-driven Chrome",
+  "run_on": "2026-11-08, https://108-61-70-169.sslip.io, after the critique-round-1 fixes",
+  "dark_desktop_1440": { "pages": ["/", "/range", "/verify", "/replay", "/status", "/range/policy", "/range/rewind", "/range/bond", "/proof", "/about"], "violations": 0 },
+  "light_theme": { "pages": ["/", "/range", "/verify"], "violations": 0, "note": "run before the round-2 CSS; light theme not re-run on the other seven pages" },
+  "dark_375": { "pages": ["/range (post round 2)"], "violations": 0 },
+  "found_and_fixed": [
+    "label (critical): textarea#attack and textarea#yaml had no accessible name",
+    "scrollable-region-focusable: three .tablewrap regions",
+    "color-contrast (light theme): muted/faint text 3.83:1, --true 4.3:1, footer link vs text 1.45:1"
+  ],
+  "limits": "axe finds about a third of WCAG issues; keyboard-only and screen-reader passes were not done by a human"
+}

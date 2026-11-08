@@ -416,3 +416,30 @@ button[aria-disabled="true"], .btn[aria-disabled="true"] { opacity: .45; cursor:
 .copybtn { background: none; border: 0; padding: 0; min-width: 0; font: inherit; color: inherit; cursor: copy; text-align: left; letter-spacing: 0; text-transform: none; }
 .stop.over { color: var(--deny); }
 .plumb .st.amber { color: var(--esc); }
+
+/* ============ 95. CRITIQUE ROUND 2 ============ */
+/* a lifted card on a page with no stage carries no coloured glow: the one coloured glow belongs to the stage */
+.panel.lift { background: var(--card-lift); border-color: var(--hairline-hi); border-radius: var(--r-lift); box-shadow: var(--lv-raised), 0 1px 0 oklch(0% 0 0 / .25); }
+/* the cord's soft light fades out inside its box instead of meeting a hard edge */
+.plumb::before { -webkit-mask-image: radial-gradient(closest-side at 50% 72%, #000 45%, transparent 100%); mask-image: radial-gradient(closest-side at 50% 72%, #000 45%, transparent 100%); }
+/* "locked" is a property, not a verdict: chalk, not green */
+.pr.prot .n::before { color: var(--accent-hi); } .pr.hit.safe { background: var(--acc-08); }
+.stage .hd { flex-wrap: wrap; row-gap: 4px; }
+.stop { height: 104px; } .stop .val { color: var(--text); }
+/* the trust-root drawer is a footnote, not a card */
+#trust .panel { background: none; border: 0; box-shadow: none; padding: 0; }
+#trust .panel:hover { transform: none; }
+textarea.code { white-space: pre; overflow-x: auto; }
+.hero { padding-top: var(--s-4); } .hero .ctas { margin-bottom: var(--s-4); } .hero .stage.free .plumb { min-height: 220px; }
+/* narrow screens: the attack form, then the verdict, then the supporting panels */
+@media (max-width: 1100px) {
+  .range { display: flex; flex-direction: column; gap: var(--s-5); }
+  .range > section { display: contents; }
+  .range > section > .panel { margin: 0; order: 3; } .range > section > .panel:first-child { order: 1; }
+  .range > .stage, .range > #stagehost { order: 2; }
+}
+@media (max-width: 600px) {
+  aside.side { -webkit-mask-image: linear-gradient(to right, #000 86%, transparent); mask-image: linear-gradient(to right, #000 86%, transparent); }
+  .statrow .k { text-transform: uppercase; letter-spacing: .1em; }
+}
+@media (max-width: 1100px) { #canned { max-height: 176px; overflow-y: auto; overscroll-behavior: contain; } }

@@ -4,7 +4,7 @@
 <body data-page="rewind"><main class="sheet">
 <div class="panel lift"><h2>Reprieve Rewind: bucket plumbline-orders-db (versioned)</h2>
 <p class="mut">Object Storage versioning is the only live undo here. A VM snapshot takes minutes, so no VM undo is claimed. You act on your own copy of the canary object; the shared orders.json is never touched.</p>
-<div class="row"><button id="del" class="primary">Delete your orders.json</button><button id="rew">Rewind</button><button id="approve" hidden>Approve irreversible delete</button></div>
+<div class="row"><button id="del">Delete your orders.json</button><button id="rew" class="primary">Rewind</button><button id="approve" hidden>Approve irreversible delete</button></div>
 <p id="state" class="mut">loading...</p>
 <pre id="rwout"></pre></div>
 <div class="panel"><h3>Independent version list</h3>

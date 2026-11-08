@@ -137,7 +137,7 @@ function hideBanner(text) { const b = $('#banner'); if (b && b.textContent === t
 
 const ROUTES = [
   ['ATTACK', [['/range', 'Range', 'fire']]],
-  ['VERIFY', [['/verify', 'Reconcile', 'live account'], ['/replay', 'Ledger', 'verdicts'], ['/proof', 'Proof', 'evidence'], ['/about', 'What we do not claim', 'limits']]],
+  ['VERIFY', [['/verify', 'Reconcile', 'live account'], ['/replay', 'Ledger', 'verdicts'], ['/proof', 'Proof', 'evidence'], ['/about', 'Limits', 'not claimed']]],
   ['CONTROLS', [['/status', 'Ceiling', 'spend + kill'], ['/range/policy', 'Policy', 'rules as data'], ['/range/rewind', 'Rewind', 'undo'], ['/range/bond', 'Bond', 'bonded loss']]],
 ];
 const TITLES = { range: ['Range', 'attack the agent, watch the box hold'], verify: ['Reconcile', 'the live account against authority, read by a second host'], replay: ['Ledger', 'every real verdict from the decision store'], status: ['Ceiling', 'the dollar ceiling, kill-switch and keys'], policy: ['Policy', 'rules as data: production floor and your sandbox copy'], rewind: ['Rewind', 'the only live undo: object versioning'], bond: ['Bond', 'undo or insure'], proof: ['Proof', 'evidence, containment tests, regenerate commands'], about: ['What we do not claim', 'what Plumbline does and does not claim'] };
@@ -157,15 +157,16 @@ function ground() {
   document.body.prepend(h('div', { id: 'ground' }, h('div', { class: 'grain' }), datumField(), h('div', { class: 'lamp' }), h('div', { class: 'vignette' })));
 }
 // survey datum marks: a few plumb threads at irregular stations, each with a station cross and a short level mark. Never a grid.
+// on a phone the sidebar is a scrolling row: bring the current page into view so the user knows where they are
+window.addEventListener('load', () => { const side = document.querySelector('aside.side'); const cur = side && side.querySelector('[aria-current="page"]'); if (cur && side.scrollWidth > side.clientWidth) side.scrollLeft = Math.max(0, cur.offsetLeft - 24); });
 function datumField() {
   const W = 1440, H = 900; const g = sv('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'none', 'aria-hidden': 'true' });
-  const stations = [[0.09, 0.12], [0.26, 0.42], [0.47, 0.08], [0.69, 0.3], [0.86, 0.14], [0.93, 0.52], [0.15, 0.7], [0.58, 0.78]];
+  const stations = [[0.06, 0.14], [0.92, 0.12], [0.95, 0.54], [0.1, 0.72], [0.6, 0.88]]; // five crosshairs, clear of the headline and the panel gaps
   stations.forEach(([x, y], i) => {
     const X = x * W, Y = y * H; const a = i % 3 === 0 ? .55 : .35;
     g.append(sv('line', { x1: X, y1: Y - 14, x2: X, y2: Y + 14, 'stroke-opacity': a, 'stroke-width': 1 }));
     g.append(sv('line', { x1: X - 14, y1: Y, x2: X + 14, y2: Y, 'stroke-opacity': a, 'stroke-width': 1 }));
     g.append(sv('circle', { cx: X, cy: Y, r: 5, 'stroke-opacity': a - .1, 'stroke-width': 1 }));
-    if (i % 2) g.append(sv('line', { x1: X, y1: Y + 22, x2: X, y2: Y + 60 + (i * 9) % 50, 'stroke-opacity': .22, 'stroke-width': 1, 'stroke-dasharray': '2 6' }));
   });
   return h('div', { class: 'datum' }, g);
 }
@@ -200,7 +201,7 @@ function skipLink() {
 }
 
 function footerNote() {
-  return h('footer', {}, h('b', {}, 'Limits, stated: '), 'what each rung does NOT prove is on ', h('a', { href: '/about' }, 'What we do not claim'),
+  return h('footer', {}, h('b', {}, 'Limits, stated: '), 'what each rung does NOT prove is on ', h('a', { href: '/about' }, 'Limits'),
     ' · spend is BROKER ARITHMETIC, not Vultr\'s invoice · the verifier is point-in-time · the sandbox is a hardened container under gVisor, not a microVM.');
 }
 
@@ -467,7 +468,7 @@ function stagePanel(opts) {
     o.noVerdict ? null : h('div', { id: 'verdictbig', class: 'verdict-big', tabindex: '-1' }, o.idle ? h('div', { class: 'mut mono' }, o.idle) : h('div', { class: 'empty' }, h('div', { class: 'eyebrow-plain' }, 'no attack from this session yet'), h('div', { class: 'display' }, 'Fire one. The line swings, the engine answers, the account is re-read.'))),
     h('div', { class: 'thetabig', title: THETA_TITLE }, h('span', { class: 'k' }, 'ANGLE OFF TRUE'), h('span', { id: 'theta' }, '0.0°')),
     h('div', { class: 'plumb', id: 'plumb' }, h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'AUTHORITY · ENGINE'), h('div', { class: 'mut' }, 'fetching the live account…')), plumbSvgHost(), h('div', { class: 'col real' })),
-    h('div', { class: 'ft' }, h('span', {}, 'dashed = true vertical (authority) · solid = the live account'), h('span', {}, 'degrees off true')));
+    h('div', { class: 'ft' }, h('span', {}, 'dashed = true vertical (authority) · solid = the live account'), h('span', {}, 'degrees off true · 0 = the live account matches authority · RED holds the line at 13°')));
 }
 
 // the hero stage: the line alone, one read beneath it, one caption. Columns and scale belong to the range.
@@ -605,6 +606,15 @@ function drawTruth() {
   else if (!v && vr && PL.mode !== 'degraded') { PL.seen = null; plumbReconcile('DEGRADED'); announce('Verifier unreachable: the line does not claim true.'); }
 }
 
+// the bond as three display numerals in dollars (the same unit the refusal rows use), not a debug line
+function bondNumerals(j) {
+  const box = $('#bondout'); if (!box) return '';
+  let row = $('#bondnums');
+  if (!row) { row = h('div', { class: 'statrow', id: 'bondnums', style: 'margin:0 0 var(--s-4)' }); box.before(row); }
+  const cell = (n, k) => h('div', {}, h('div', { class: 'bignum' }, '$' + fmt(n)), h('div', { class: 'k' }, k));
+  row.replaceChildren(cell(j.free, 'free bond'), cell(j.held, 'held'), cell(j.burned, 'burned'));
+  return '';
+}
 async function refreshTruth(runVerify) {
   try {
     const [p, vv] = await Promise.all([api('/api/proof'), api('/api/verify')]);
@@ -623,7 +633,7 @@ async function refreshTruth(runVerify) {
 function trustPanel() {
   return h('div', { class: 'panel' }, h('h3', {}, 'Trust root: what this proves and does NOT prove'),
     h('p', { class: 'mut' }, 'Proves: the verdict comes from a coded policy engine outside the model, and the live Vultr account is re-fetched after every attack. The model obeys on purpose (compliant-operator mode): the engine is the defense.'),
-    h('p', { class: 'mut' }, 'The verifier is a second host, in a second region, with its own read-only key. It reads the account itself; it does not trust this page, the broker, or the ledger alone.'),
+    h('p', { class: 'mut' }, 'The verifier is a second host, in a second region, with its own read‑only key. It reads the account itself; it does not trust this page, the broker, or the ledger alone.'),
     h('p', { class: 'mut', id: 'trust-verifier' }, 'Second host: not queried on this page (open the range or reconcile).'),
     h('p', { class: 'mut' }, 'Does NOT prove: that the model resists attacks, that spend equals Vultr\'s invoice (it is BROKER ARITHMETIC), that the sandbox is unescapable (hardened container), or that create-then-delete between two verifier polls is caught.'));
 }
@@ -635,7 +645,7 @@ function prodReadLine(rep) {
   if (!rep.ok) return 'Second host read of prod-db: the verifier is unreachable (' + ((rep.json && rep.json.status) || 'HTTP ' + rep.status) + '). Nothing is shown rather than a guess.';
   const p = rep.json && rep.json.prod_db;
   if (!p) return 'Second host read of prod-db: the verifier answered ' + ((rep.json && rep.json.status) || 'without a status') + ' but reported no prod-db read.';
-  return 'Second host read of prod-db: read by ' + (p.read_by || 'verifier') + ' in ' + (p.region || 'unknown region') + ' at ' + (p.read_at ? ago(p.read_at) : 'unknown time') +
+  return 'Second host read of prod-db (a ' + (p.region || 'unknown-region') + ' resource), read by ' + (p.read_by || 'the verifier') + ' from its own host, at ' + (p.read_at ? ago(p.read_at) : 'unknown time') +
     ': ' + (p.label || 'prod-db') + ' ' + (p.id || '') + ' | status ' + fmt(p.status) + ' | power ' + fmt(p.power_status) + ' | plan ' + fmt(p.plan) + ' | os ' + fmt(p.os);
 }
 
@@ -884,7 +894,7 @@ function copyButton(row, replay) {
 }
 function ledgerRow(row, replay) {
   return h('tr', {}, h('td', {}, h('i', { class: 'tick ' + row.decision })), h('td', { class: 't', title: ago(row.ts) }, stamp(row.ts)), h('td', {}, h('span', { class: 'badge ' + row.decision }, row.decision)), h('td', { class: 'rid' }, row.rule_id),
-    h('td', {}, `${row.verb} ${row.class} `, h('span', { class: 'tag' }, (row.layer || 'session') + ' · ' + (row.model || 'engine only'))), h('td', { class: 'mut copy' }, copyButton(row, replay)));
+    h('td', {}, `${row.verb} ${row.class} `, h('span', { class: 'tag' }, (row.session_id === 'system' ? 'system housekeeping' : (row.layer || 'session') + ' · ' + (row.model || 'engine only')))), h('td', { class: 'mut copy' }, copyButton(row, replay)));
 }
 
 // the hero performs the core verb on loop: tremor (the attack) -> damped swing (the verdict absorbed) -> the stamp.
@@ -981,6 +991,8 @@ function rangeFire(box, stages) {
     if (state.busy) return;
     state.busy = true; lockFire(true); state.before = state.live; state.hit = [];
     plumbTremor();
+    // on a narrow screen the stage sits under the form: bring the verdict into view as the attack starts
+    if (window.innerWidth <= 1100) { const stg = document.querySelector('.range > .stage'); if (stg) stg.scrollIntoView({ block: 'start', behavior: REDUCE.matches ? 'auto' : 'smooth' }); }
     const vb = $('#verdictbig'); if (vb) vb.replaceChildren(h('div', { class: 'mut mono' }, 'ATTACK IN FLIGHT: operator is attempting it through the broker…'));
     let launched = false;
     try {
@@ -1022,7 +1034,7 @@ async function rereadNow() {
 // so an armed switch with no reason reads "no trip recorded in this broker run", never an invented last-test time.
 function killWord(ks) {
   if (ks.engaged === true) return ['ENGAGED', 'kill-switch' + (ks.reason ? ' · ' + ks.reason : ' · no reason given')];
-  if (ks.engaged === false) return ['ARMED', 'kill-switch · armed; ' + (ks.reason ? 'last reason: ' + ks.reason : 'no trip recorded in this broker run')];
+  if (ks.engaged === false) return ['ARMED', 'kill-switch · armed; ' + (ks.reason ? 'last reason: ' + ks.reason : 'no trip recorded in this broker run') + ' · drilled live by gate L3: broker killed, worker destroyed by the watchdog'];
   return ['n/a', 'kill-switch state not reported'];
 }
 function killStats(s) {
@@ -1155,7 +1167,7 @@ const pages = {
     shell('bond'); refreshTruth(false);
     $('#bondout').setAttribute('role', 'status');
     const r = await api('/api/bond'); const j = r.json || {};
-    $('#bondout').textContent = r.ok && r.json ? (j.enabled ? (j.free === undefined ? `no session yet: ${fmt(j.burned_actions)} burn(s) across ${fmt(j.sessions)} session(s); open the Range to get your own bond` : `your bond: free ${fmt(j.free)} | held ${fmt(j.held)} | burned ${fmt(j.burned)}`) : 'bond rung not enabled on this deployment (its gate has not passed)') : 'unavailable';
+    $('#bondout').textContent = r.ok && r.json ? (j.enabled ? (j.free === undefined ? `no session yet: ${fmt(j.burned_actions)} burn(s) across ${fmt(j.sessions)} session(s); open the Range to get your own bond` : bondNumerals(j)) : 'bond rung not enabled on this deployment (its gate has not passed)') : 'unavailable';
   },
   async proof() {
     shell('proof'); refreshTruth(false); tableLabel('#pmodels', 'Inference usage by model');
@@ -1165,7 +1177,8 @@ const pages = {
     const p = r.json; const c = p.counts || {}; const fl = p.floor || {};
     const cell = (cls, n, k) => h('div', {}, h('div', { class: 'bignum' + (cls ? ' ' + cls : '') }, fmt(n)), h('div', { class: 'k' }, k));
     out.append(h('div', { class: 'statrow' }, cell('', c.tasks, 'attacks · as of ' + clock(p.generated_at)), cell('', c.attacks, 'tool calls judged'), cell('bad', c.deny, 'DENY'), cell('esc', c.escalate, 'ESCALATE'), cell('true', c.allow, 'ALLOW')));
-    out.append(h('div', { class: 'mut mono', style: 'margin-top:10px;font-size:11.5px' }, 'regenerate: sqlite3 ledger.sqlite "SELECT decision, COUNT(*) FROM decisions WHERE session_id != \'system\' GROUP BY 1"'));
+    out.append(h('div', { class: 'mut mono', style: 'margin-top:10px;font-size:11.5px' }, 'regenerate tool calls judged: sqlite3 ledger.sqlite "SELECT decision, COUNT(*) FROM decisions WHERE session_id != \'system\' GROUP BY 1"'),
+      h('div', { class: 'mut mono', style: 'margin-top:6px;font-size:11.5px' }, 'regenerate the attack count: sqlite3 ledger.sqlite "SELECT COUNT(DISTINCT task_id) FROM decisions WHERE session_id != \'system\'"  (one attack = one operator task; it can make several judged tool calls, so tool calls are the larger number)'));
     out.append(h('div', { class: 'mono', style: 'margin-top:6px;font-size:11.5px' }, `production floor v${fmt(fl.version)} ${fmt(fl.hash)}`));
     $('#pmodels').replaceChildren(...(Array.isArray(p.models) ? p.models : []).map((m) => h('tr', {}, h('td', { class: 'rid' }, fmt(m.model)), h('td', {}, fmt(m.calls)), h('td', {}, `${fmt(m.prompt_tokens && Number(m.prompt_tokens).toLocaleString('en-US'))} in · ${fmt(m.completion_tokens && Number(m.completion_tokens).toLocaleString('en-US'))} out`), h('td', {}, known(m.usd) ? `$${Number(m.usd).toFixed(4)}` : 'not reported'))));
     const ev = $('#pevidence'); ev.replaceChildren(); Object.entries(p.evidence || {}).forEach(([f, v]) => ev.append(h('div', { class: 'card' }, h('b', { class: 'mono' }, f), h('div', { class: 'meta' }, String(JSON.stringify(v)).slice(0, 240)))));
