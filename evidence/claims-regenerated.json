@@ -1,9 +1,11 @@
 {
   "generated_by": "verify-claims",
-  "regenerated_at": "2026-11-08T10:07:39.709Z",
+  "regenerated_at": "2026-11-08T10:07:48.378Z",
   "judged_url": "https://108-61-70-169.sslip.io",
-  "head": "e8c50c2e6ffcb5d83330e4e9000b88717ee51786",
+  "head": "adf2802f515a207e92082a539cfa806d1a9382d9",
   "citable": [
+    "CL-L1",
+    "CL-L2",
     "CL-L3",
     "CL-L4",
     "CL-L5",
@@ -11,19 +13,8 @@
     "CL-L7",
     "CL-GV"
   ],
-  "withheld": [
-    "CL-L1",
-    "CL-L2"
-  ],
-  "reasons": {
-    "CL-L1": [
-      "evidence/gate-l1.json: run tree was dirty and the commit is not declared"
-    ],
-    "CL-L2": [
-      "evidence/gate-l2.json: run tree was dirty and the commit is not declared",
-      "evidence/gate-l2-run2.json: run tree was dirty and the commit is not declared"
-    ]
-  },
+  "withheld": [],
+  "reasons": {},
   "tampered": [],
   "proof": {
     "counts": {
@@ -36,6 +27,6 @@
       "last_ts": 1794132447804
     },
     "floor_hash": "49aafd52f822a5bf431e5b412613c8bba96a509937421e3643433e68a0adf802",
-    "fetched_at": "2026-11-08T10:07:40.934Z"
+    "fetched_at": "2026-11-08T10:07:49.303Z"
   }
 }
