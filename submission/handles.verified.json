@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Vultr",
+    "xHandle": "@Vultr",
+    "verifiedAt": "2026-11-08T22:35:00Z",
+    "sourceUrl": "https://blogs.vultr.com (official Vultr blog page links to https://x.com/vultr); also corroborated by third-party stats site listing @Vultr. Note: vultr.com returned HTTP 403 to fetch, x.com not opened (not logged in, draft-only)."
+  },
+  {
+    "name": "lablab.ai",
+    "xHandle": "@lablabai",
+    "verifiedAt": "2026-11-08T22:35:00Z",
+    "sourceUrl": "https://lablab.build/ (lablab.ai 308-redirects here; footer Twitter/X link is https://x.com/lablabai; page also lists Vultr: Agent Rush)"
+  }
+]
