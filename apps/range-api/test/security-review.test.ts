@@ -68,7 +68,7 @@ describe('SEC-H1 one address cannot hold the whole range', () => {
     expect(r.statusCode).toBe(403);
     expect(r.json().status).toBe('SESSION_UNKNOWN');
   });
-  it('SEC-H1 PLUMBLINE_LIVE_SESSIONS_PER_IP defaults to 2 and is overridable', () => {
+  it('SEC-H1 PLUMBLINE_LIVE_SESSIONS_PER_IP defaults to 4 and is overridable', () => {
     const base = { PLUMBLINE_API_TOKEN: 'a', PLUMBLINE_RUNNER_TOKEN: 'b' };
     expect(loadApiConfig(base).liveSessionsPerIp).toBe(4);
     expect(loadApiConfig({ ...base, PLUMBLINE_LIVE_SESSIONS_PER_IP: '5' }).liveSessionsPerIp).toBe(5);

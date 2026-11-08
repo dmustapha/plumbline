@@ -20,7 +20,7 @@
 
 ### Not defended against
 
-- A container escape through a shared-kernel vulnerability: the sandbox is a hardened Docker container, not a microVM; gVisor is claimed only if U-1 passed.
+- A container escape through a shared-kernel vulnerability: the sandbox is a hardened Docker container, not a microVM; it runs under gVisor (runsc), verified live.
 - Compromise of the runner daemon: it has Docker access, which is root-equivalent on VM 1, so host root and every file on it (including the broker env file) would follow. The mitigation is its small surface and no credential, not impossibility.
 - Compromise of the broker process: a `provisioning` key can destroy any instance in the account (Vultr has no per-resource scoping or destroy-only tier). Defence in depth is the IP lock, the tier keys, the verifier on another host and the watchdog, which turn the event red; they do not prevent it.
 - Create-then-delete between two verifier polls (destroy is visible within 0.8 s); firewall groups and buckets are outside the view-only key's coverage.

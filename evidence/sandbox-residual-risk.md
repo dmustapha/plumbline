@@ -2,7 +2,7 @@
 
 What the sandbox is: an untrusted Python program in a hardened `docker run` container (read-only rootfs, all capabilities dropped,
 no-new-privileges, uid 65534, pids/memory/cpu limits, no env, no mounts) on an `--internal` network whose only peer is the `plb-gate`
-relay. It is NOT gVisor or a microVM unless probe U-1 passes and the runtime is switched. A kernel or runc escape (DT-11) would give the
+relay. It runs under gVisor (runsc), verified live, and is NOT a microVM. A kernel or runc escape (DT-11) would give the
 attacker root on VM 1. That is the honest worst case, and the layers below are what bound it.
 
 ## 1. The runner is root-equivalent (AG4-OPS-3)
@@ -51,4 +51,4 @@ via getaddrinfo is tested); a raw UDP/53 packet has no route.
   listener on a dedicated sandbox socket yet (change request recorded). Choosing the fallback needs that broker change first.
 * Local tests ran on Colima (Docker 29.5.2) with the firewall rules applied inside its VM through `alpine --net=host`, not on the Vultr
   image (DT-U4). The VM run (Task 2a.8) is the evidence of record.
-* gVisor/runsc is U-1 and unattempted here; no claim is made.
+* gVisor/runsc (probe U-1) passed and the runtime is switched; the live sandbox reports a gvisor kernel.

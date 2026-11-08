@@ -15,7 +15,7 @@ Design-time scope boundary for the Vultr Agent Rush submission (Blast Radius Zer
 
 ## Feature-gated (deliberately not built or not claimed for this scope)
 - Registry image push. Reason: unverified (U-8); only create/list/delete are built and claimed.
-- gVisor or any above-Docker isolation claim. Reason: one 30-minute attempt on the VM (R2); claimed only if it runs; microVM is out because `/dev/kvm` is unproven.
+- A microVM. The sandbox is a hardened Docker container running under gVisor (runsc), verified live (`/proc/version` shows `gvisor`). A microVM is out because `/dev/kvm` is unproven.
 - VM undo or snapshot rollback. Reason: a Vultr snapshot took 609.9 s and has no instance id (KP-P5); only Object Storage versioning is reversible.
 - Verifier coverage of firewall groups and buckets. Reason: the view-only key gets 403 on `/firewalls` and `/object-storage`, and the ACLs that would allow reading also allow writing (U-6).
 - Detection of create-then-delete between two verifier polls. Reason: destroy is visible within 0.8 s (KP-P1); stated on `/verify`.
