@@ -38,5 +38,9 @@
   {
     "commit": "f2303b8c6e55b08d65cfdf174cb9ec3a4e4a60cf",
     "reason": "Gate l1 re-run live at this commit (14:13Z) after the site reframing (copy, labels, new /run page, plain verdict line). Tree dirty only through evidence/ written by the gate harness. Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "5f66f53c06ed8f8d0e04668fe9dc66f467cb9968",
+    "reason": "Gate l1 re-run live at this commit (15:16Z) after the final presentation fixes (plain-words lines, run page sections, honest drift readout, session notice, ceiling layout, verify-run race). Tree dirty only through evidence/ and the README screenshots written by the run. Commits after it change only evidence/ and docs."
   }
 ]
