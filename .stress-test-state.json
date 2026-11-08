@@ -1,0 +1,26 @@
+{
+ "status": "complete_with_gaps",
+ "skill": "hackathon-stress",
+ "date": "2026-11-08",
+ "tests": {
+  "passed": 1140,
+  "skipped": 13,
+  "files": 79
+ },
+ "live_reliability": "30/30 ran",
+ "stage5_gate": "rc0",
+ "open": [
+  "DW-2",
+  "V-2 partial",
+  "V-3 disclosed",
+  "V-5",
+  "V-6",
+  "V-7 confirm"
+ ],
+ "blocked_by": "vultr owner key IP allow-list 105.127.7.132",
+ "falsificationTests": 46,
+ "ablationCheck": {
+  "run": 420,
+  "break": 147
+ }
+}
