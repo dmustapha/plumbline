@@ -15,7 +15,7 @@ Field notes from building a broker and verifier on a live Vultr account during A
 **Cost to discover:** about 1 h, plus a leftover server we had to find and delete by hand.
 **Delta:** the 502 gives no hint that the resource exists, so a retry creates a second one.
 **Impact:** we added a retry loop and a sweep that reclaims orphans.
-**Evidence:** PULSE.md Real Vultr limits (HONESTY-LEDGER); ops/demo/rogue.sh
+**Evidence:** HONESTY-LEDGER.md real Vultr limits; ops/demo/rogue.sh
 **Suggestion:** accept an idempotency key on create, or return the new id on 5xx.
 _Severity: FRICTION_
 
@@ -23,26 +23,26 @@ _Severity: FRICTION_
 **What we hit:** the API key IP allow-list is deny by default for service users and also applies to the owner key. Our home IP changes, so calls failed with "Unauthorized IP address" at the worst moments (SSH key upload, gates, the final video scene).
 **Cost to discover:** repeated, about 15 min each time.
 **Impact:** blocked the VM1 setup, two test gates and one demo scene until the IP was re-added by hand.
-**Evidence:** PULSE.md H-5 and the livetest blocker line
+**Evidence:** build notes: the key IP allow-list blocked the first SSH key upload
 **Suggestion:** allow a CIDR or a temporary entry with an expiry, and name the allowed list in the 401.
 _Severity: FRICTION_
 
 **What we hit:** sub-user ACLs have no per-resource scoping. A key that can delete instances can delete any instance, including the protected one.
 **Impact:** this is the reason Plumbline exists. We built a broker and policy engine to do what a scoped key could.
-**Evidence:** PULSE.md Sub-user findings (no per-resource scoping)
+**Evidence:** measured on a live account: sub-user keys have no per-resource scoping
 **Suggestion:** tag or label scoped ACLs, for example "delete only resources with tag X".
 _Severity: FRICTION_
 
 **What we hit:** view-only keys get 403 on /account, and pending_charges rounds to cents with a 1 hour minimum.
 **Impact:** the spend meter is broker arithmetic from the public rate card, not Vultr's number, and we say so on the site.
-**Evidence:** PULSE.md Probe findings
+**Evidence:** measured on a live account: view-only keys get 403 on /account
 **Suggestion:** a read-only billing scope that returns exact pending charges.
 _Severity: POLISH_
 
 ### Documentation
 **What we hit:** limits were learned by hitting them: one free registry per account, 5 VPCs per location, about 4 active instances, 30 requests per second, POST /users needing a password, VPC create needing v4_subnet_mask.
 **Cost to discover:** about 2 h across the build. This may partly be our reading of the docs.
-**Evidence:** PULSE.md Real Vultr limits
+**Evidence:** HONESTY-LEDGER.md real Vultr limits
 **Suggestion:** one page or endpoint listing account limits and required fields per resource.
 _Severity: FRICTION_
 
