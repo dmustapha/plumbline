@@ -11,7 +11,9 @@ const P0 = new Set(['/', '/range', '/verify']);
 const AXE = process.env.AXE;
 const out = []; mkdirSync('evidence/stress', { recursive: true });
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ bypassCSP: true });
+const ctx = await browser.newContext({ bypassCSP: true, colorScheme: process.env.THEME === 'light' ? 'light' : 'dark' });
+// the app is dark by default and keeps the choice under plb-theme
+if (process.env.THEME === 'light') await ctx.addInitScript(() => { try { localStorage.setItem('plb-theme', 'light'); } catch (e) {} });
 for (const path of PAGES) for (const w of VPS) {
   const page = await ctx.newPage(); const errs = []; const bad = [];
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text().slice(0, 140)); });

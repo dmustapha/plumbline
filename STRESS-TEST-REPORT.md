@@ -2,7 +2,7 @@
 > hackathon-stress, 2026-11-08, adapted to this project (see STRESS-TEST-PLAN.md "Adaptations")
 
 ## Result
-**Complete with declared gaps.** 1140 tests pass (13 skipped, 79 files), tsc clean. Stage-5 gate: 7 distinct attack classes + fuzz, spine CLOSED, 2 spine findings fixed with proof (`bash ~/.claude/skills/utils/stage5-hardening-gate.sh plumbline/app` rc 0).
+**Complete with declared gaps.** the full suite passes, tsc clean. Stage-5 gate: 7 distinct attack classes + fuzz, spine CLOSED, 2 spine findings fixed with proof (`bash ~/.claude/skills/utils/stage5-hardening-gate.sh plumbline/app` rc 0).
 
 ## Coverage achieved per tier
 - **P0 (F1-F6):** exhaustive classes in-process (API 69 tests, agent 98, isolation 36, falsification 46, ablation: engine no-oped breaks 147 of 420 tests) plus 30 live attacks.
@@ -25,10 +25,18 @@ dollar 5/5 ran (DENY bond-insufficient), loop-create 5/5 (DENY max-instances), p
 | V-4 | M | AC-ALL-1 test added (was the one real traceability gap) | ac-all-1.test.ts, 16 of 16 covered |
 | UI | L | tablet header wrap, 24 px tap targets, "also denied by" lines | viewport sweep |
 
-## Honest gaps (not hidden)
-- **Owner key blocked:** Vultr rejects this Mac's IP (105.127.7.132; allowed 105.127.6.61). Live gates L2-L7 not re-run today; DW-2 (L2 first-attempt flake) stays **open/unproven**.
-- **V-2 partial:** the dollar canned attack now runs, but the session layer's `bond-insufficient` wins over `ceiling-dollar-deny`; the verdict panel lists the floor's deny too, but the headline rule is the bond one.
-- **V-3:** disclosed with Retry-After, cap not raised (judges behind one NAT can still hit it).
-- **V-7:** the 06:14Z worker is absent from the verifier's read; 3 extra live instances are today's stress workers inside TTL, to confirm after reap.
-- Not run: session pages (range, policy, rewind, bond) in the 5-viewport sweep because of the live-session cap; corrupted-localStorage, throttled-network and broker-restart recovery drills; light-theme axe on seven pages.
+## Follow-up round (same day, after the owner key was re-allowed)
+- **Live gates re-run today, all PASS:** L1 (09:53Z), L2 (09:06Z and 10:05Z, two runs), L3 (dead hand), L4, L5, L6, L7. L7's `live_other_session_unaffected`, which failed in an earlier attempt, passes. DW-2 (L2 first-attempt flake) did not reproduce in 3 L2 attempts, so it is **not reproduced, not proven fixed**. Claims ledger: 8 of 8 citable again (`PLUMBLINE_URL=... npm run verify-claims`).
+- **A first gate attempt (08:36Z) failed on the owner-side harness**, not the product: `PLUMBLINE_SSH_BROKER` unset and the 6-sessions-per-10-minutes creation window. Kept in `evidence/stress/gate-attempt-0836/`; passing evidence was restored. That attempt also left one gate worker (`plumbline-wk-l3gate`), which was destroyed by hand.
+- **V-2 (done):** the verdict panel leads with `ceiling-dollar-deny` when it denied; the session layer's deny is listed under it. Rendering checked in the browser. In a live run the ceiling only appears when no worker is up, because `max-instances` (priority 80) outranks it.
+- **V-3 (done):** live sessions per IP 2 to 4, creations per 10 min 3 to 6, streams per IP 3 to 8.
+- **V-7 (closed):** the 06:14Z worker is gone; the account holds only the 3 infra instances after the gates.
+- **Session-page sweep:** range, policy, rewind, bond at 5 widths: no overflow, no axe violations. The one sub-24 px target is the in-sentence "Limits" footer link (WCAG 2.5.8 inline exception).
+- **Light theme axe:** found the ALLOW badge at 4.44:1 on `/range`; light `--true` darkened (50% to 47% lightness), brand.json regenerated, deployed; 10 pages x 5 widths now clean.
+- **Recovery drills (9 scenarios, all PASS):** corrupted storage, injected 503, 200 with a non-JSON body, 429, offline, garbage live-list/spend, dropped SSE (120 s watchdog, then "NO RESULT"), rapid double-click (1 request), refresh mid-attack then back. Two real bugs found and fixed: a 2xx that is not an attack receipt left Fire stuck (`MALFORMED_REPLY` guard added), and the stream cap of 3 per IP returned 429 to a multi-tab judge.
+
+## Honest gaps
+- **DW-2** not reproduced, not proven fixed (see above).
+- **Not run:** a deliberate broker-restart-mid-session drill (it kills a live service on the judging path) and a throttled-network (slow 3G) pass.
+- Judges behind one NAT can still reach the new cap of 4 live sessions; the page says so with a Retry-After.
 - V-5/V-6 (rehearsal capture, R10 demo deliberation) are Dami's and the demo phase's.

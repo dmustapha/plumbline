@@ -1,56 +1,56 @@
 [
  {
   "name": "R1 corrupted storage",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "fire enabled=false"
+  "note": "fire enabled=true"
  },
  {
   "name": "R2 503 html on /api/attack",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+  "note": "fire re-enabled=true; shows error=true"
  },
  {
   "name": "R3 200 non-JSON on /api/attack",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+  "note": "fire re-enabled=true; shows error=false"
  },
  {
   "name": "R3b 429 on /api/attack",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+  "note": "fire re-enabled=true; shows error=true"
  },
  {
   "name": "R4 offline on /api/attack",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+  "note": "fire re-enabled=true; shows error=true"
  },
  {
   "name": "R5 garbage /api/live-list and /api/spend",
   "ok": true,
   "pageerrors": [],
-  "note": "page rendered, body length 2112"
+  "note": "page rendered, body length 2638"
  },
  {
   "name": "R6 SSE dropped mid-attack, 120 s watchdog (live)",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+  "note": "after 135 s (watchdog is 120 s) fire enabled=true; says NO RESULT=true"
  },
  {
   "name": "R7 rapid double-click (live)",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "THROW locator.dblclick: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolve"
+  "note": "attack requests sent=1"
  },
  {
   "name": "R8 refresh mid-attack then back (live)",
-  "ok": false,
+  "ok": true,
   "pageerrors": [],
-  "note": "THROW locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').filter({ hasText: /^Fire$/ }).first()\u001b[22m\n\u001b[2m    - locator resolved t"
+  "note": "after reload fire disabled=false; after back fire disabled=false"
  }
 ]

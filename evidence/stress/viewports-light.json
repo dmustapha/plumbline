@@ -1,0 +1,502 @@
+[
+ {
+  "path": "/",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/verify",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/replay",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/status",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/proof",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/about",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/policy",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/rewind",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/range/bond",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ }
+]
