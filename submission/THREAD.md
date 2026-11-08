@@ -39,7 +39,7 @@ proven: 1189 tests, offline. 7 of 8 claims re-derived from evidence files with o
 not claimed: the sandbox is a hardened container, not a microVM. spend is broker arithmetic, not Vultr's invoice. the verifier is point-in-time. all written down in the repo.
 
 **8/**
-demo video is on the submission page.
+demo video is on the submission page: https://lablab.build/ai-hackathons/vultr-hackathon/locine-labs/plumbline-safe-agents-on-a-live-vultr-account
 
 **9/**
 live: https://plumbline.108-61-70-169.sslip.io

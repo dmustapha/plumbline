@@ -35,4 +35,11 @@ curl -s https://plumbline.108-61-70-169.sslip.io/api/ledger/public -o ledger.jso
 node verify-ledger.mjs ledger.json
 ```
 
+Claims ledger, from a fresh clone (re-derives each citable claim from the committed evidence files and lists any it must withhold):
+
+```bash
+git clone https://github.com/dmustapha/plumbline && cd plumbline && npm ci
+PLUMBLINE_URL=https://plumbline.108-61-70-169.sslip.io npm run verify-claims
+```
+
 Deep technical sections (architecture, security, benchmarks, setup) are in the [repo README](https://github.com/dmustapha/plumbline#readme).

@@ -8,7 +8,7 @@ Sourced from the repo `HONESTY-LEDGER.md`, `LIMITATIONS.md` and the README Hones
 - A dead broker lease makes VM 2 destroy workers and playgrounds only (gate L3, worker destroyed 58 s after the broker kill).
 - A view-only tier key gets Vultr 403 on create (gate L4).
 - Firewall group and VPC create and delete go through the engine (gate L5).
-- A deleted canary object is restored as a new version from S3 truth, 1300 ms round trip (gate L6).
+- A deleted canary object is restored as a new version from S3 truth, 929 ms round trip (gate L6).
 - After a bond slash the next provision is refused (gate L7).
 - The sandbox is a hardened Docker container under gVisor (`GVISOR OK`, evidence/probe-first-hour.txt).
 

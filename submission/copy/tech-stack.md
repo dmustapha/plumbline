@@ -10,4 +10,6 @@ Tags: AI agents, agent safety, sandboxing, policy engine, containment, Vultr, Vu
 - Object Storage with versioning
 - Plans rate card (prices a request before it runs)
 
+Tags selected on the lablab form (as shown on the public page): VULTR, Qwen3, NVIDIA, rest api. Category tags: Security, Cloud Application, Developer Tools.
+
 Language: TypeScript on Node 24 with tsx, no build step (README Tech stack section).

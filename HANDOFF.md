@@ -1,7 +1,7 @@
 # HANDOFF
 
 ## Target commit
-`git checkout 5c1ec6e5480934de159f9dbaf0389eba49c5ac54` (HEAD when this file was written; the working tree also has an updated `evidence/claims-regenerated.json` not yet committed).
+`git checkout 8220497bfc137c0486778ff96b0091b3c47a79b1` (the last commit that changed code or evidence; later commits touch only README.md, HANDOFF.md and `submission/`). Evidence files can be regenerated after that commit by the gate runner, so compare the `head` field in `evidence/claims-regenerated.json` before trusting a count.
 
 ## Fresh-clone verify
 ```

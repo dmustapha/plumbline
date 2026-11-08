@@ -8,6 +8,12 @@ Plumbline lets an AI agent act on a real cloud account without ever holding the 
 
 Built for the Vultr Agent Rush hackathon, challenge **Blast Radius Zero**. The live site runs on a demo account we own; the same software runs on yours.
 
+## Demo video
+
+Watch the 4 minute 38 second demo on the [lablab.build submission page](https://lablab.build/ai-hackathons/vultr-hackathon/locine-labs/plumbline-safe-agents-on-a-live-vultr-account), or open the [video file](https://storage.googleapis.com/lablab-video-submissions/submissions/ejjbpnzvcx90mf02qkhta3hx/mhb9qidzjfxaymy05n2vctum/video/video_oc6wztqj6lrbnbi3goxxore7.mp4) directly (99.8 MB, mp4).
+
+## The range in one frame
+
 ![Plumbline range: an attack on prod-db is denied, the live account is re-fetched and unchanged](docs/images/range-deny.png)
 
 ## The problem
@@ -178,6 +184,8 @@ PLUMBLINE_URL=https://plumbline.108-61-70-169.sslip.io npm run verify-claims
 # {"citable":["CL-L1","CL-L2","CL-L3","CL-L4","CL-L5","CL-L6","CL-L7","CL-GV"],"withheld":[],"tampered":[]}
 ```
 
+The output above is the result when every gate evidence file is newer than the code it covers. If a commit touched a claim's code after its gate ran, the ledger lists that claim under `withheld` with the reason instead of citing it; this is intended.
+
 ## Honesty ledger
 
 Each claim carries a verdict, the file that proves it, and the command that regenerates it. `npm run verify-claims` marks a row `CITABLE` only when the evidence is recomputed, recent, and recorded at a declared commit.
@@ -189,7 +197,7 @@ Each claim carries a verdict, the file that proves it, and the command that rege
 | A dead broker lease makes VM 2 destroy workers and playgrounds only | VERIFIED, worker destroyed 58 s after the broker kill | `evidence/gate-l3.json` |
 | A view-only tier key gets Vultr 403 on create | VERIFIED, gate L4 pass | `evidence/gate-l4.json` |
 | Firewall group and VPC create and delete go through the engine | VERIFIED. Registry create is engine-gated and Vultr's free-tier limit blocks the second registry. | `evidence/gate-l5.json` |
-| A deleted canary object is restored as a new version from S3 truth | VERIFIED, restore round trip 1300 ms | `evidence/gate-l6.json` |
+| A deleted canary object is restored as a new version from S3 truth | VERIFIED, restore round trip 929 ms | `evidence/gate-l6.json` |
 | After a bond slash the next provision is refused | VERIFIED, gate L7 pass | `evidence/gate-l7.json` |
 | The sandbox runs under gVisor | VERIFIED, `GVISOR OK` from the probe on the VM | `evidence/probe-first-hour.txt` |
 | The sandbox is a microVM or unescapable | NOT CLAIMED. The VM has no `/dev/kvm`. | `HONESTY-LEDGER.md` |
@@ -204,7 +212,7 @@ Each claim carries a verdict, the file that proves it, and the command that rege
 |---|---|---|
 | Live attacks, each canned scene repeated 5 times | 30 of 30 ran to a recorded outcome | `evidence/stress/live-reliability-30.jsonl` |
 | Dead-hand destroy time after the broker is killed | 58 s | `evidence/gate-l3.json` |
-| Object restore round trip | 1300 ms | `evidence/gate-l6.json` |
+| Object restore round trip | 929 ms | `evidence/gate-l6.json` |
 | Relay probes (absolute URI, CONNECT, traversal, request smuggling, direct egress, DNS) | 24 probes, all blocked | `evidence/stress/relay-probe.txt` |
 | Independent S3 listing against the range's own Rewind panel | AGREE | `evidence/stress/s3-independent.txt` |
 | Engine no-op ablation | 147 of 420 tests fail when the policy engine is stubbed | `tests/ablation/policy-engine_noop.log` |

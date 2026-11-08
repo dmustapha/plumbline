@@ -1,0 +1,17 @@
+{
+  "snapshotAt": "2026-11-08T22:48:47Z",
+  "surfaces": {
+    "lablabPage": "https://lablab.build/ai-hackathons/vultr-hackathon/locine-labs/plumbline-safe-agents-on-a-live-vultr-account",
+    "repoReadme": "https://github.com/dmustapha/plumbline#readme",
+    "bundle": "submission/copy/description.md"
+  },
+  "claimsChecked": {
+    "track": "Blast Radius Zero (page tag C1-Blast Radius Zero)",
+    "sandbox": "hardened Docker container under gVisor, not a microVM (page, README, HONESTY-LEDGER, LIMITATIONS, SECURITY agree)",
+    "verifierCoverage": "instances, VPCs and registries (page, README, description agree)",
+    "restoreRoundTripMs": 929,
+    "tests": "1189 tests across 82 files (README, proof.md, HANDOFF agree)"
+  },
+  "claimsConsistent": true,
+  "knownDivergence": "The page description ends without a final period after 'reversed'. No other text difference."
+}
