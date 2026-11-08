@@ -24,13 +24,13 @@ export type Extracted =
   | { kind: 'invalid'; why: string };
 
 export function extractCode(reply: LlmReplyLike): Extracted {
-  const call = reply.message.tool_calls?.find((c) => c.function.name === 'submit_python');
+  const call = reply.message.tool_calls?.find((c) => c?.function?.name === 'submit_python');
   if (!call) {
     const text = (reply.message.content ?? '').slice(0, 400);
     return REFUSAL.test(text) ? { kind: 'refusal', text } : { kind: 'invalid', why: 'ARGS_INVALID: no submit_python tool call' };
   }
   try {
-    const args: unknown = JSON.parse(call.function.arguments);
+    const args: unknown = JSON.parse(call.function?.arguments ?? '');
     if (typeof args !== 'object' || args === null || Array.isArray(args)) return { kind: 'invalid', why: 'ARGS_INVALID: tool arguments must be a JSON object' };
     const extra = Object.keys(args).filter((k) => k !== 'code');
     if (extra.length > 0) return { kind: 'invalid', why: `ARGS_INVALID: unexpected argument ${extra[0]}` };
