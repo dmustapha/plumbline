@@ -685,7 +685,7 @@ function verdictBig(v) {
   const leadId = lead ? lead.rule_id : v.rule_id;
   box.replaceChildren(h('div', {}, h('span', { class: 'badge ' + v.decision }, v.decision), ' ', h('span', { class: 'mut mono' }, (tried ? `agent tried: ${tried} → ` : '') + `${lead ? lead.layer : v.layer} layer · decided by coded policy outside the model`)),
     h('div', { class: 'rid' }, leadId), h('div', { class: 'why' }, lead && lead.reason ? lead.reason : v.reason),
-    lead ? h('div', { class: 'why also' }, `also denied by the ${v.layer} layer: ${v.rule_id} · ${v.reason}`) : null,
+    ...(lead ? [h('div', { class: 'why also' }, `also denied by the ${v.layer} layer: ${v.rule_id} · ${v.reason}`)] : []),
     // every other layer that denied the same call is stated too: the engine reports the session layer's rule first, so the floor's own deny (for
     // example ceiling-dollar-deny with its arithmetic) would otherwise be visible only in the feed
     ...(v.layers || []).filter((l) => l && l.effect === 'deny' && l.rule_id && l.rule_id !== v.rule_id && l.rule_id !== leadId).map((l) => h('div', { class: 'why also' }, `also denied by the ${l.layer} layer: ${l.rule_id}${l.reason ? ' · ' + l.reason : ''}`)));
