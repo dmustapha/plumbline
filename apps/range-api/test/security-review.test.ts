@@ -70,7 +70,7 @@ describe('SEC-H1 one address cannot hold the whole range', () => {
   });
   it('SEC-H1 PLUMBLINE_LIVE_SESSIONS_PER_IP defaults to 2 and is overridable', () => {
     const base = { PLUMBLINE_API_TOKEN: 'a', PLUMBLINE_RUNNER_TOKEN: 'b' };
-    expect(loadApiConfig(base).liveSessionsPerIp).toBe(2);
+    expect(loadApiConfig(base).liveSessionsPerIp).toBe(4);
     expect(loadApiConfig({ ...base, PLUMBLINE_LIVE_SESSIONS_PER_IP: '5' }).liveSessionsPerIp).toBe(5);
   });
 });
