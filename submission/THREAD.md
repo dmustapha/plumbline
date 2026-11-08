@@ -34,7 +34,7 @@ a compromised broker can't quietly rewrite the account. if the verifier can't re
 this is the Blast Radius Zero challenge. open the live range, click "Delete prod-db", and watch protect-tagged-destroy deny it while plumbline-prod-db stays active in the account. no sign-up.
 
 **7/**
-proven: 1189 tests, offline. 8 of 8 claims re-derived from evidence files with one command.
+proven: 1189 tests, offline. 7 of 8 claims re-derived from evidence files with one command (the eighth is waiting on a gate re-run).
 
 not claimed: the sandbox is a hardened container, not a microVM. spend is broker arithmetic, not Vultr's invoice. the verifier is point-in-time. all written down in the repo.
 
