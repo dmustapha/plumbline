@@ -58,3 +58,26 @@ describe('web UI shell', () => {
     expect(css).toMatch(/pre \{[^}]*overflow-x:auto/);
   });
 });
+
+describe('CSP (design-forge DF-CSP)', () => {
+  it('builds a script-src from the inline scripts actually in the page and forbids framing and foreign connects', async () => {
+    const { pageCsp } = await import('../src/routes.ts');
+    const { createHash } = await import('node:crypto');
+    const body = 'var a=1;';
+    const csp = pageCsp(`<head><script>${body}</script></head><script src="/app.js"></script>`);
+    expect(csp).toContain(`'sha256-${createHash('sha256').update(body).digest('base64')}'`);
+    expect(csp).toContain("script-src 'self' 'sha256-");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).toContain("connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com");
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+  });
+  it('every shipped page has only hash-covered inline scripts (no inline event attributes)', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs');
+    const dir = new URL('../public/', import.meta.url).pathname;
+    for (const f of readdirSync(dir).filter((x) => x.endsWith('.html'))) {
+      const html = readFileSync(dir + f, 'utf8');
+      expect(html, f).not.toMatch(/\son[a-z]+\s*=\s*["']/i);
+    }
+  });
+});

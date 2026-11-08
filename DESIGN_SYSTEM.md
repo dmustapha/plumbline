@@ -43,7 +43,7 @@ Theme switch: `data-theme="dark|light"` on `<html>`, persisted in `localStorage[
 | body | Geist | 400 (500/600 for emphasis) | prose |
 | instrument | Geist Mono | 400/500, ligatures off, tabular lining numerals | numbers, ids, eyebrows (uppercase, .2em tracking) |
 
-Scale: hero `clamp(3.75rem, 6.4vw, 6.25rem)`, title `clamp(2.5rem, 3.8vw, 3.75rem)`, sub `clamp(1.25rem, 1.3vw + .6rem, 1.75rem)`, lead 1.1875rem, body .9375rem, small .8125rem, micro .71875rem.
+Scale: hero `clamp(3rem, 5vw, 4.75rem)`, title `clamp(2.5rem, 3.8vw, 3.75rem)`, sub `clamp(1.25rem, 1.3vw + .6rem, 1.75rem)`, lead 1.1875rem, body .9375rem, small .8125rem, micro .71875rem.
 Fonts load from Google Fonts via one `<link>` (Barlow Semi Condensed 500/600/700, Geist 400/500/600, Geist Mono 400/500/600, `display=swap`); each has a system fallback stack.
 
 ### Spacing (4px base) and radii

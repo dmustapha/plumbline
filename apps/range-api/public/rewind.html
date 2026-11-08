@@ -1,8 +1,8 @@
 <!-- File: apps/range-api/public/rewind.html -->
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline rewind</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline rewind</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
 <body data-page="rewind"><main class="sheet">
-<div class="panel"><h2>Reprieve Rewind: bucket plumbline-orders-db (versioned)</h2>
+<div class="panel lift"><h2>Reprieve Rewind: bucket plumbline-orders-db (versioned)</h2>
 <p class="mut">Object Storage versioning is the only live undo here. A VM snapshot takes minutes, so no VM undo is claimed. You act on your own copy of the canary object; the shared orders.json is never touched.</p>
 <div class="row"><button id="del" class="primary">Delete your orders.json</button><button id="rew">Rewind</button><button id="approve" hidden>Approve irreversible delete</button></div>
 <p id="state" class="mut">loading...</p>
@@ -18,16 +18,23 @@
 (function () {
   'use strict';
   var pending = null;
+  var busy = false;
   var $ = function (id) { return document.getElementById(id); };
 
   function say(text) { $('rwout').textContent = text; }
 
+  // never throws: a network error, a timeout, a non-JSON body or a literal null body all come back as an object with .http
   function api(method, path, body) {
     var opts = { method: method, credentials: 'same-origin', headers: {} };
     if (body) { opts.headers['content-type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) opts.signal = AbortSignal.timeout(15000);
     return fetch(path, opts).then(function (r) {
-      return r.json().catch(function () { return { status: 'ERROR' }; }).then(function (j) { j.http = r.status; return j; });
-    });
+      return r.json().catch(function () { return null; }).then(function (j) {
+        var out = j && typeof j === 'object' && !Array.isArray(j) ? j : { status: 'ERROR' };
+        out.http = r.status;
+        return out;
+      });
+    }, function () { return { status: 'NETWORK_ERROR', http: 0 }; });
   }
 
   function row(parent, text, cls) {
@@ -57,61 +64,77 @@
     var c = j.classify || {};
     var bits = [];
     if (c.state_known === false) bits.push('object state unknown: deletes are denied (fail closed)');
-    else bits.push(c.versions + ' version(s): ' + (c.last_copy ? 'LAST COPY, a delete needs approval' : 'a delete is reversible'));
+    else bits.push((typeof c.versions === 'number' ? c.versions : 'an unreported number of') + ' version(s): ' + (c.last_copy ? 'LAST COPY, a delete needs approval' : 'a delete is reversible'));
     if (c.has_delete_marker) bits.push('a delete marker is the latest entry');
     bits.push(j.restore_target ? 'rewind target ' + j.restore_target : 'nothing to rewind to');
     $('state').textContent = bits.join('; ');
-    $('rew').disabled = !j.restore_target;
+    $('rew').disabled = busy || !j.restore_target;
   }
 
   function refresh() {
     return api('GET', '/api/rewind').then(function (j) {
       if (j.status === 'REWIND_UNAVAILABLE' || !j.listing) {
-        $('versions').textContent = 'Rewind is not enabled right now (object storage unreachable or the rung has not passed its gate). No simulated restore is shown.';
+        $('versions').textContent = j.http === 0 ? 'Could not reach the range API, so no version list is shown.' : 'Rewind is not enabled right now (object storage unreachable or the rung has not passed its gate). No simulated restore is shown.';
         $('state').textContent = 'unavailable';
         $('del').disabled = true;
         $('rew').disabled = true;
         return;
       }
-      $('del').disabled = false;
+      $('del').disabled = busy;
       renderVersions(j.listing);
       renderState(j);
-    }).catch(function () { $('state').textContent = 'could not reach the range API'; });
+    }).catch(function () { $('state').textContent = 'could not read the version list'; });
   }
 
   function describe(j) {
+    if (j.http === 0) return 'NETWORK_ERROR: the request did not reach the range API. Nothing was changed by this page.';
     if (j.status === 'REWIND_UNAVAILABLE') return 'REWIND_UNAVAILABLE: ' + (j.message || j.detail || 'object state could not be read');
     if (j.status !== 'DECIDED') return j.status || ('HTTP ' + j.http);
-    var d = j.decision;
-    var line = d.decision + ' by rule ' + d.rule_id + ': ' + d.reason;
+    var d = j.decision || {};
+    var line = (d.decision || 'no decision reported') + ' by rule ' + (d.rule_id || 'not reported') + ': ' + (d.reason || 'no reason reported');
     if (j.error) line += '\nexecution failed: ' + j.error.code + ' ' + j.error.message;
     return line;
   }
 
+  // one request at a time: every action button is disabled until the answer and the re-read are in
+  function lock(on) {
+    busy = on;
+    ['del', 'rew', 'approve'].forEach(function (id) { $(id).disabled = on; });
+  }
+  function run(work) {
+    if (busy) return;
+    lock(true);
+    say('working...');
+    work().catch(function (e) { say('request failed: ' + (e && e.message ? e.message : 'unknown error') + '. Nothing is assumed; the list below is re-read.'); })
+      .then(function () { lock(false); return refresh(); });
+  }
+
   function act(action) {
-    $('approve').hidden = true;
-    pending = null;
-    return api('POST', '/api/rewind/act', { action: action }).then(function (j) {
-      say(describe(j));
-      if (j.status === 'DECIDED' && j.decision.decision === 'ESCALATE' && j.approval) {
-        pending = { id: j.decision.decision_id, nonce: j.approval.nonce };
-        $('approve').hidden = false;
-      }
-      return refresh();
+    run(function () {
+      $('approve').hidden = true;
+      pending = null;
+      return api('POST', '/api/rewind/act', { action: action }).then(function (j) {
+        say(describe(j));
+        var d = j.decision || {};
+        if (j.status === 'DECIDED' && d.decision === 'ESCALATE' && j.approval) {
+          pending = { id: d.decision_id, nonce: j.approval.nonce };
+          $('approve').hidden = false;
+        }
+      });
     });
   }
 
   function approve() {
     if (!pending) return;
-    var p = pending;
-    pending = null;
-    $('approve').hidden = true;
-    api('POST', '/api/approval/' + encodeURIComponent(p.id), { nonce: p.nonce, approve: true }).then(function (j) {
-      say(describe(j));
-      return refresh();
+    run(function () {
+      var p = pending;
+      pending = null;
+      $('approve').hidden = true;
+      return api('POST', '/api/approval/' + encodeURIComponent(p.id), { nonce: p.nonce, approve: true }).then(function (j) { say(describe(j)); });
     });
   }
 
+  $('rwout').setAttribute('role', 'status');
   $('del').addEventListener('click', function () { act('delete'); });
   $('rew').addEventListener('click', function () { act('restore'); });
   $('approve').addEventListener('click', approve);
