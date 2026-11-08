@@ -1,0 +1,8 @@
+[Unit]
+Description=Plumbline verifier keep-fresh: one reconcile run so the public verdict never ages into STALE between visits
+After=plumbline-verifier.service
+
+[Service]
+Type=oneshot
+User=plumbline-verifier
+ExecStart=/usr/bin/curl -fsS -m 30 -X POST http://127.0.0.1:8081/api/verify/run -o /dev/null

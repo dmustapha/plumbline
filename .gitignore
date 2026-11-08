@@ -32,3 +32,7 @@ docs/prompts/
 # Secrets
 .env.local
 .env*.local
+evidence/ag4-queue.md
+evidence/ag4-waived.md
+evidence/g0-counts.txt
+evidence/inputs.md

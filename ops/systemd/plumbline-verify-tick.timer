@@ -1,0 +1,10 @@
+[Unit]
+Description=Run a verifier reconcile every 2 minutes (GREEN expires at 5 minutes)
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=120
+AccuracySec=10
+
+[Install]
+WantedBy=timers.target

@@ -15,7 +15,7 @@ I read all of `apps/range-api/src/*` and followed every broker handler these rou
 
 ---
 
-## H1 — HIGH: one judge can fill the whole range (session hoarding)
+## H1 - HIGH: one judge can fill the whole range (session hoarding)
 **Where:** `apps/range-api/src/routes-session.ts:30-47` and `src/main.ts:21-22`
 
 The API caps session creation per IP (3 per 10 minutes) and globally (10 per minute), and refuses new sessions once the broker holds `maxSessions` (20). Nothing limits how many **live** sessions one IP holds. Broker sessions expire only after 10 minutes idle, and any authenticated `/api/env-proof` call refreshes them through `/v1/task` → `sessions.get`.
@@ -29,7 +29,7 @@ Spamming `POST /api/session` from several IPs also uses up the global 10-per-min
 
 **Smallest fix:** in `createSession`, refuse a new session when the IP already holds 2 or more live sessions. Count `d.book.sessionsOf(req.ip)` and drop ids the broker no longer has. Optionally, only count a session as alive while a model-backed attack is running, not on env-proof.
 
-## H2 — HIGH: playground slots are never freed, even with honest traffic (reached via `POST /api/session`)
+## H2 - HIGH: playground slots are never freed, even with honest traffic (reached via `POST /api/session`)
 **Where:** `apps/broker/src/main.ts:87`, together with `sessions.ts:38-41`
 
 `sweepOrphanPlaygrounds` runs every 60 seconds and calls `sessions.get(r.session_id)` for every protected playground network (VPC). `get()` updates `last_seen`. So every session that owns a playground has its idle timer reset every minute and never reaches the 10-minute idle expiry.
@@ -38,7 +38,7 @@ Spamming `POST /api/session` from several IPs also uses up the global 10-per-min
 
 **Smallest fix:** use a non-refreshing existence check in the sweep. Add `SessionRegistry.has(id)` (`this.#sessions.has(id)`) and filter with `!sessions.has(r.session_id)`.
 
-## H3 — HIGH: `/api/live-list` lets anyone flood the Vultr API with the broker's keys
+## H3 - HIGH: `/api/live-list` lets anyone flood the Vultr API with the broker's keys
 **Where:** `apps/range-api/src/routes.ts:47` → `apps/broker/src/liveList.ts:22-31`
 
 The route needs no auth, has no rate limit and no cache. Each request fans out into 5 upstream calls: 4 Vultr lists (instances, firewalls, VPCs, registries) and 1 S3 version list, all with the broker's tier keys.
@@ -52,7 +52,7 @@ It may also affect the verifier, if Vultr's limit applies per account rather tha
 
 **Smallest fix:** in range-api, cache the live list per session id for about 3 seconds, and coalesce concurrent identical requests into one in-flight promise. Accept only `system` or `SessionBook.isSessionId(sid) && d.book.has(sid)`. Add a per-IP `SlidingWindow`, for example 30 per minute.
 
-## M1 — MED: `GET /api/policy/:sid` grows broker memory without limit (crash risk)
+## M1 - MED: `GET /api/policy/:sid` grows broker memory without limit (crash risk)
 **Where:** `apps/range-api/src/routes.ts:67` → `apps/broker/src/policyStore.ts:50-58`
 
 `PolicyStore.get` inserts a new entry for **any** string. `sweep()` exists but is never called (no `.sweep(` anywhere in `apps/broker/src`). The route needs no auth and has no rate limit.
@@ -61,7 +61,7 @@ It may also affect the verifier, if Vultr's limit applies per account rather tha
 
 **Smallest fix:** in range-api, return 404 unless `SessionBook.isSessionId(sid) && d.book.has(sid)`. In the broker, make `get()` return the default without inserting when there is no copy, and call `policies.sweep` from `reap`.
 
-## M2 — MED: env-proof skips the operator concurrency gate and can starve the sandbox runner
+## M2 - MED: env-proof skips the operator concurrency gate and can starve the sandbox runner
 **Where:** `apps/range-api/src/routes-session.ts:68-80`
 
 `envProof` mints a task and calls `runner.run` without `d.inFlight.tryEnter()`. The runner allows only 2 concurrent runs (`apps/runner/src/main.ts:10`). It also does not check the kill switch or the spend cap itself; `/v1/task` does catch the kill switch.
@@ -70,7 +70,7 @@ It may also affect the verifier, if Vultr's limit applies per account rather tha
 
 **Smallest fix:** wrap it in `if (!d.inFlight.tryEnter()) return 503 OPERATOR_BUSY; try { … } finally { d.inFlight.leave(); }`. Add a per-IP limit if wanted.
 
-## M3 — MED: SSE stream has no auth and no connection cap
+## M3 - MED: SSE stream has no auth and no connection cap
 **Where:** `apps/range-api/src/routes.ts:109-117`
 
 1. **No connection cap:** anyone can open unlimited `GET /api/stream/<known sid>` connections. Each one holds a socket, a 15-second interval and a subscriber closure. Session ids are public through `/api/replay`. Opening tens of thousands of connections from a few hosts exhausts file descriptors and memory in Node and Caddy (Caddy has `flush_interval -1` and no timeout on this path), and the API stops answering.
@@ -78,7 +78,7 @@ It may also affect the verifier, if Vultr's limit applies per account rather tha
 
 **Smallest fix:** call `sessionFor(d, req, reply, req.params.sid)` before `writeHead`. A same-origin `EventSource` sends the SameSite=Strict cookie, so the browser client keeps working. Cap open streams per IP (for example 3) and globally (for example 200), using a counter that is decremented on `close`.
 
-## L1 — LOW: `/api/proof` does uncached synchronous file reads on every request
+## L1 - LOW: `/api/proof` does uncached synchronous file reads on every request
 **Where:** `apps/range-api/src/routes.ts:83-93`
 
 Each unauthenticated request does a blocking `readdirSync`/`readFileSync` of every evidence file (152 KB and 20 files today, and growing) plus a runner `/containers` call. Sustained spam blocks the event loop and takes more load from the shared runner socket.

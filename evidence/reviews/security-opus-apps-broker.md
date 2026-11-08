@@ -14,7 +14,7 @@ I read the broker source, the floor and session-default policies, the parts of t
 
 ---
 
-### 1. HIGH — Sessions that own a playground never expire, so playground capacity runs out for good after 8 judges
+### 1. HIGH - Sessions that own a playground never expire, so playground capacity runs out for good after 8 judges
 **Where:** `main.ts:87` together with `sessions.ts:38-41`
 
 **Cause:** `sweepOrphanPlaygrounds` runs inside every 60-second reap and calls `sessions.get(r.session_id)` for every live playground row. `get()` also sets `last_seen = now`. The idle limit is 10 minutes (`config.ts:91`), so every session that owns a playground is refreshed every minute. It never shows up in `sessions.expired()`, so its VPC is never cleaned up.
@@ -28,7 +28,7 @@ The playground hot-edit flip (D-FLOOR) is then dead for the rest of the judging 
 
 **Smallest fix:** make the existence check in the sweep side-effect free. Add `has(id)` (or `peek`) to `SessionRegistry` and use `!sessions.has(r.session_id)` at `main.ts:87`.
 
-### 2. HIGH — Any judge can use up the 5-VPCs-per-location limit with the default policy, and those VPCs are never cleaned up
+### 2. HIGH - Any judge can use up the 5-VPCs-per-location limit with the default policy, and those VPCs are never cleaned up
 **Where:** `pipeline.ts:228-230` and `:523-531`, `playground.ts:5-11`, the session-default rule `allow-breadth-create`, and the reaper in `main.ts:67-94`
 
 **Cause:**
@@ -41,7 +41,7 @@ The playground hot-edit flip (D-FLOOR) is then dead for the rest of the judging 
 
 **Smallest fix:** add a floor deny for `create vpc` from the sandbox. Playgrounds are created through `runSystem`, which uses the system policy, so they are unaffected. Alternatively, count all live VPC rows in `playgroundCounts` and reap unprotected VPCs and firewall groups when their session expires.
 
-### 3. HIGH — After a session-policy edit, instances can be created that are never reaped, never killed and don't count toward the worker cap
+### 3. HIGH - After a session-policy edit, instances can be created that are never reaped, never killed and don't count toward the worker cap
 **Where:** the floor rules `scope-label-prefix` and `max-instances`; `ledger/spend.ts:111-114` (`liveWorkerCount` counts only `plumbline-wk-%`); `pipeline.ts:351` (`destroyWorkers`); `main.ts:70` (reaper)
 
 **Cause:** ALLOW comes only from the session layer, and judges may hot-edit their session layer. The floor only requires an instance label to start with `plumbline`. Nothing in the floor limits instance create labels to `plumbline-wk-`.
@@ -61,7 +61,7 @@ This breaks the real-world meaning of NON-NEGOTIABLE 4 (the ceiling) and the bla
 
 **Smallest fix:** add a floor deny for `create instance` whose label does not start with `plumbline-wk-` (a `label_not_prefix: [plumbline-wk-]` match).
 
-### 4. MED — The global worker cap can be held by one judge for days
+### 4. MED - The global worker cap can be held by one judge for days
 **Where:** `pipeline.ts:111-112` (`ttl_h` is accepted up to 744), the floor `max-instances` rule (counts workers globally, `maxInstances = 4`), and session expiry, which does not destroy a session's workers.
 
 **Exploit:** one session creates 4 `plumbline-wk-*` workers of `vc2-1c-0.5gb` with `ttl_h: 75`. That projects to 4 × 0.005 × 75 = $1.5, exactly the session ceiling. Every other judge's worker create then gets `max-instances` DENY for about 3 days.
@@ -70,7 +70,7 @@ With the bond enabled, `bond-insufficient` shortens ttl per session to about 10 
 
 **Smallest fix:** add a floor cap on ttl (for example `ttl_h <= 2`), and/or destroy a session's workers through `pipeline.cleanup` when the session expires.
 
-### 5. MED — Any session can change another session's firewall groups, VPCs and registries if their labels are outside the two scoped prefixes
+### 5. MED - Any session can change another session's firewall groups, VPCs and registries if their labels are outside the two scoped prefixes
 **Where:** `pipeline.ts:258-266` (`#withOwnership` applies only when the label starts with `plumbline-wk-` or `plumbline-s`)
 
 **Cause:** a session can create a firewall group labelled `plumbline-fw` (the default policy allows it). The ledger row records its owner, but because the label is not in a scoped prefix, the owner is never compared.
@@ -79,7 +79,7 @@ With the bond enabled, `bond-insufficient` shortens ttl per session to about 10 
 
 **Smallest fix:** in `#withOwnership`, for update and delete, treat the target as foreign whenever `owner !== null && owner !== sid`, whatever its label. Also treat `owner === null` with a `plumbline*` label as foreign; the floor still covers prod and infra.
 
-### 6. MED — Unauthenticated `/api/live-list` turns each request into 5 calls against the broker's single Vultr rate limit
+### 6. MED - Unauthenticated `/api/live-list` turns each request into 5 calls against the broker's single Vultr rate limit
 **Where:** `liveList.ts:22-33`. There is no cache or request coalescing, and the range-api route `routes.ts:47` has no rate limit.
 
 **Cause:** each request makes 4 Vultr list calls plus 1 S3 list. Vultr allows 30 requests per second per IP, and that limit is shared with every engine lookup.
@@ -93,7 +93,7 @@ The range keeps failing safe, but it is unusable for everyone.
 
 **Smallest fix:** cache `LiveList.fetch` for about 2 seconds with one shared in-flight request. Since the bucket listing depends on the session, cache the four Vultr sections globally. Also add a per-IP limit on the range-api route.
 
-### 7. LOW — The shared `bond-scene/*` object prefix is open to every session
+### 7. LOW - The shared `bond-scene/*` object prefix is open to every session
 **Where:** `canary.ts:7` and `:20-24`
 
 **Cause:** while the bond is enabled, any session may put, delete or restore any `bond-scene/<name>` key. The comment at `routes-session.ts:87` says these objects are "only the caller's own", which is not true.
@@ -102,7 +102,7 @@ The range keeps failing safe, but it is unusable for everyone.
 
 **Fix:** scope the prefix per session, as `bond-scene/<sid>/…`.
 
-### 8. LOW — Some broker maps grow without limit
+### 8. LOW - Some broker maps grow without limit
 - **Per-task maps:** `calls` (`routes-sandbox.ts:14`) and `taskModels` (`main.ts:53`) are never pruned. Growth is slow because attacks are rate-limited.
 - **Session policy copies:** `PolicyStore.get` (`policyStore.ts:50-59`) creates a copy for *any* sid with no format check, and `sweep()` is never called. The unauthenticated `GET /api/policy/<random>` is not rate-limited, so memory grows with each new sid (keys up to about 100 characters, Fastify's default parameter length).
 - **Fix:** check the sid format in `get` and return the default without storing it; delete map entries when a token expires.
