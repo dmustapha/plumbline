@@ -34,5 +34,9 @@
   {
     "commit": "0b53ef2d33654305db310b190da92da0e35046d3",
     "reason": "Gate l1 re-run live at this commit (10:54Z) after the light-theme contrast change to style.css, the last code change of the stress_test phase. Tree dirty only through evidence/ and CLAIMS.md written by the gate harness and verify-claims. Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "f2303b8c6e55b08d65cfdf174cb9ec3a4e4a60cf",
+    "reason": "Gate l1 re-run live at this commit (14:13Z) after the site reframing (copy, labels, new /run page, plain verdict line). Tree dirty only through evidence/ written by the gate harness. Commits after it change only evidence/ and docs."
   }
 ]
