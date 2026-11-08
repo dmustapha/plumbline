@@ -151,7 +151,20 @@ No horizontal-bar family (progress bars, bar charts, stat bars; severity is a 5-
 
 **Process.** Generated with an image model as candidates, then chosen by Dami (not by the agent), then redrawn as clean vector (symmetry, consistent stroke, optical centring) and exported: `logo.svg`, `logo-mono.svg`, `favicon.svg`, `favicon-32.png`, `og-image.png` (1200x630, "Blast Radius Zero"). No hand-coded geometric scaffold ships as the logo.
 
-**Status.** Candidates generated; waiting on Dami's pick. Provider: fal was unavailable (invalid key), so stablestudio (Flux 2 Pro, $0.03 per image).
+**Chosen.** Candidate B1 (Dami's pick), redrawn, not traced. Geometry measured off B1 on a 512 grid and made symmetrical about x=256: crossbar 218x11 with 3px corners, a 11x28 stem, a ring (outer r 19.5, inner r 12.5) whose centre is the bob's apex, and a kite bob (apex 256,122; shoulders 171,213 and 341,213; tip 256,443) with a long slit cut out (even-odd, so it is truly transparent and works on any ground). Optical centring: the drawing is shifted up 4 units so its bounding box centres on 256.
+
+**Files** (all in `apps/range-api/public/`, each served at an explicit route, never a directory):
+- `logo.svg`: the mark, chalk `#7cc2e4` hanger and true-green `#30de97` bob, transparent ground, for dark surfaces.
+- `logo-mono.svg`: one colour (`#151c1f`), for paper and print.
+- `logo-lockup.svg`: mark plus PLUMBLINE set in Barlow Semi Condensed 600, tracking .18em, converted to outlines (so no font is needed to render it), ink `#f0eeea`, for dark surfaces.
+- `favicon.svg`: the small-size mark (stem + bob with a wider slit, 64 grid), with a `prefers-color-scheme: light` rule that swaps to the light-theme chalk `#00678f` and green `#007b44`. At 16px a crossbar and ring would be sub-pixel, so they are dropped.
+- `favicon-32.png` (also served at `/favicon.ico`): the same on a dark rounded tile.
+- `og-image.png`: 1200x630, graphite ground, the full mark with one soft green glow, PLUMBLINE, a chalk rule, BLAST RADIUS ZERO (outlined). Rendered in Chrome.
+- The shell nav mark is the small-size mark drawn inline from theme tokens (chalk stem, `--true` bob), so it follows light and dark, and it swings like the brand mark did.
+
+**Rules.** The full mark (bar, ring, long slit) is for 48px and up. Below that use the small-size mark. Never recolour the bob red or amber. The OG image names the deployed host in `og:image` (an absolute URL is required by crawlers): if the host changes, change it in the ten page heads.
+
+**Status.** Shipped and served. Provider for the candidates: fal was unavailable (invalid key), so stablestudio (Flux 2 Pro, $0.03 per image, 9 images). Candidates and prompts are in `evidence/design-forge/logo-candidates/`, working drawings in `evidence/design-forge/logo-work/`.
 
 ## Honesty states (what the UI may claim)
 

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Plumbline</title>
+  <rect width="64" height="64" rx="12" fill="#080c0e"/><rect x="30" y="2" width="4" height="12" fill="#7cc2e4"/>
+  <path fill="#30de97" fill-rule="evenodd" d="M32 12 L44.5 26 L32 61 L19.5 26Z M32 19 L35.2 26 L32 53 L28.8 26Z"/>
+</svg>

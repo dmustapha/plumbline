@@ -81,3 +81,43 @@ describe('CSP (design-forge DF-CSP)', () => {
     }
   });
 });
+
+describe('brand assets (design-forge logo)', () => {
+  const ROUTES: Record<string, string> = { '/logo.svg': 'image/svg+xml', '/logo-mono.svg': 'image/svg+xml', '/logo-lockup.svg': 'image/svg+xml', '/favicon.svg': 'image/svg+xml', '/favicon-32.png': 'image/png', '/favicon.ico': 'image/png', '/og-image.png': 'image/png' };
+  it('serves each brand asset at an explicit route with the right type and a locked-down SVG policy', async () => {
+    const { makeApi, fakeBroker } = await import('./support.ts');
+    const { app } = await makeApi(fakeBroker());
+    for (const [url, type] of Object.entries(ROUTES)) {
+      const r = await app.inject({ method: 'GET', url });
+      expect(r.statusCode, url).toBe(200);
+      expect(String(r.headers['content-type']), url).toContain(type);
+      expect(r.headers['x-content-type-options'], url).toBe('nosniff');
+      if (url.endsWith('.svg')) expect(String(r.headers['content-security-policy']), url).toContain("default-src 'none'");
+    }
+    const png = await app.inject({ method: 'GET', url: '/og-image.png' });
+    expect(png.rawPayload.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+  });
+  it('is still a whitelist: a neighbouring name or a traversal does not serve a file', async () => {
+    const { makeApi, fakeBroker } = await import('./support.ts');
+    const { app } = await makeApi(fakeBroker());
+    for (const url of ['/logo.svg.bak', '/logo-v1.svg', '/public/logo.svg', '/%2e%2e/%2e%2e/etc/passwd', '/logo.svg/../../app.js.map', '/evidence/design-forge/logo-candidates/B1.png']) {
+      const r = await app.inject({ method: 'GET', url });
+      expect(r.statusCode, url).toBe(404);
+    }
+  });
+  it('every page head carries the icon links and Open Graph tags, after the anti-FOUC theme script', () => {
+    for (const f of html) {
+      const t = readFileSync(join(dir, f), 'utf8');
+      expect(t, f).toContain('rel="icon" href="/favicon.svg"');
+      expect(t, f).toContain('property="og:image"');
+      expect(t.indexOf("localStorage.getItem('plb-theme')"), f).toBeGreaterThan(-1);
+      expect(t.indexOf("localStorage.getItem('plb-theme')"), f).toBeLessThan(t.indexOf('rel="icon"'));
+    }
+  });
+  it('the shipped SVGs carry no script and no external reference', () => {
+    for (const f of readdirSync(dir).filter((x) => x.endsWith('.svg'))) {
+      const t = readFileSync(join(dir, f), 'utf8');
+      expect(t, f).not.toMatch(/<script|href\s*=\s*["']https?:|xlink:href|onload=/i);
+    }
+  });
+});

@@ -201,5 +201,5 @@
       "meaning": "a human decision is required, or a host is unreachable (the line goes ghost)"
     }
   ],
-  "logoPath": null
+  "logoPath": "apps/range-api/public/logo.svg"
 }

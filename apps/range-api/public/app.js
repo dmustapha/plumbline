@@ -144,10 +144,12 @@ const TITLES = { range: ['Range', 'attack the agent, watch the box hold'], verif
 
 function brandSwing(g) { return anim(g, [{ transform: 'rotate(-7deg)' }, { transform: 'rotate(7deg)' }], { duration: 2600, direction: 'alternate', iterations: Infinity, easing: 'ease-in-out', still: { transform: 'rotate(0deg)' } }); }
 function brandMark() {
-  const g = sv('g', { style: 'transform-box:view-box;transform-origin:11px 3px' },
-    sv('line', { x1: 11, y1: 3, x2: 11, y2: 18, stroke: 'currentColor', 'stroke-width': 1.6, 'stroke-linecap': 'round', opacity: .8 }),
-    sv('path', { d: 'M11 17 L14.2 21.5 L11 26 L7.8 21.5 Z', fill: 'currentColor' }));
-  const s = sv('svg', { width: 22, height: 28, viewBox: '0 0 22 28', 'aria-hidden': 'true' }, sv('circle', { cx: 11, cy: 3, r: 2.2, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.2 }), g);
+  // the real mark at nav size (same geometry as favicon.svg): a chalk stem and the true-green bob with its slit, swinging from the top of the stem.
+  // colours come from the theme tokens so the mark follows light and dark.
+  const g = sv('g', { style: 'transform-box:view-box;transform-origin:32px 1px' },
+    sv('rect', { x: 29.5, y: 1, width: 5, height: 13, style: 'fill:var(--accent-hi)' }),
+    sv('path', { d: 'M32 11 L46.5 26 L32 61 L17.5 26 Z M32 18 L35.6 26 L32 54 L28.4 26 Z', 'fill-rule': 'evenodd', style: 'fill:var(--true)' }));
+  const s = sv('svg', { width: 26, height: 26, viewBox: '0 0 64 64', 'aria-hidden': 'true', style: 'overflow:visible' }, g);
   MOTION.brands.push(g); const a = brandSwing(g); if (a) MOTION.brandAnims.push(a);
   quietLater();
   return s;

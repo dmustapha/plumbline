@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>Logo candidates</title>
+<style>body{margin:0;background:#0b0f12;color:#e8e6e1;font:14px system-ui}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;padding:16px;max-width:1500px;margin:auto}
+figure{margin:0;background:#12171a;border-radius:12px;padding:12px}img{width:100%;display:block;border-radius:8px}figcaption{font:600 18px system-ui;padding:8px 2px 2px}
+.s{display:flex;gap:10px;align-items:center;margin-top:8px}.s img{width:auto;border-radius:0;image-rendering:auto}.l{background:#f3f2ed;padding:6px;border-radius:6px}</style>
+<main>
+<script>for(const n of ['A1','A2','A3','B1','B2','B3','C1','C2','C3']){document.querySelector('main').insertAdjacentHTML('beforeend',`<figure><img src="${n}.png"><figcaption>${n}</figcaption><div class="s"><img src="${n}.png" width="64" height="64"><img src="${n}.png" width="32" height="32"><img src="${n}.png" width="16" height="16"><span class="l"><img src="${n}.png" width="32" height="32"></span></div></figure>`)}</script>
+</main>

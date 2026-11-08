@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Plumbline: a plumb bob hanging true">
+  <title>Plumbline</title>
+  <g transform="translate(0 -4)">
+    <path fill="#7cc2e4" fill-rule="evenodd" d="M150 69h212a3 3 0 0 1 3 3v5a3 3 0 0 1 -3 3h-212a3 3 0 0 1 -3 -3v-5a3 3 0 0 1 3 -3Z"/>
+    <rect x="250.5" y="80" width="11" height="28" fill="#7cc2e4"/>
+    <path fill="#7cc2e4" fill-rule="evenodd" d="M236.5 122a19.5 19.5 0 1 0 39.0 0a19.5 19.5 0 1 0 -39.0 0ZM243.5 122a12.5 12.5 0 1 0 25.0 0a12.5 12.5 0 1 0 -25.0 0Z"/>
+    <path fill="#30de97" fill-rule="evenodd" d="M256 122 L341 213 L256 443 L171 213Z M256 134 L273 213 L256 424 L239 213Z"/>
+  </g>
+</svg>
