@@ -107,11 +107,17 @@ function registerPolicy(app: FastifyInstance, d: ApiDeps): void {
   // Static path wins over /api/policy/:sid: no HTTP verb writes the production policy, the broker only checks a signature.
   app.route<{ Body: { policy?: string; signature?: string } }>({
     method: ['PUT', 'POST', 'PATCH', 'DELETE'], url: '/api/policy/production', bodyLimit: 70 * 1024,
-    handler: async (req, reply) => relay(reply, d.broker.call('POST', '/v1/policy-production', { text: req.body?.policy ?? '', signature: req.body?.signature })),
+    handler: async (req, reply) => {
+      const { policy, signature } = (req.body ?? {}) as { policy?: unknown; signature?: unknown };
+      // STRESS W2: the sibling PUT /api/policy/:sid already answers 400 for a non-string; so does this route (the signature may be absent)
+      if ((policy !== undefined && typeof policy !== 'string') || (signature !== undefined && typeof signature !== 'string')) return reply.code(400).send({ status: 'ARGS_INVALID' });
+      return relay(reply, d.broker.call('POST', '/v1/policy-production', { text: policy ?? '', signature }));
+    },
   });
 }
 
 const EVIDENCE_TTL_MS = 10_000;
+const PROOF_TTL_MS = 2_000;
 
 /** Newest mtime and file count of the evidence directory: a stat per file, no reads. */
 function evidenceStamp(dir: string): { newest: number; count: number } {
@@ -145,10 +151,25 @@ function evidenceReader(d: ApiDeps): () => Record<string, unknown> {
 function registerProof(app: FastifyInstance, d: ApiDeps): void {
   const bf = d.fetchImpl ?? fetch;
   const evidenceNow = evidenceReader(d);
-  app.get('/api/proof', async (_r, reply) => {
+  // STRESS H1: this read is public and fans out to the broker and the runner, so concurrent callers share one in-flight fetch and its result is
+  // reused for PROOF_TTL_MS (the page stamps its own "as of" time). The evidence directory stays on its own mtime-keyed cache (SEC-L1), so a
+  // newer evidence file still shows up at once.
+  type ProofParts = { proof: Record<string, unknown>; containers: unknown } | null;
+  let proofAt = 0; let proofParts: ProofParts = null; let proofInflight: Promise<ProofParts> | null = null;
+  const nowMs = d.clock ?? Date.now;
+  const fetchParts = async (): Promise<ProofParts> => {
     const proof = await d.broker.call<Record<string, unknown>>('GET', '/v1/proof').catch(() => null);
-    if (!proof) return reply.code(502).send({ status: 'BROKER_UNREACHABLE' });
-    return { ...proof.json, evidence: evidenceNow(), containers_now: await d.runner.containers().catch(() => null) };
+    if (!proof) return null;
+    return { proof: proof.json, containers: await d.runner.containers().catch(() => null) };
+  };
+  app.get('/api/proof', async (_r, reply) => {
+    if (!proofParts || nowMs() - proofAt >= PROOF_TTL_MS) {
+      proofInflight ??= fetchParts().finally(() => { proofInflight = null; });
+      const parts = await proofInflight;
+      if (!parts) return reply.code(502).send({ status: 'BROKER_UNREACHABLE' });
+      proofParts = parts; proofAt = nowMs();
+    }
+    return { ...proofParts.proof, evidence: evidenceNow(), containers_now: proofParts.containers };
   });
 
   const verifier = async (path: string, method: string): Promise<{ status: number; json: unknown }> => {

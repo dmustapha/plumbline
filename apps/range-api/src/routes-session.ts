@@ -43,7 +43,9 @@ async function createSession(d: ApiDeps, req: FastifyRequest, reply: FastifyRepl
   const current = credsOf(req);
   if (current.sid && d.book.check(current.sid, current.key) === 'OK') return reply.send({ session_id: current.sid, reused: true });
   if (await liveCount(d, req.ip) >= d.config.liveSessionsPerIp) {
-    return reply.code(429).send({ status: 'SESSIONS_PER_IP_LIVE', detail: `this address already holds ${d.config.liveSessionsPerIp} live sessions; use one of them or wait for it to idle out` });
+    // STRESS L1: like every other 429 this one says when to retry; a live session stops counting after liveIdleMs without an attack, so that is the upper bound
+    const retryS = Math.max(1, Math.ceil(d.config.liveIdleMs / 1000));
+    return reply.header('retry-after', String(retryS)).code(429).send({ status: 'SESSIONS_PER_IP_LIVE', retry_after_s: retryS, detail: `this address already holds ${d.config.liveSessionsPerIp} live sessions; use one of them or wait for it to idle out (at most ${retryS} s)` });
   }
   const perIp = d.sessionIpLimit.take(req.ip);
   if (!perIp.ok) return rateLimited(reply, perIp.retryAfterS);
