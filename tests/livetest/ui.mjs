@@ -4,7 +4,7 @@
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright');
 import { mkdirSync, writeFileSync } from 'node:fs';
 const BASE = process.env.PLUMBLINE_URL ?? 'https://plumbline.108-61-70-169.sslip.io';
-const PAGES = ['/', '/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy'];
+const PAGES = ['/', '/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/check', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy'];
 mkdirSync('evidence/livetest', { recursive: true });
 const out = { base: BASE, ran_at: new Date().toISOString(), domains: {} };
 const b = await chromium.launch();

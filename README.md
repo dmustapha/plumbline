@@ -41,7 +41,7 @@ The claim is reconciliation, not logging. After every attack the range re-fetche
 | Try it | `/try`: attack the demo account |
 | Controls | `/controls/policy`, `/controls/limits` (spend limits and kill switch), `/controls/recovery` (undo and bond) |
 | Audit | `/audit/ledger` (filters, export), `/audit/reconcile` (second-host check), `/audit/evidence` |
-| Docs | `/docs/safety`, `/docs/architecture`, `/docs/concepts`, `/docs/integrate` |
+| Docs | `/docs/check`, `/docs/safety`, `/docs/architecture`, `/docs/concepts`, `/docs/integrate` |
 | Deploy | `/deploy` |
 
 Pages that show the demo account carry a note saying so. The addresses of the first layout (`/range`, `/verify`, `/replay`, `/proof`, `/about`, `/status`, `/run`) redirect permanently.
@@ -159,12 +159,13 @@ curl -s https://plumbline.108-61-70-169.sslip.io/api/verify | python3 -c "import
 Check the ledger without trusting any page or server of ours. It is public, hash-chained, and the script has no dependencies:
 
 ```bash
+curl -sO https://raw.githubusercontent.com/dmustapha/plumbline/main/scripts/verify-ledger.mjs
 curl -s https://plumbline.108-61-70-169.sslip.io/api/ledger/public -o ledger.json
-node scripts/verify-ledger.mjs ledger.json
+node verify-ledger.mjs ledger.json
 # PASS 2608 decisions chained ... PASS every created resource is tied to the ALLOW decision that authorised it ... LEDGER OK
 ```
 
-The same check runs in the browser on the [Ledger page](https://plumbline.108-61-70-169.sslip.io/audit/ledger) (it recomputes every fingerprint locally, compares the result with the head the second-region verifier pinned, and can flip one verdict in your copy to show the chain break). Every verdict on the Try it page links to its own row. A hash chain proves history was not edited after the fact; it does not prove the broker recorded every action truthfully, which is why the verifier in the second region reads the live Vultr account separately.
+The same check runs in the browser on the [Ledger page](https://plumbline.108-61-70-169.sslip.io/audit/ledger) (it recomputes every fingerprint locally, compares the result with the head the second-region verifier pinned, and can flip one verdict in your copy to show the chain break). Every verdict on the Try it page links to its own row. The [Reconcile page](https://plumbline.108-61-70-169.sslip.io/audit/reconcile) also makes your browser ask the second-region verifier on its own address (`https://66-42-126-97.sslip.io/api/verify`), so the answer does not pass through our site. All six checks, and what each one does and does not prove, are on [Check it is real](https://plumbline.108-61-70-169.sslip.io/docs/check). A hash chain proves history was not edited after the fact; it does not prove the broker recorded every action truthfully, which is why the verifier in the second region reads the live Vultr account separately.
 
 ![Ledger page verifying the whole chain in the browser](docs/images/ledger-verify.png)
 

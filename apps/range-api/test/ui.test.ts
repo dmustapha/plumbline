@@ -124,14 +124,14 @@ describe('brand assets (design-forge logo)', () => {
 });
 
 describe('structure for the real users (platform leads first)', () => {
-  const NEW_PAGES = ['index', 'range', 'policy', 'status', 'recovery', 'replay', 'verify', 'proof', 'about', 'architecture', 'concepts', 'integrate', 'deploy'];
+  const NEW_PAGES = ['index', 'range', 'policy', 'status', 'recovery', 'replay', 'verify', 'proof', 'about', 'architecture', 'concepts', 'integrate', 'deploy', 'check'];
   it('ships every page of the six-part structure and no page of the old layout that was merged away', () => {
     for (const p of NEW_PAGES) expect(html, p).toContain(`${p}.html`);
     expect(html).not.toContain('rewind.html'); expect(html).not.toContain('bond.html'); expect(html).not.toContain('run.html');
   });
   it('the route table maps the new addresses and redirects the old ones', () => {
     const r = readFileSync(new URL('../src/routes.ts', import.meta.url), 'utf8');
-    for (const route of ["'/try'", "'/controls/policy'", "'/controls/limits'", "'/controls/recovery'", "'/audit/ledger'", "'/audit/reconcile'", "'/audit/evidence'", "'/docs/safety'", "'/docs/architecture'", "'/docs/concepts'", "'/docs/integrate'", "'/deploy'"]) expect(r, route).toContain(route);
+    for (const route of ["'/try'", "'/controls/policy'", "'/controls/limits'", "'/controls/recovery'", "'/audit/ledger'", "'/audit/reconcile'", "'/audit/evidence'", "'/docs/check'", "'/docs/safety'", "'/docs/architecture'", "'/docs/concepts'", "'/docs/integrate'", "'/deploy'"]) expect(r, route).toContain(route);
     expect(r).toContain('MOVED');
   });
   it('the overview states the platform-team claim, labels the demo and routes each audience to its pages', () => {
@@ -145,7 +145,7 @@ describe('structure for the real users (platform leads first)', () => {
   it('the navigation uses the six groups and the new addresses', () => {
     const js = read('app.js');
     for (const g of ["'TRY IT'", "'CONTROLS'", "'AUDIT'", "'DOCS'", "'DEPLOY'"]) expect(js, g).toContain(g);
-    for (const h of ['/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy']) expect(js, h).toContain(`'${h}'`);
+    for (const h of ['/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/check', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy']) expect(js, h).toContain(`'${h}'`);
   });
   it('every page that shows our demo account carries the scope note', () => {
     expect(read('app.js')).toMatch(/DEMO_SCOPE = new Set\(\['range', 'policy', 'status', 'recovery', 'replay', 'verify', 'proof'\]\)/);

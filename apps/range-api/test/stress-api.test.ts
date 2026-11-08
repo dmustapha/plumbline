@@ -53,7 +53,7 @@ function sane(r: { statusCode: number; headers: Record<string, unknown>; body: s
 }
 
 // ---------------------------------------------------------------- 1. method matrix
-const PAGE_ROUTES = ['/', '/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy', '/app.js', '/style.css',
+const PAGE_ROUTES = ['/', '/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/check', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy', '/app.js', '/style.css',
   '/logo.svg', '/logo-mono.svg', '/logo-lockup.svg', '/favicon.svg', '/favicon-32.png', '/favicon.ico', '/og-image.png'];
 // the first layout's addresses: GET redirects, nothing else is allowed
 const MOVED_ROUTES = ['/range', '/range/policy', '/range/rewind', '/range/bond', '/verify', '/proof', '/about', '/replay', '/status', '/run'];

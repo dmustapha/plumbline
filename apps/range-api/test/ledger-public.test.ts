@@ -8,7 +8,7 @@ import { exportLedger, openDb, recordDecision, type LedgerExport } from '../../.
 import { createReq, decide } from '../../../packages/ledger/test/support/engine.ts';
 import { verify as verifyScript } from '../../../scripts/verify-ledger.mjs';
 import { makeBroker, secrets } from '../../broker/test/support.ts';
-import { fakeBroker, makeApi } from './support.ts';
+import { cfg, fakeBroker, makeApi } from './support.ts';
 
 const appJs = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
 const block = appJs.slice(appJs.indexOf('/* ledger-verify:start */'), appJs.indexOf('/* ledger-verify:end */'));
@@ -111,5 +111,41 @@ describe('GET /api/ledger/public', () => {
   });
   it('the exported text carries nothing credential-shaped', () => {
     expect(JSON.stringify(fixture())).not.toMatch(/api[_-]?key|secret|token|password|BEGIN [A-Z ]*KEY/i);
+  });
+});
+
+describe('asking the second region directly', () => {
+  const V = 'https://66-42-126-97.sslip.io';
+  it('publishes the verifier origin (and only the origin), or 404 when there is none', async () => {
+    const f = fakeBroker();
+    const on = await makeApi(f, {}, { ...cfg, verifierUrl: `${V}/some/path?x=1` });
+    expect((await on.app.inject({ method: 'GET', url: '/api/verifier-url' })).json()).toEqual({ url: V });
+    const off = await makeApi(f, {}, { ...cfg, verifierUrl: null });
+    expect((await off.app.inject({ method: 'GET', url: '/api/verifier-url' })).statusCode).toBe(404);
+  });
+  it('only the reconcile page may connect out, and only to the verifier origin', async () => {
+    const api = await makeApi(fakeBroker(), {}, { ...cfg, verifierUrl: V });
+    const csp = async (url: string): Promise<string> => String((await api.app.inject({ method: 'GET', url })).headers['content-security-policy']);
+    expect(await csp('/audit/reconcile')).toContain(`connect-src 'self' ${V} `);
+    for (const u of ['/', '/try', '/audit/ledger', '/audit/evidence', '/controls/policy', '/docs/architecture']) expect(await csp(u), u).not.toContain(V);
+  });
+  it('the reconcile page has the direct-ask panel and the script wires it', () => {
+    const h = readFileSync(new URL('../public/verify.html', import.meta.url), 'utf8');
+    for (const t of ['id="vd-run"', 'id="vd-out"', 'id="vd-link"', 'id="vd-curl"']) expect(h, t).toContain(t);
+    expect(appJs).toContain('verifierDirect()'); expect(appJs).toContain('credentials: "omit"');
+  });
+});
+
+describe('the Check it is real page', () => {
+  const page = readFileSync(new URL('../public/check.html', import.meta.url), 'utf8');
+  it('lists six checks, says what they do not prove, and every command it shows exists', () => {
+    expect((page.match(/<li><b>/g) ?? []).length).toBe(6);
+    expect(page).toContain('What these checks do not prove'); expect(page).toContain('verify-ledger.mjs'); expect(page).toContain('/api/ledger/public'); expect(page).toContain('npm run verify-claims');
+    for (const href of ['/audit/ledger', '/audit/reconcile', '/deploy']) expect(page).toContain(`href="${href}"`);
+  });
+  it('is served at /docs/check and listed in the navigation', async () => {
+    const api = await makeApi(fakeBroker());
+    expect((await api.app.inject({ method: 'GET', url: '/docs/check' })).statusCode).toBe(200);
+    expect(appJs).toContain("'/docs/check', 'Check it is real'");
   });
 });

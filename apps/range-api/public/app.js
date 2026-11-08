@@ -140,7 +140,7 @@ const ROUTES = [
   ['TRY IT', [['/try', 'Attack the demo', 'our account']]],
   ['CONTROLS', [['/controls/policy', 'Policy', 'rules as data'], ['/controls/limits', 'Spend limits', 'caps + kill switch'], ['/controls/recovery', 'Recovery', 'undo + bond']]],
   ['AUDIT', [['/audit/ledger', 'Ledger', 'every verdict'], ['/audit/reconcile', 'Reconcile', 'second-host check'], ['/audit/evidence', 'Evidence', 'regenerate it']]],
-  ['DOCS', [['/docs/safety', 'Safety model', 'claims + limits'], ['/docs/architecture', 'How it works', 'components'], ['/docs/concepts', 'Concepts', 'plain words'], ['/docs/integrate', 'Integrate an agent', 'the contract']]],
+  ['DOCS', [['/docs/check', 'Check it is real', 'verify it yourself'], ['/docs/safety', 'Safety model', 'claims + limits'], ['/docs/architecture', 'How it works', 'components'], ['/docs/concepts', 'Concepts', 'plain words'], ['/docs/integrate', 'Integrate an agent', 'the contract']]],
   ['DEPLOY', [['/deploy', 'Run it yourself', 'your account']]],
 ];
 // pages that show OUR demo account: they carry a one-line scope note so the user is never unsure whose account this is
@@ -155,6 +155,7 @@ const TITLES = {
   proof: ['Evidence', 'every number has a command that regenerates it'],
   about: ['Safety model', 'what Plumbline claims, and what it does not'],
   architecture: ['How it works', 'the components, the trust boundaries, and one request from start to finish'],
+  check: ['Check it is real', 'six checks that do not depend on trusting this page'],
   concepts: ['Concepts', 'the words this product uses, in plain terms'],
   integrate: ['Integrate an agent', 'the contract between your agent and the broker'],
   deploy: ['Run it yourself', 'Plumbline on your own Vultr account'],
@@ -994,6 +995,32 @@ function ledgerCheatCopy(exp) {
 }
 /* ledger-verify:end */
 
+// the browser asks the second-region verifier on ITS OWN address; our server is not in that request
+async function verifierDirect() {
+  const run = $("#vd-run"); const out = $("#vd-out"); if (!run || !out) return;
+  const w = await api("/api/verifier-url"); const base = w.ok && w.json && w.json.url;
+  if (!base) { run.disabled = true; out.replaceChildren(h("p", { class: "mut" }, "the verifier address is not published by this deployment")); return; }
+  const link = $("#vd-link"); link.href = base + "/api/verify"; link.hidden = false;
+  const cu = $("#vd-curl"); cu.textContent = "curl -s " + base + "/api/verify"; cu.hidden = false;
+  run.addEventListener("click", async () => {
+    run.disabled = true; out.replaceChildren(h("p", { class: "mut" }, "asking " + base + " ..."));
+    try {
+      const res = await fetch(base + "/api/verify", { credentials: "omit", cache: "no-store", signal: AbortSignal.timeout(15000) });
+      const d = await res.json(); const ours = await api("/api/verify"); const mine = ours.json || {};
+      const pd = d.prod_db || {};
+      const same = mine.generated_at === d.generated_at ? "the same run our page shows" : (mine.status === d.status ? "a different run time, same status as our page" : "A DIFFERENT STATUS from our page: trust this one");
+      const rows = [
+        ["answered by", base.replace("https://", "") + " (host " + fmt(d.verifier_host) + ")"],
+        ["verdict", fmt(d.status) + " · " + fmt(d.counts && d.counts.unauthorized) + " unauthorized · read " + fmt(d.age_s) + " s ago"],
+        ["polled twice", d.polled_twice ? "yes, " + (d.polls && d.polls.length === 2 ? ((d.polls[1] - d.polls[0]) / 1000).toFixed(1) + " s apart" : "two reads") : "no"],
+        ["prod-db as it read it", pd.found ? pd.label + " · " + pd.status + "/" + pd.power_status + " · " + pd.plan + " · " + pd.region + " · Vultr id " + pd.id : "not found by the verifier"],
+        ["compared with our page", same]];
+      out.replaceChildren(h("div", { class: "vres " + (d.status === "GREEN" ? "ok" : "bad") },
+        h("div", { class: "vhead" }, "The second region answered itself: " + fmt(d.status)),
+        h("ul", { class: "vsteps" }, ...rows.map((r) => h("li", { class: "ok" }, h("span", { class: "mut", style: "flex:none;min-width:11em" }, r[0]), h("span", {}, r[1]))))));
+    } catch (e) { out.replaceChildren(h("p", { class: "err" }, "could not reach the verifier from your browser: " + String((e && e.message) || e).slice(0, 100))); } finally { run.disabled = false; }
+  });
+}
 // "do not take our word for it": every verdict links to the public ledger and the in-browser check
 function checkItBlock(v) {
   if (!v || !v.decision_id) return h("div", {});
@@ -1001,7 +1028,7 @@ function checkItBlock(v) {
     h("b", {}, "Do not take our word for it. "),
     "This verdict is one row in a ledger where every row carries a fingerprint of the row before it. ",
     h("a", { href: "/audit/ledger?id=" + encodeURIComponent(v.decision_id) }, "Find this decision and verify the whole chain in your browser"),
-    " · ", h("a", { href: "/audit/reconcile" }, "See what the second region read from Vultr itself"));
+    " · ", h("a", { href: "/audit/reconcile" }, "See what the second region read from Vultr itself"), " · ", h("a", { href: "/docs/check" }, "All six ways to check"));
 }
 async function sha256Hex(text) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -1259,6 +1286,7 @@ const pages = {
     await refreshStage(); plumbSettle();
     await refreshTruth(true);
     $('#vrun').addEventListener('click', rereadNow);
+    verifierDirect();
   },
   async replay() {
     shell('replay'); tableLabel('#rout', 'All verdicts');

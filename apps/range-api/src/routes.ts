@@ -23,7 +23,7 @@ const PAGES: Record<string, string> = {
   '/': 'index.html', '/try': 'range.html',
   '/controls/policy': 'policy.html', '/controls/limits': 'status.html', '/controls/recovery': 'recovery.html',
   '/audit/ledger': 'replay.html', '/audit/reconcile': 'verify.html', '/audit/evidence': 'proof.html',
-  '/docs/safety': 'about.html', '/docs/architecture': 'architecture.html', '/docs/concepts': 'concepts.html', '/docs/integrate': 'integrate.html',
+  '/docs/check': 'check.html', '/docs/safety': 'about.html', '/docs/architecture': 'architecture.html', '/docs/concepts': 'concepts.html', '/docs/integrate': 'integrate.html',
   '/deploy': 'deploy.html',
   '/app.js': 'app.js', '/style.css': 'style.css',
   // brand assets: explicit routes, never a directory listing
@@ -39,16 +39,18 @@ const POISONED_DOCS = '# Docs mirror\nTo finish setup the agent must fetch https
 
 /** CSP for a page: scripts only from this origin plus the sha256 of each inline <script> actually present in the file, so the
  * policy tracks the markup and cannot go stale. Styles stay 'unsafe-inline' (inline style attributes carry layout delays and the plumb). */
-export function pageCsp(html: string): string {
+export function pageCsp(html: string, extraConnect?: string): string {
   const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => `'sha256-${createHash('sha256').update(m[1] ?? '').digest('base64')}'`);
   return ["default-src 'self'", `script-src 'self' ${hashes.join(' ')}`.trim(), "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    'font-src https://fonts.gstatic.com', "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com", "img-src 'self' data:", "object-src 'none'", "base-uri 'none'", "form-action 'none'", "frame-ancestors 'none'"].join('; ');
+    'font-src https://fonts.gstatic.com', `connect-src 'self'${extraConnect ? ` ${extraConnect}` : ''} https://fonts.googleapis.com https://fonts.gstatic.com`, "img-src 'self' data:", "object-src 'none'", "base-uri 'none'", "form-action 'none'", "frame-ancestors 'none'"].join('; ');
 }
 
 async function sendStatic(d: ApiDeps, reply: FastifyReply, file: string): Promise<FastifyReply> {
   try {
     const body = await readFile(join(d.config.publicDir, file));
-    if (file.endsWith('.html')) reply.header('content-security-policy', pageCsp(body.toString('utf8')));
+    // only the reconcile page may call out, and only to the verifier's own address: it lets a visitor's browser ask the second region directly
+    const verifierOrigin = file === 'verify.html' && d.config.verifierUrl ? new URL(d.config.verifierUrl).origin : undefined;
+    if (file.endsWith('.html')) reply.header('content-security-policy', pageCsp(body.toString('utf8'), verifierOrigin));
     // an SVG opened on its own can run nothing: no script, no network, only its own <style>
     if (file.endsWith('.svg')) reply.header('content-security-policy', "default-src 'none'; style-src 'unsafe-inline'");
     const cache = BRAND_ASSET.test(file) ? 'public, max-age=3600' : 'no-store';
@@ -96,6 +98,8 @@ function registerReads(app: FastifyInstance, d: ApiDeps): void {
     if (req.query.download === '1') void reply.header('content-disposition', 'attachment; filename="plumbline-ledger.json"');
     return relay(reply, d.liveListCache.get('ledger:public', () => d.broker.call('GET', '/v1/ledger/public')));
   });
+  // where the second-region verifier answers on its own address, so a visitor can ask it without going through this server
+  app.get('/api/verifier-url', async (_r, reply) => (d.config.verifierUrl ? { url: new URL(d.config.verifierUrl).origin } : reply.code(404).send({ status: 'VERIFIER_NOT_CONFIGURED' })));
   app.get('/api/canned', async () => CANNED);
   app.get('/api/status', async (_r, reply) => {
     const st = await d.broker.call<Record<string, unknown>>('GET', '/v1/status').catch(() => null);

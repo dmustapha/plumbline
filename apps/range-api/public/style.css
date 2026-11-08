@@ -575,3 +575,8 @@ main.narrow .tablewrap, main.wide .tablewrap { overflow-x: auto; max-width: 100%
 .vsteps .vmark { flex: none; width: 1.2em; font-weight: 700; }
 .vsteps li.ok .vmark { color: var(--true); } .vsteps li.bad .vmark { color: var(--deny); }
 tr.picked td { background: var(--ink-06); }
+
+ol.checks { margin: 10px 0 0; padding-left: 1.3em; display: grid; gap: 14px; }
+ol.checks li { line-height: 1.55; }
+ol.checks li i { color: var(--muted); font-style: normal; }
+ol.checks pre { margin: 8px 0; }

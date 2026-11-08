@@ -17,8 +17,9 @@
 <div class="row"><button type="button" id="lv-run" class="btn primary">Verify the whole ledger here</button><button type="button" id="lv-cheat" class="btn">Try to cheat: change one verdict</button><a class="btn quiet" href="/api/ledger/public?download=1">Download the ledger (JSON)</a></div>
 <div id="lv-out" role="status" aria-live="polite" style="margin-top:12px"></div>
 <details style="margin-top:12px"><summary>Check it without this page, on your own computer</summary>
-<pre tabindex="0">curl -s https://plumbline.108-61-70-169.sslip.io/api/ledger/public -o ledger.json
-node scripts/verify-ledger.mjs ledger.json</pre>
+<pre tabindex="0">curl -sO https://raw.githubusercontent.com/dmustapha/plumbline/main/scripts/verify-ledger.mjs
+curl -s https://plumbline.108-61-70-169.sslip.io/api/ledger/public -o ledger.json
+node verify-ledger.mjs ledger.json</pre>
 <p class="mut" style="font-size:12.5px">The script is in the public repository, has no dependencies and prints one line per check.</p></details>
 <details style="margin-top:8px"><summary>What this proves, and what it does not</summary>
 <p class="mut" style="font-size:12.5px"><b>Proves:</b> no row was edited, removed or reordered after it was written, every server the agent created is tied to an ALLOW decision, and each recorded request matches the fingerprint the verdict was made on. <b>Does not prove by itself:</b> that the broker recorded every action truthfully in the first place, because the ledger is the broker's own record. That gap is closed from outside: the verifier in the second region reads the live Vultr account with its own key and compares it with this ledger (see Reconcile), and it pins the head of this chain so a rewrite of history is caught.</p></details></div>
