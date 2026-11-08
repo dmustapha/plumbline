@@ -192,6 +192,8 @@ npm test
 npm run typecheck
 ```
 
+> Every command above passes from a clean clone with no extra flags.
+
 **Tier 1: re-derive the claims.**
 
 ```bash

@@ -36,3 +36,11 @@ evidence/ag4-queue.md
 evidence/ag4-waived.md
 evidence/g0-counts.txt
 evidence/inputs.md
+
+# Pipeline config
+.feature-coverage.json
+.route-manifest.json
+.ship-check.json
+.url-identity.json
+.judge-artifacts.json
+.provenance-surfaces.json
