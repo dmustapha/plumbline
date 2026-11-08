@@ -1,10 +1,9 @@
 {
   "generated_by": "verify-claims",
-  "regenerated_at": "2026-11-08T10:07:48.378Z",
+  "regenerated_at": "2026-11-08T10:27:46.883Z",
   "judged_url": "https://108-61-70-169.sslip.io",
-  "head": "adf2802f515a207e92082a539cfa806d1a9382d9",
+  "head": "a262de9538011d20d5c8c17b9b917d39c7bd7b9e",
   "citable": [
-    "CL-L1",
     "CL-L2",
     "CL-L3",
     "CL-L4",
@@ -13,20 +12,26 @@
     "CL-L7",
     "CL-GV"
   ],
-  "withheld": [],
-  "reasons": {},
+  "withheld": [
+    "CL-L1"
+  ],
+  "reasons": {
+    "CL-L1": [
+      "evidence/gate-l1.json: evidence predates the last commit touching its code (2026-11-08T11:27:46+01:00)"
+    ]
+  },
   "tampered": [],
   "proof": {
     "counts": {
-      "attacks": 633,
-      "allow": 401,
+      "attacks": 639,
+      "allow": 404,
       "escalate": 31,
-      "deny": 201,
-      "tasks": 415,
+      "deny": 204,
+      "tasks": 418,
       "first_ts": 1793970684389,
-      "last_ts": 1794132447804
+      "last_ts": 1794132717807
     },
     "floor_hash": "49aafd52f822a5bf431e5b412613c8bba96a509937421e3643433e68a0adf802",
-    "fetched_at": "2026-11-08T10:07:49.303Z"
+    "fetched_at": "2026-11-08T10:27:47.766Z"
   }
 }
