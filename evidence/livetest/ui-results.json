@@ -1,0 +1,154 @@
+{
+ "base": "https://plumbline.108-61-70-169.sslip.io",
+ "ran_at": "2026-11-08T12:56:21.143Z",
+ "domains": {
+  "console_errors": {
+   "status": "PASS",
+   "errors": []
+  },
+  "visual": {
+   "status": "PASS",
+   "pages": [
+    {
+     "page": "/",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/range",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/range/policy",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/range/rewind",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/range/bond",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/verify",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/replay",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/status",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/proof",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    },
+    {
+     "page": "/about",
+     "badTokens": [],
+     "brokenImages": [],
+     "todo": false
+    }
+   ]
+  },
+  "mobile": {
+   "status": "WARN",
+   "pages": [
+    {
+     "page": "/",
+     "overflow": false,
+     "small": 1,
+     "minFont": 10.5
+    },
+    {
+     "page": "/range",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/range/policy",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/range/rewind",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/range/bond",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/verify",
+     "overflow": false,
+     "small": 1,
+     "minFont": 10
+    },
+    {
+     "page": "/replay",
+     "overflow": false,
+     "small": 1,
+     "minFont": 10.5
+    },
+    {
+     "page": "/status",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/proof",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    },
+    {
+     "page": "/about",
+     "overflow": false,
+     "small": 1,
+     "minFont": 11.5
+    }
+   ]
+  },
+  "forms": {
+   "status": "PASS",
+   "emptySubmit": {
+    "fireStillUsable": true,
+    "pageErrors": []
+   }
+  },
+  "core_flows": {
+   "status": "PASS",
+   "verdictPanel": "DENY agent tried: delete instance plumbline-prod-db \u2192 session layer \u00b7 decided by coded policy outside the model | protect-tagged-destroy | protected resources cannot be destroyed or changed | also den",
+   "uiDecisionId": "d-mw7u8mzv-1b212772",
+   "idInLedger": true,
+   "note": "id parsed from the card text; the regex first captured the following word, corrected here and in ui.mjs"
+  }
+ }
+}

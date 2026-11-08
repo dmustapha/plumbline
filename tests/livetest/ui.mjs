@@ -45,10 +45,10 @@ const emptyState = { disabled: await pg.locator('#fire').isDisabled(), text: (aw
 out.domains.forms = { status: errs2.length === 0 && emptyState.disabled === false ? 'PASS' : 'FAIL', emptySubmit: { fireStillUsable: emptyState.disabled === false, pageErrors: errs2 } };
 await pg.locator('button', { hasText: /Delete prod-db/ }).first().click();
 let big = ''; for (let i = 0; i < 30; i++) { await pg.waitForTimeout(2000); big = await pg.locator('#verdictbig').innerText().catch(() => ''); if (/DENY|ALLOW|ESCALATE/.test(big)) break; }
-const feed = await pg.locator('body').innerText(); const idm = /id ([0-9a-f-]{8,})/i.exec(feed)?.[1];
+const feed = await pg.evaluate(() => document.body.textContent); const idm = /id (d-[0-9a-z]+-[0-9a-f]{8})/i.exec(feed)?.[1];
 await pg.waitForTimeout(2000);
 const replay = await (await fetch(BASE + '/api/replay')).json();
-out.domains.core_flows = { status: /DENY/.test(big) && /protect-tagged-destroy/.test(big) ? 'PASS' : 'FAIL', verdictPanel: big.split('\n').slice(0, 4).join(' | ').slice(0, 200), uiDecisionId: idm ?? null, idInLedger: idm ? replay.some((r) => String(r.id).startsWith(idm.slice(0, 8))) : false };
+out.domains.core_flows = { status: /DENY/.test(big) && /protect-tagged-destroy/.test(big) ? 'PASS' : 'FAIL', verdictPanel: big.split('\n').slice(0, 4).join(' | ').slice(0, 200), uiDecisionId: idm ?? null, idInLedger: idm ? replay.some((r) => String(r.id) === idm) : false };
 await pg.close(); await b.close();
 writeFileSync('evidence/livetest/ui-results.json', JSON.stringify(out, null, 1));
 for (const [k, v] of Object.entries(out.domains)) console.log(k, v.status);

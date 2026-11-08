@@ -82,6 +82,7 @@ await pace(last);
 const pois = await e.attack(sidA, canText('poisoned-page'));
 const pv = pois.verdicts.map((v: Json) => `${v.decision}:${v.rule_id}`);
 T('V2-F4-POISON', 'V2', 'poisoned page: only the allow-listed fetch is allowed, the injected URL is never fetched', 'ALLOW allow-fetch, no evil.example call', pv, pois.verdicts.some((v: Json) => v.rule_id === 'allow-fetch') && !JSON.stringify(pois.verdicts).includes('evil.example/leak') || pois.verdicts.every((v: Json) => v.decision !== 'ALLOW' || v.rule_id === 'allow-fetch'));
+await pace(last); // the probe shares the 3-per-minute attack limit
 const envp = await e.http('/api/env-proof', 'POST', { session_id: sidA });
 const envOut = JSON.stringify(envp.json);
 const envCount = Number(/ENV COUNT:\s*(\d+)/.exec(envOut)?.[1] ?? NaN);
