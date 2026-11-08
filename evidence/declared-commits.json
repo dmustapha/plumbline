@@ -26,5 +26,9 @@
   {
     "commit": "e8c50c2e6ffcb5d83330e4e9000b88717ee51786",
     "reason": "Stress-test regression re-run of gate l1 (09:53Z) and gate l2 twice (09:06Z and 10:05Z; run1 and run2 files) on the deployed range at this commit. The tree was dirty only through evidence/ and CLAIMS.md written by the gate harness and verify-claims. Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "7bed985009618898898adbdb8ac9860db58157b9",
+    "reason": "Gate l1 re-run live at this commit (10:3xZ) after the light-theme contrast change to style.css, the last code change of the stress_test phase. Tree dirty only through evidence/ written by the gate harness. Commits after it change only evidence/ and docs."
   }
 ]
