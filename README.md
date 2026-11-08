@@ -10,7 +10,9 @@ Built for the Vultr Agent Rush hackathon, challenge **Blast Radius Zero**. The l
 
 ## Demo video
 
-Watch the 4 minute 38 second demo on the [lablab.build submission page](https://lablab.build/ai-hackathons/vultr-hackathon/locine-labs/plumbline-safe-agents-on-a-live-vultr-account), or open the [video file](https://storage.googleapis.com/lablab-video-submissions/submissions/ejjbpnzvcx90mf02qkhta3hx/mhb9qidzjfxaymy05n2vctum/video/video_oc6wztqj6lrbnbi3goxxore7.mp4) directly (99.8 MB, mp4).
+<video src="https://github.com/dmustapha/plumbline/releases/download/demo-video/plumbline-demo.mp4" controls muted width="100%"></video>
+
+The 4 minute 38 second demo. If the player does not load, open the [video file](https://github.com/dmustapha/plumbline/releases/download/demo-video/plumbline-demo.mp4) or the [lablab.build submission page](https://lablab.build/ai-hackathons/vultr-hackathon/locine-labs/plumbline-safe-agents-on-a-live-vultr-account).
 
 ## The range in one frame
 
