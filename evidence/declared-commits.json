@@ -14,5 +14,9 @@
   {
     "commit": "a9218f7ec88c2bf532946439b98ef542e8d64795",
     "reason": "gate l1 rerun on a clean tree after the wire isolation fix (CO-W1: session policy copy and live list readable only by the owning session). Only range-api read routes changed after the l2-l7 gates at the earlier declared commits; l1 is the gate that exercises those routes. Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "7319792ce592f6cb107cfe9215475ea35fe3e5a9",
+    "reason": "Clean-tree rerun of gate l1 on the deployed range after the design-forge changes (UI integration, per-page CSP, a11y and error handling in app.js, logo and nav mark). L1 needs temporary session-limit overrides to run from one IP; they were reverted (0 PER_IP lines left in api.env)."
   }
 ]
