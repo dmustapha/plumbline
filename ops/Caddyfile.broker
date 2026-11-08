@@ -1,5 +1,5 @@
 # File: ops/Caddyfile.broker
-{$PLUMBLINE_HOST} {
+{$PLUMBLINE_HOST}, plumbline.108-61-70-169.sslip.io {
 	# LIVE FINDING: compressing text/event-stream makes Caddy buffer the stream; browsers and Node fetch send Accept-Encoding, so SSE must not be encoded.
 	@notsse not path /api/stream/*
 	encode @notsse zstd gzip

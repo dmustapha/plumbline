@@ -4,7 +4,7 @@
 
 An AI agent holds a real Vultr account and obeys on purpose. You are the red team. Every action the agent attempts passes through a coded policy engine outside the model, and a second host in another region re-reads the live account to prove nothing broke.
 
-[Attack it live ↗](https://108-61-70-169.sslip.io) · [Reconcile the account ↗](https://108-61-70-169.sslip.io/verify) · [Ledger ↗](https://108-61-70-169.sslip.io/replay) · [Proof ↗](https://108-61-70-169.sslip.io/proof) · [Run it locally ↗](#setup-and-verification)
+[Attack it live ↗](https://plumbline.108-61-70-169.sslip.io) · [Reconcile the account ↗](https://plumbline.108-61-70-169.sslip.io/verify) · [Ledger ↗](https://plumbline.108-61-70-169.sslip.io/replay) · [Proof ↗](https://plumbline.108-61-70-169.sslip.io/proof) · [Run it locally ↗](#setup-and-verification)
 
 Built for the Vultr Agent Rush hackathon, challenge **Blast Radius Zero**.
 
@@ -121,13 +121,13 @@ The full table, including what is **not** defended against, is in [`SECURITY.md`
 
 ```bash
 # The live range reports its own evidence and the commands that regenerate it.
-curl -s https://108-61-70-169.sslip.io/api/proof | head -c 400
+curl -s https://plumbline.108-61-70-169.sslip.io/api/proof | head -c 400
 
 # The second-region verifier answers GREEN or RED about the live account.
-curl -s https://108-61-70-169.sslip.io/api/verify | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['status'], d['counts'])"
+curl -s https://plumbline.108-61-70-169.sslip.io/api/verify | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['status'], d['counts'])"
 ```
 
-After the clone and install below, the claims ledger re-derives every citable claim from the evidence files:
+After the clone and install below, the claims ledger re-derives every citable claim from the evidence files. The gate evidence was recorded against the first hostname (`108-61-70-169.sslip.io`), which still serves the same range, so the command names it:
 
 ```bash
 PLUMBLINE_URL=https://108-61-70-169.sslip.io npm run verify-claims
@@ -204,7 +204,7 @@ npm run typecheck
 PLUMBLINE_URL=https://108-61-70-169.sslip.io npm run verify-claims
 ```
 
-**Tier 2: the hosted range.** Open https://108-61-70-169.sslip.io. No sign-up. Each visitor gets a session and a playground VPC. The range allows 3 attacks a minute per session and 4 live sessions per address.
+**Tier 2: the hosted range.** Open https://plumbline.108-61-70-169.sslip.io. No sign-up. Each visitor gets a session and a playground VPC. The range allows 3 attacks a minute per session and 4 live sessions per address.
 
 **Deploy your own.** The units in `ops/systemd/` and the env templates in `ops/env/` describe the three processes on the broker VM and the verifier and watchdog on the second VM. `npm run bootstrap:range` (owner machine, idempotent) creates the two infra VMs, `plumbline-prod-db`, the shared registry, the versioned canary bucket and six IP-locked tier users, then writes the env files. `npm run teardown` lists everything and deletes only with `--yes`.
 

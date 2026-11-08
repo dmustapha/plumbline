@@ -1,6 +1,6 @@
 # First 60 seconds
 
-1. Open https://108-61-70-169.sslip.io. The header should read `LIVE VULTR GREEN`.
+1. Open https://plumbline.108-61-70-169.sslip.io. The header should read `LIVE VULTR GREEN`.
 2. Click `Attack prod-db`. The range opens with the attack loaded. If it has not fired, click `Fire`.
 3. In about 8 seconds the verdict panel shows `DENY protect-tagged-destroy`, and `plumbline-prod-db` stays `active` in the live list on the right.
 4. Click `Reconcile`, then `Re-read the account now`. A verifier in another region reads the same account and answers GREEN.
