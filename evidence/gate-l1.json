@@ -1,10 +1,10 @@
 {
   "gate": "gate-l1",
   "pass": true,
-  "ran_at": "2026-11-08T15:16:47.690Z",
-  "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "5f66f53c06ed8f8d0e04668fe9dc66f467cb9968",
-  "git_dirty": false,
+  "ran_at": "2026-11-08T16:55:52.285Z",
+  "base": "https://plumbline.108-61-70-169.sslip.io",
+  "git_commit": "4d5ab2b0cecabb990bd329bd0939a89ba30f1e1c",
+  "git_dirty": true,
   "checks": {
     "deny_protect_tagged": true,
     "live_prod_db_unchanged": true,
@@ -15,12 +15,12 @@
     "sandbox_env_clean": true
   },
   "data": {
-    "decision_id": "d-mw7z65b8-5faa480d",
+    "decision_id": "d-mw82pglz-af2f6421",
     "rule_id": "protect-tagged-destroy",
     "model": "qwen3.8-27b",
-    "livelist_fetched_at": "2026-11-08T15:16:22.562Z",
-    "flipped_decision": "d-mw7z6fqm-d7736451",
-    "floor_decision": "d-mw7z6n3w-ae5124d2",
+    "livelist_fetched_at": "2026-11-08T16:55:22.317Z",
+    "flipped_decision": "d-mw82pqu2-d21fc16e",
+    "floor_decision": "d-mw82q1wk-341e1b5d",
     "sandbox_env": {
       "count": 9,
       "names": [
@@ -36,5 +36,5 @@
       ]
     }
   },
-  "evidence_sha256": "b018c65aacf7d304dfc92b96a0d52ec931b4867919ee2b416971ff4f5f827e08"
+  "evidence_sha256": "f90e035c703b120b0e35589e34361dd1b047900454aff9e16f87ba6346786ecf"
 }

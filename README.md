@@ -58,10 +58,10 @@ PLUMBLINE_VERIFY_KEY=<view-only key> npx tsx apps/verifier/src/cli.ts --ledger l
 | Reconcile | Ledger |
 |---|---|
 | ![Verifier reading the live account from a second region](docs/images/verify.png) | ![Append-only ledger of every verdict](docs/images/replay.png) |
-| **Hot-edit policy** | **Undo or insure** |
-| ![Editing the session policy copy while the production floor holds](docs/images/policy.png) | ![Bond that a slash burns, after which provisioning is refused](docs/images/bond.png) |
-| **Rewind** | **Proof** |
-| ![Object Storage versioning: delete, then restore from S3 truth](docs/images/rewind.png) | ![Evidence page with regenerate commands](docs/images/proof.png) |
+| **Hot-edit policy** | **Recovery: rewind and bond** |
+| ![Editing the session policy copy while the production floor holds](docs/images/policy.png) | ![Recovery: versioned rewind and the bond a slash burns](docs/images/bond.png) |
+| **Architecture** | **Evidence** |
+| ![Architecture: what holds the keys, what the agent can reach, where the verifier sits](docs/images/architecture.png) | ![Evidence page with regenerate commands](docs/images/proof.png) |
 
 ## How it works
 

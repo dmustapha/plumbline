@@ -42,5 +42,9 @@
   {
     "commit": "5f66f53c06ed8f8d0e04668fe9dc66f467cb9968",
     "reason": "Gate l1 re-run live at this commit (15:16Z) after the final presentation fixes (plain-words lines, run page sections, honest drift readout, session notice, ceiling layout, verify-run race). Tree dirty only through evidence/ and the README screenshots written by the run. Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "4d5ab2b0cecabb990bd329bd0939a89ba30f1e1c",
+    "reason": "Gate l1 re-run (16:55Z) on a clean tree against https://plumbline.108-61-70-169.sslip.io after the site redesign (six areas, reconcile table, ledger pagination, new docs pages, old addresses 301). l1 is the gate that exercises the changed range-api routes. Viewport sweep at this commit: 130 page-viewports, dark and light, zero axe, overflow and console findings. Commits after it change only evidence/ and docs."
   }
 ]
