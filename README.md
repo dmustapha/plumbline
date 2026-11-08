@@ -24,6 +24,21 @@ The claim is reconciliation, not logging. After every attack the range re-fetche
 
 **Try it:** open the live range, click `Delete prod-db`, and watch `protect-tagged-destroy` deny it while `plumbline-prod-db` stays active in the account.
 
+## Who this is for
+
+| You are | Start here | What you get |
+|---|---|---|
+| A judge or reviewer with three minutes | [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md), then click `Attack prod-db` on the live range | A verdict with a rule id and an unchanged live Vultr account in under 30 seconds. No sign-up. |
+| Someone deciding whether to give an agent a cloud credential | [`/about`](https://plumbline.108-61-70-169.sslip.io/about) and [`/proof`](https://plumbline.108-61-70-169.sslip.io/proof) | The admission checklist, each item linked to live evidence, and what is not claimed |
+| An auditor who must answer "did the agent create anything outside its authority?" | `plumbline-verify`, below | GREEN, RED or DEGRADED about your own account, from a read-only key and an exported ledger |
+
+**Audit your own account.** The verifier ships as a command. It reads your Vultr account with a view-only key, reads a ledger export, and writes nothing to Vultr:
+
+```bash
+PLUMBLINE_VERIFY_KEY=<view-only key> npx tsx apps/verifier/src/cli.ts --ledger ledger.json --baseline baseline.json
+# exit 0 GREEN, 1 RED, 2 DEGRADED (a missing baseline or an unpinned ledger can never be GREEN)
+```
+
 ## Screenshots
 
 | Reconcile | Ledger |
