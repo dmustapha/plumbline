@@ -144,12 +144,15 @@ const TITLES = { range: ['Range', 'attack the agent, watch the box hold'], verif
 
 function brandSwing(g) { return anim(g, [{ transform: 'rotate(-7deg)' }, { transform: 'rotate(7deg)' }], { duration: 2600, direction: 'alternate', iterations: Infinity, easing: 'ease-in-out', still: { transform: 'rotate(0deg)' } }); }
 function brandMark() {
-  // the real mark at nav size (same geometry as favicon.svg): a chalk stem and the true-green bob with its slit, swinging from the top of the stem.
-  // colours come from the theme tokens so the mark follows light and dark.
-  const g = sv('g', { style: 'transform-box:view-box;transform-origin:32px 1px' },
-    sv('rect', { x: 29.5, y: 1, width: 5, height: 13, style: 'fill:var(--accent-hi)' }),
-    sv('path', { d: 'M32 11 L46.5 26 L32 61 L17.5 26 Z M32 18 L35.6 26 L32 54 L28.4 26 Z', 'fill-rule': 'evenodd', style: 'fill:var(--true)' }));
-  const s = sv('svg', { width: 26, height: 26, viewBox: '0 0 64 64', 'aria-hidden': 'true', style: 'overflow:visible' }, g);
+  // the full B1 mark at nav size: chalk crossbar, stem and ring stay still; the true-green bob swings from the ring.
+  // Crossbar, stem and ring are drawn a touch heavier than logo.svg so they survive at about 40px tall. Colours come from the theme tokens.
+  const ring = 'M236.5 122a19.5 19.5 0 1 0 39 0a19.5 19.5 0 1 0 -39 0Z M243.5 122a12.5 12.5 0 1 0 25 0a12.5 12.5 0 1 0 -25 0Z';
+  const hang = [sv('rect', { x: 147, y: 66, width: 218, height: 16, rx: 4, style: 'fill:var(--accent-hi)' }),
+    sv('rect', { x: 248, y: 80, width: 16, height: 30, style: 'fill:var(--accent-hi)' }),
+    sv('path', { d: ring, 'fill-rule': 'evenodd', style: 'fill:var(--accent-hi)' })];
+  const g = sv('g', { style: 'transform-box:view-box;transform-origin:256px 122px' },
+    sv('path', { d: 'M256 122 L341 213 L256 443 L171 213 Z M256 134 L273 213 L256 424 L239 213 Z', 'fill-rule': 'evenodd', style: 'fill:var(--true)' }));
+  const s = sv('svg', { width: 24, height: 40, viewBox: '142 60 228 388', 'aria-hidden': 'true', style: 'overflow:visible;flex:none' }, ...hang, g);
   MOTION.brands.push(g); const a = brandSwing(g); if (a) MOTION.brandAnims.push(a);
   quietLater();
   return s;
