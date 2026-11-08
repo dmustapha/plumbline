@@ -72,6 +72,31 @@ describe('verifier server', () => {
     expect((await h.app.inject({ url: '/api/verify' })).json()).toMatchObject({ status: 'GREEN' });
   });
 
+  it('STRESS DH-8: a GREEN older than five minutes is served as STALE (last_status GREEN), a fresh one is GREEN with its age, and a new run restores GREEN', async () => {
+    const h = harness();
+    await run(h);
+    const fresh = (await h.app.inject({ url: '/api/verify' })).json();
+    expect(fresh).toMatchObject({ status: 'GREEN', age_s: 0 });
+    h.now += 299_000;
+    expect((await h.app.inject({ url: '/api/verify' })).json()).toMatchObject({ status: 'GREEN', age_s: 299 });
+    h.now += 2_000;
+    const old = (await h.app.inject({ url: '/api/verify' })).json();
+    expect(old).toMatchObject({ status: 'STALE', last_status: 'GREEN', stale: true, age_s: 301 });
+    expect(old.status).not.toBe('GREEN');
+    const again = (await run(h)).json();
+    expect(again.status).toBe('GREEN');
+    expect((await h.app.inject({ url: '/api/verify' })).json()).toMatchObject({ status: 'GREEN', age_s: 0 });
+  });
+
+  it('STRESS DH-8: an old RED is never softened into STALE; it stays RED and is marked stale', async () => {
+    const h = harness();
+    h.live.push({ id: 'oob-1', class: 'instance', label: 'rogue-box', status: 'active', power_status: 'running', plan: 'vc2-1c-1gb', region: 'ewr', os: 'x' } as LiveResource);
+    const red = (await run(h)).json();
+    expect(red.status).toBe('RED');
+    h.now += 600_000;
+    expect((await h.app.inject({ url: '/api/verify' })).json()).toMatchObject({ status: 'RED', stale: true });
+  });
+
   it('signs the export request exactly as the broker verifies it (F5 section 2)', async () => {
     const h = harness();
     await run(h);

@@ -26,6 +26,8 @@ export interface VerifierDeps {
   host?: string;
 }
 
+/** A GREEN report older than this is served as STALE. */
+export const STALE_GREEN_MS = 300_000;
 const RUN_GAP_MS = 5000;
 const LEDGER_SCHEMA = 'plumbline-ledger-export/v2';
 
@@ -103,7 +105,14 @@ export function buildVerifier(d: VerifierDeps) {
     if (state === 'ALIVE') leaseSeen = true;
     return { ok: true, lease: state };
   });
-  app.get('/api/verify', async () => last ?? NO_RUN);
+  // STRESS DH-8: a cached GREEN may not be served as GREEN forever. Past STALE_GREEN_MS it reads STALE (last_status keeps what it was), so a judge
+  // who curls this endpoint hours later cannot take an old all-clear for the present. A RED never decays into silence: it stays RED, marked stale.
+  const view = (r: Report): Record<string, unknown> => {
+    const age = Math.max(0, clock() - r.generated_at);
+    const base = { ...r, age_s: Math.round(age / 1000) };
+    return r.status === 'GREEN' && age > STALE_GREEN_MS ? { ...base, status: 'STALE', last_status: 'GREEN', stale: true } : age > STALE_GREEN_MS ? { ...base, stale: true } : base;
+  };
+  app.get('/api/verify', async () => (last ? view(last) : NO_RUN));
   app.post('/api/verify/run', async (_req, reply) => {
     if (running) return reply.code(409).send({ status: 'RUNNING' });
     if (clock() - lastRunAt < RUN_GAP_MS && last) return reply.code(429).header('retry-after', '5').send({ status: 'RATE_LIMITED' });
