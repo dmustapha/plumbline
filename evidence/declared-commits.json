@@ -46,5 +46,9 @@
   {
     "commit": "4d5ab2b0cecabb990bd329bd0939a89ba30f1e1c",
     "reason": "Gate l1 re-run (16:55Z) on a clean tree against https://plumbline.108-61-70-169.sslip.io after the site redesign (six areas, reconcile table, ledger pagination, new docs pages, old addresses 301). l1 is the gate that exercises the changed range-api routes. Viewport sweep at this commit: 130 page-viewports, dark and light, zero axe, overflow and console findings. Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "de0ed1fcfeb051d1a7f6ade9eaf939eb8978d52d",
+    "reason": "Gate l1 re-run (18:54Z) on the deployed range at this commit after the trust work: public hash-chained ledger route, in-browser ledger verification, direct browser query of the second-region verifier, and the Check it is real page. The tree was dirty only through evidence/ and CLAIMS.md written by the gate harness and verify-claims. Gate l6 was re-run at 18:31Z at the preceding commit ea5592c, after the broker gained the read-only /v1/ledger/public route; only range-api read routes and public/ pages changed after it. Commits after this one change only evidence/ and docs."
   }
 ]

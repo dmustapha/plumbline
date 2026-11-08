@@ -167,6 +167,8 @@ node verify-ledger.mjs ledger.json
 
 The same check runs in the browser on the [Ledger page](https://plumbline.108-61-70-169.sslip.io/audit/ledger) (it recomputes every fingerprint locally, compares the result with the head the second-region verifier pinned, and can flip one verdict in your copy to show the chain break). Every verdict on the Try it page links to its own row. The [Reconcile page](https://plumbline.108-61-70-169.sslip.io/audit/reconcile) also makes your browser ask the second-region verifier on its own address (`https://66-42-126-97.sslip.io/api/verify`), so the answer does not pass through our site. All six checks, and what each one does and does not prove, are on [Check it is real](https://plumbline.108-61-70-169.sslip.io/docs/check). A hash chain proves history was not edited after the fact; it does not prove the broker recorded every action truthfully, which is why the verifier in the second region reads the live Vultr account separately.
 
+![Reconcile page: the visitor's browser asks the second-region verifier directly and gets GREEN with the prod-db instance it read](docs/images/verifier-direct.png)
+
 ![Ledger page verifying the whole chain in the browser](docs/images/ledger-verify.png)
 
 After the clone and install below, the claims ledger re-derives every citable claim from the evidence files. The gate evidence was recorded at the range's first hostname (`108-61-70-169.sslip.io`). Both names are declared as one deployment in `evidence/declared-hosts.json`, so the ledger accepts either:
