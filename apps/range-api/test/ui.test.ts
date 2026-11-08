@@ -178,3 +178,17 @@ describe('the shipped script is valid JavaScript', () => {
   });
 });
 
+describe('honest readings and no needless errors', () => {
+  it('the drift readout is exactly 0.0 while the verifier says the account matches', () => {
+    expect(read('app.js')).toMatch(/PL\.mode === 'true' \? '0\.0°'/);
+  });
+  it('the proof page mints a session only when a live probe is pressed', () => {
+    const js = read('app.js'); const i = js.indexOf('async containment()'); const body = js.slice(i, js.indexOf('async policy()', i));
+    expect(body).not.toMatch(/^\s*if \(!\(await ensureSession\(\)\)\) return;\s*$/m);
+    expect((body.match(/ensureSession\(\)/g) ?? []).length).toBe(2);
+  });
+  it('the session-limit message says what to do instead of printing a status code', () => {
+    expect(read('app.js')).toContain('maximum of live demo sessions');
+  });
+});
+

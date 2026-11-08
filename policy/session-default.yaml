@@ -1,6 +1,6 @@
 # File: policy/session-default.yaml
 # Editable per-session layer. The dollar ceiling, session/global caps, plan and region lists and the kill switch
-# live in policy/floor.yaml (AG4-PRD-1) and cannot be removed from here.
+# live in policy/floor.yaml and cannot be removed from here.
 version: 2
 rules:
   - id: protect-tagged-destroy

@@ -114,6 +114,7 @@ function sessionRefusal(r) {
   if (s === 'RATE_LIMITED') return 'Too many sessions from this address. Retry in ' + fmt(r.json.retry_after_s) + ' s.';
   if (s === 'IP_SPEND_CAP') return 'This address has used its spend allowance; a new session does not reset it. See the ledger.';
   if (s === 'SESSION_CAP') return 'The range is full right now. The ledger shows recorded real runs.';
+  if (s === 'SESSIONS_PER_IP_LIVE') return 'This address already has the maximum of live demo sessions open. They close after 10 idle minutes' + (r.json && known(r.json.retry_after_s) ? '; try again in about ' + Math.ceil(r.json.retry_after_s / 60) + ' min.' : '.') + ' The rest of the site works without a session.';
   return 'Could not start a session (' + (s || 'HTTP ' + r.status) + ').';
 }
 
@@ -337,7 +338,8 @@ function thetaTick() {
   TH.raf = 0;
   const el = $('#theta'); if (!el || !PL.sw) return;
   const a = new DOMMatrix(getComputedStyle(PL.sw).transform); const deg = a.b * 57.2958;
-  const txt = state.liveDown ? 'n/a' : (deg > 0.05 ? '+' : '') + (Math.abs(deg) < 0.05 ? 0 : deg).toFixed(1) + '°';
+  // drift is a measurement, not an animation: while the verifier says the account matches, it reads exactly 0.0°, whatever the line is doing
+  const txt = state.liveDown ? 'n/a' : PL.mode === 'true' ? '0.0°' : (deg > 0.05 ? '+' : '') + (Math.abs(deg) < 0.05 ? 0 : deg).toFixed(1) + '°';
   if (txt !== TH.last) { el.textContent = txt; TH.last = txt; }
   if (thetaRunning()) TH.raf = requestAnimationFrame(thetaTick);
 }
@@ -1060,7 +1062,7 @@ async function rereadNow() {
 // so an armed switch with no reason reads "no trip recorded in this broker run", never an invented last-test time.
 function killWord(ks) {
   if (ks.engaged === true) return ['ENGAGED', 'kill-switch' + (ks.reason ? ' · ' + ks.reason : ' · no reason given')];
-  if (ks.engaged === false) return ['ARMED', 'kill-switch · armed; ' + (ks.reason ? 'last reason: ' + ks.reason : 'no trip recorded in this broker run') + ' · drilled live by gate L3: broker killed, worker destroyed by the watchdog'];
+  if (ks.engaged === false) return ['ARMED', 'kill switch armed' + (ks.reason ? ' · last reason: ' + ks.reason : '')];
   return ['n/a', 'kill-switch state not reported'];
 }
 function killStats(s) {
@@ -1073,7 +1075,7 @@ function statusKv(s) {
   const l = s.lease || {}; const lastOk = known(l.last_ok_ms) && l.last_ok_ms > 0 ? age(Date.now() - l.last_ok_ms) + ' ago' : 'not reported';
   const lease = l.configured ? `configured · ttl ${fmt(l.ttl_s, 's')} · last ok ${lastOk}` : l.configured === false ? 'not configured' : 'not reported';
   return h('div', { class: 'kv', style: 'margin-top:12px' }, h('span', {}, 'LEASE'), h('span', {}, lease), h('span', {}, 'TIERS'), h('span', {}, Object.entries(s.tiers || {}).filter(([, v]) => v).map(([k]) => k).join(' · ') || 'not reported'),
-    h('span', {}, 'UPTIME'), h('span', {}, age(s.uptime_s * 1000)), h('span', {}, 'PULL'), h('span', {}, 'owner-signed kill-switch on the broker, plus the watchdog on the second host when the broker is dead'));
+    h('span', {}, 'UPTIME'), h('span', {}, age(s.uptime_s * 1000)), h('span', {}, 'PULL'), h('span', {}, 'owner-signed kill switch on the broker, plus the watchdog on the second host when the broker is dead. Drilled live by gate L3: broker killed, worker destroyed by the watchdog.'));
 }
 
 const pages = {
@@ -1147,14 +1149,16 @@ const pages = {
     $('#sout').textContent = JSON.stringify(s, null, 1);
   },
   async containment() {
-    if (!(await ensureSession())) return;
+    // the proof page is mostly static: a session is only minted when one of the two live probes is pressed
     $('#envout').setAttribute('role', 'status'); $('#aclout').setAttribute('role', 'status');
     $('#envproof').addEventListener('click', async () => {
+      if (!(await ensureSession())) { $('#envout').textContent = 'could not start a session; see the notice at the top of the page'; return; }
       $('#envout').textContent = 'running a real listing inside a fresh sandbox…';
       const r2 = await api('/api/env-proof', { body: { session_id: state.sid } }); const j = r2.json || {}; const res = j.result || {};
       $('#envout').textContent = r2.ok && j.result ? fmt(j.label) + '\n' + fmt(res.stdout) + '\nstate: ' + fmt(res.state) + ' destroyed: ' + fmt(res.destroyed) : r2.json ? JSON.stringify(r2.json) : 'no answer (' + (r2.status ? 'HTTP ' + r2.status : 'broker unreachable') + ')';
     });
     $('#acl').addEventListener('click', async () => {
+      if (!(await ensureSession())) { $('#aclout').textContent = 'could not start a session; see the notice at the top of the page'; return; }
       $('#aclout').textContent = 'issuing real calls with the view-only key…';
       const r2 = await api('/api/acl-self-test', { body: { session_id: state.sid } });
       $('#aclout').textContent = r2.json ? JSON.stringify(r2.json, null, 1) : 'no answer (' + (r2.status ? 'HTTP ' + r2.status : 'broker unreachable') + ')';

@@ -220,7 +220,7 @@ details.drawer > .panel { border: 0; background: transparent; padding: var(--s-3
 html[data-m="red"] #theta { color: var(--deny); } html[data-m="amber"] #theta { color: var(--esc); }
 .plumb { position: relative; display: grid; grid-template-columns: 1fr 200px 1fr; min-height: 300px; padding: 0 var(--s-2) var(--s-4); }
 .plumb .col { padding: var(--s-3) var(--s-3) 0 var(--s-5); grid-column: 1; min-width: 0; } .plumb .col.real { padding: var(--s-3) var(--s-5) 0 var(--s-3); grid-column: 3; text-align: right; }
-.plumb .colh { height: 42px; font: 500 11px var(--f-mono); letter-spacing: .14em; color: var(--faint); text-transform: uppercase; white-space: nowrap; }
+.plumb .colh { min-height: 42px; font: 500 11px var(--f-mono); letter-spacing: .14em; color: var(--faint); text-transform: uppercase; white-space: normal; overflow-wrap: anywhere; }
 .plumb .col.auth .colh { color: var(--accent-ink); } .plumb .col.real .colh { color: var(--faint); } .colt { font-weight: 400; letter-spacing: .06em; color: var(--faint); text-transform: none; }
 .pr { min-height: 44px; padding: 6px 0; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px dashed var(--hairline-lo); font: 400 var(--t-small)/1.35 var(--f-mono); min-width: 0; transition: background var(--dur-fast); }
 @media (hover: hover) { .pr:hover { background: var(--ink-04); } }
