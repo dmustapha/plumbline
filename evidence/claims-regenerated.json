@@ -1,8 +1,8 @@
 {
   "generated_by": "verify-claims",
-  "regenerated_at": "2026-11-08T13:19:54.550Z",
+  "regenerated_at": "2026-11-08T14:14:15.738Z",
   "judged_url": "https://plumbline.108-61-70-169.sslip.io",
-  "head": "cc33dc36eeb469b70c398453503ffc25eb21bce6",
+  "head": "7cb0c1695d1d2095f46eaf2fc0390e7db6bd9454",
   "citable": [
     "CL-L1",
     "CL-L2",
@@ -18,15 +18,15 @@
   "tampered": [],
   "proof": {
     "counts": {
-      "attacks": 694,
-      "allow": 435,
-      "escalate": 35,
-      "deny": 224,
-      "tasks": 450,
+      "attacks": 714,
+      "allow": 445,
+      "escalate": 39,
+      "deny": 230,
+      "tasks": 460,
       "first_ts": 1793970684389,
-      "last_ts": 1794143538477
+      "last_ts": 1794147236970
     },
     "floor_hash": "49aafd52f822a5bf431e5b412613c8bba96a509937421e3643433e68a0adf802",
-    "fetched_at": "2026-11-08T13:19:55.572Z"
+    "fetched_at": "2026-11-08T14:14:17.586Z"
   }
 }
