@@ -725,7 +725,8 @@ function verdictBig(v) {
     ...(lead ? [h('div', { class: 'why also' }, `also denied by the ${v.layer} layer: ${v.rule_id} · ${v.reason}`)] : []),
     // every other layer that denied the same call is stated too: the engine reports the session layer's rule first, so the floor's own deny (for
     // example ceiling-dollar-deny with its arithmetic) would otherwise be visible only in the feed
-    ...(v.layers || []).filter((l) => l && l.effect === 'deny' && l.rule_id && l.rule_id !== v.rule_id && l.rule_id !== leadId).map((l) => h('div', { class: 'why also' }, `also denied by the ${l.layer} layer: ${l.rule_id}${l.reason ? ' · ' + l.reason : ''}`)));
+    ...(v.layers || []).filter((l) => l && l.effect === 'deny' && l.rule_id && l.rule_id !== v.rule_id && l.rule_id !== leadId).map((l) => h('div', { class: 'why also' }, `also denied by the ${l.layer} layer: ${l.rule_id}${l.reason ? ' · ' + l.reason : ''}`)),
+    checkItBlock(v));
   anim(box.firstChild.firstChild, [{ transform: 'scale(1.5)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 360, easing: 'cubic-bezier(.22,1,.36,1)', still: false });
 }
 
@@ -930,6 +931,122 @@ function drawVerify(r) {
   out.append(h('div', { class: 'mut mono', style: 'margin-top:10px;font-size:11.5px' }, 'codes: ' + ((v.codes || []).join(', ') || 'none') + ` · polls ${(v.polls || []).map(clock).join(' and ') || 'not reported'} (twice, 3 s apart) · ledger head ${v.ledger && v.ledger.head ? v.ledger.head.slice(0, 12) : 'n/a'}`));
   if (v.status === 'RED') (v.findings || []).forEach((f) => out.append(h('div', { class: 'card v-DENY' }, `${f.code} ${f.resource_id || ''} ${f.detail || ''}`)));
   else if (v.status === 'DEGRADED') out.append(h('div', { class: 'mut mono', style: 'margin-top:6px;font-size:11.5px' }, (v.findings || []).map((f) => f.detail).join(' · ')));
+}
+
+/* ledger-verify:start */
+// Recomputes the broker ledger hash chain on the visitor's own machine. Pure: it takes the export and a sha256(text) -> hex function.
+// Same rules as packages/ledger/src/export.ts: row_hash = sha256(prev_hash + newline + canonical JSON of the row without its two hash fields).
+const LEDGER_GENESIS = "0".repeat(64);
+function ledgerCanon(v) {
+  if (v === null || typeof v === "string" || typeof v === "boolean") return JSON.stringify(v);
+  if (typeof v === "number") { if (!Number.isFinite(v)) throw new Error("non-finite number"); return JSON.stringify(v); }
+  if (Array.isArray(v)) return "[" + v.map(ledgerCanon).join(",") + "]";
+  if (typeof v === "object") { const ks = Object.keys(v).filter((k) => v[k] !== undefined).sort(); return "{" + ks.map((k) => JSON.stringify(k) + ":" + ledgerCanon(v[k])).join(",") + "}"; }
+  throw new Error("unsupported value");
+}
+async function ledgerWalk(rows, start, sha, tick) {
+  let prev = start;
+  for (let i = 0; i < rows.length; i++) {
+    const { prev_hash: ph, row_hash: rh, ...body } = rows[i];
+    if (ph !== prev) return { ok: false, at: i, why: "its link to the row before it is wrong" };
+    if ((await sha(prev + "\n" + ledgerCanon(body))) !== rh) return { ok: false, at: i, why: "its contents were changed after it was recorded" };
+    prev = rh;
+    if (tick && i % 200 === 199) await tick(i + 1, rows.length);
+  }
+  return { ok: true, head: prev };
+}
+async function verifyLedgerExport(exp, sha, opts = {}) {
+  const steps = []; const add = (id, ok, detail) => { steps.push({ id, ok, detail }); return ok; };
+  const res = (ok) => ({ ok, steps, head: exp && exp.chain_head, decisions: exp && exp.decisions ? exp.decisions.length : 0 });
+  try {
+    if (!exp || exp.schema !== "plumbline-ledger-export/v2" || !Array.isArray(exp.decisions) || !Array.isArray(exp.resources) || !Array.isArray(exp.unknown_outcomes)) { add("format", false, "this is not a Plumbline ledger export (v2)"); return res(false); }
+    add("format", true, "a Plumbline ledger export, schema v2");
+    const dec = exp.decisions;
+    const d = await ledgerWalk(dec, LEDGER_GENESIS, sha, opts.tick);
+    if (!add("decisions", d.ok, d.ok ? dec.length + " decisions, each fingerprint covers the row before it" : "decision #" + (dec[d.at].seq) + ": " + d.why)) return res(false);
+    const gap = dec.findIndex((r, i) => r.seq !== i + 1);
+    if (!add("sequence", gap < 0 && exp.decision_count === dec.length, gap < 0 && exp.decision_count === dec.length ? "numbered 1 to " + dec.length + " with nothing missing" : "a decision is missing or renumbered near #" + (gap < 0 ? dec.length : gap + 1))) return res(false);
+    const r = await ledgerWalk(exp.resources, d.head, sha, opts.tick);
+    if (!add("resources", r.ok, r.ok ? exp.resources.length + " resource records continue the same chain" : "resource record " + (r.at + 1) + ": " + r.why)) return res(false);
+    const u = await ledgerWalk(exp.unknown_outcomes, r.head, sha, opts.tick);
+    if (!add("unknown", u.ok, u.ok ? exp.unknown_outcomes.length + " unresolved-outcome records continue it" : "unresolved-outcome record " + (u.at + 1) + ": " + u.why)) return res(false);
+    if (!add("head", exp.chain_head === u.head, exp.chain_head === u.head ? "the last fingerprint equals the published chain head " + u.head.slice(0, 12) + "..." : "the published chain head does not match the rows")) return res(false);
+    const byId = new Map(dec.map((x) => [x.id, x]));
+    const loose = exp.resources.find((x) => { const a = byId.get(x.allow_decision_id); return !a || a.decision !== "ALLOW" || x.allow_decision_kind !== "ALLOW" || a.request_hash !== x.allow_request_hash; });
+    if (!add("allowtie", !loose, loose ? "resource " + loose.id + " is not tied to an ALLOW decision" : "every server the agent created is tied to the ALLOW decision that authorised it")) return res(false);
+    let checked = 0; let bad = null;
+    for (const x of dec) {
+      if (!x.request) continue;
+      const q = x.request; const want = await sha(ledgerCanon({ verb: q.verb, class: q.class, target_id: (q.target && q.target.id) || null, params: q.params || {} }));
+      checked++; if (want !== x.request_hash) { bad = x; break; }
+    }
+    if (!add("request", !bad, bad ? "decision #" + bad.seq + " records a request that does not match its fingerprint" : checked + " recorded requests each match the fingerprint the verdict was made on")) return res(false);
+    if (opts.pin) { const p = dec[opts.pin.seq - 1]; add("pin", !!p && p.row_hash === opts.pin.row_hash, p && p.row_hash === opts.pin.row_hash ? "the verifier in the second region pinned decision #" + opts.pin.seq + " earlier; this copy has the identical fingerprint there" : "the second-region verifier pinned decision #" + opts.pin.seq + " and this copy disagrees: history was rewritten"); }
+    return res(steps.every((s) => s.ok));
+  } catch (e) { add("error", false, "could not check: " + String((e && e.message) || e).slice(0, 120)); return res(false); }
+}
+// a visitor's own copy with one verdict flipped: the demonstration that cheating is visible
+function ledgerCheatCopy(exp) {
+  const c = JSON.parse(JSON.stringify(exp)); const i = c.decisions.length - 1 - [...c.decisions].reverse().findIndex((x) => x.decision === "DENY");
+  const at = i >= 0 && i < c.decisions.length ? i : c.decisions.length - 1; const was = c.decisions[at].decision;
+  c.decisions[at].decision = was === "DENY" ? "ALLOW" : "DENY";
+  return { copy: c, seq: c.decisions[at].seq, was, now: c.decisions[at].decision };
+}
+/* ledger-verify:end */
+
+// "do not take our word for it": every verdict links to the public ledger and the in-browser check
+function checkItBlock(v) {
+  if (!v || !v.decision_id) return h("div", {});
+  return h("div", { class: "checkit" },
+    h("b", {}, "Do not take our word for it. "),
+    "This verdict is one row in a ledger where every row carries a fingerprint of the row before it. ",
+    h("a", { href: "/audit/ledger?id=" + encodeURIComponent(v.decision_id) }, "Find this decision and verify the whole chain in your browser"),
+    " · ", h("a", { href: "/audit/reconcile" }, "See what the second region read from Vultr itself"));
+}
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function ledgerVerdict(r, head, note) {
+  return h("div", { class: "vres " + (r.ok ? "ok" : "bad") },
+    h("div", { class: "vhead" }, h("span", { "aria-hidden": "true" }, r.ok ? "✓ " : "✗ "), head),
+    note ? h("p", { class: "mut", style: "margin:4px 0 8px;font-size:12.5px" }, note) : null,
+    h("ul", { class: "vsteps" }, ...r.steps.map((s) => h("li", { class: s.ok ? "ok" : "bad" }, h("span", { class: "vmark", "aria-hidden": "true" }, s.ok ? "✓" : "✗"), h("span", {}, s.detail)))));
+}
+// the ledger page: fetch the public export, check it here, check it against the second-region pin, find one decision in it
+function ledgerPanel(lookupId) {
+  const out = $("#lv-out"); const run = $("#lv-run"); const cheat = $("#lv-cheat"); if (!out || !run || !cheat) return;
+  let cache = null;
+  const busy = (on, label) => { [run, cheat].forEach((b) => { b.disabled = on; }); if (label) out.replaceChildren(h("p", { class: "mut" }, label)); };
+  const load = async () => {
+    if (cache) return cache;
+    out.replaceChildren(h("p", { class: "mut" }, "downloading the whole ledger..."));
+    const [e, v] = await Promise.all([api("/api/ledger/public"), api("/api/verify")]);
+    if (!e.ok || !e.json) throw new Error(e.status === 429 ? "too many ledger downloads from this address; try again in a minute" : "the ledger export is not available (" + (e.status ? "HTTP " + e.status : "no answer") + ")");
+    const pin = v.json && v.json.ledger && v.json.ledger.pin;
+    cache = { exp: e.json, pin: pin && Number.isInteger(pin.seq) && pin.seq <= e.json.decisions.length ? pin : null, pinLate: !!(pin && pin.seq > e.json.decisions.length) };
+    return cache;
+  };
+  const tick = async (n, of) => { out.replaceChildren(h("p", { class: "mut" }, "recomputing fingerprints: " + n + " of " + of)); await new Promise((r) => setTimeout(r, 0)); };
+  run.addEventListener("click", async () => {
+    busy(true);
+    try {
+      const c = await load(); busy(true, "recomputing every fingerprint on your machine...");
+      const r = await verifyLedgerExport(c.exp, sha256Hex, { pin: c.pin, tick });
+      const hit = lookupId ? c.exp.decisions.find((x) => x.id === lookupId) : null;
+      const note = lookupId ? (hit ? "Your decision " + lookupId + " is row #" + hit.seq + " of " + c.exp.decisions.length + ": " + hit.decision + " by " + hit.rule_id + ". Its fingerprint " + hit.row_hash.slice(0, 16) + "... is covered by every row after it." : "Decision " + lookupId + " is not in this copy of the ledger yet.") : "";
+      out.replaceChildren(ledgerVerdict(r, r.ok ? "The ledger checks out. Nothing in it was edited after it was written." : "The check FAILED: this ledger was altered.", note));
+    } catch (e) { out.replaceChildren(h("p", { class: "err" }, String(e.message || e))); } finally { busy(false); }
+  });
+  cheat.addEventListener("click", async () => {
+    busy(true);
+    try {
+      const c = await load(); const k = ledgerCheatCopy(c.exp); busy(true, "re-checking your edited copy...");
+      const r = await verifyLedgerExport(k.copy, sha256Hex, { tick });
+      out.replaceChildren(ledgerVerdict(r, r.ok ? "Unexpected: the edit was not noticed." : "Caught. One edit is enough to break the chain.", "In your browser only, decision #" + k.seq + " was changed from " + k.was + " to " + k.now + ". The real ledger is untouched. The check below is the same one the verifier runs."));
+    } catch (e) { out.replaceChildren(h("p", { class: "err" }, String(e.message || e))); } finally { busy(false); }
+  });
+  if (lookupId) run.click();
 }
 
 // the decision id is a real button: keyboard reachable, and it says whether the copy worked
@@ -1171,7 +1288,11 @@ const pages = {
     sel.addEventListener('change', () => { F.rule = sel.value; F.page = 1; draw(); });
     $('#lmore').addEventListener('click', () => { F.page += 1; draw(); });
     $('#lsys').addEventListener('change', (e) => { F.sys = e.target.checked; F.rule = 'ALL'; F.page = 1; fillRules(); draw(); });
+    const want = new URLSearchParams(location.search).get('id');
+    if (want) { const row = rows.find((x) => x.id === want); if (row) { if (isSys(row)) { F.sys = true; $('#lsys').checked = true; fillRules(); } F.page = Math.max(1, Math.ceil((rows.filter((x) => (F.sys || !isSys(x))).findIndex((x) => x.id === want) + 1) / 50)); } }
     draw(); refreshTruth(false);
+    if (want) { const hit = out.querySelector('[title="copy decision id ' + want + '"]'); const tr = hit && hit.closest('tr'); if (tr) { tr.classList.add('flash', 'picked'); tr.scrollIntoView({ block: 'center' }); } }
+    ledgerPanel(want);
   },
   async status() {
     shell('status');

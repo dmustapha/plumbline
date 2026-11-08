@@ -12,10 +12,16 @@
 <label class="lchk"><input type="checkbox" id="lsys"> Include system housekeeping</label>
 </div>
 <div class="tablewrap" tabindex="0" role="region" aria-label="Scrollable table"><table><thead><tr><th></th><th>time</th><th>verdict</th><th>rule id</th><th>what was tried, and where it was decided</th><th>decision id</th></tr></thead><tbody id="rout"><tr><td colspan="6" class="mut">loading...</td></tr></tbody></table></div><div class="row" style="margin-top:var(--s-3)"><button id="lmore" hidden>Show more</button></div></div>
-<div class="panel fade-up" style="--d:0.08s"><h2>Export and verify</h2>
-<p class="mut" style="font-size:12.5px">The broker serves a signed export of the whole ledger. The verifier checks its hash chain and compares it to the live account, and the same check runs on any account with the command below.</p>
-<div class="row"><a class="btn" href="/ledger/export">Download the ledger export (JSON)</a></div>
-<pre tabindex="0">PLUMBLINE_VERIFY_KEY=&lt;view-only key&gt; npx tsx apps/verifier/src/cli.ts --ledger ledger.json</pre></div>
+<div class="panel fade-up" style="--d:0.08s"><h2>Do not trust this page: check the ledger yourself</h2>
+<p class="mut" style="font-size:12.5px">A page can show anything, so this one lets you check it. The whole ledger is public. Each row carries a fingerprint (a SHA-256 hash) of its own contents plus the fingerprint of the row before it, so changing any past row breaks every row after it. The button below downloads the ledger and recomputes every fingerprint <b>in your browser</b>, with no help from our server. It then compares the result with the position the independent verifier in the second region pinned earlier.</p>
+<div class="row"><button type="button" id="lv-run" class="btn primary">Verify the whole ledger here</button><button type="button" id="lv-cheat" class="btn">Try to cheat: change one verdict</button><a class="btn quiet" href="/api/ledger/public?download=1">Download the ledger (JSON)</a></div>
+<div id="lv-out" role="status" aria-live="polite" style="margin-top:12px"></div>
+<details style="margin-top:12px"><summary>Check it without this page, on your own computer</summary>
+<pre tabindex="0">curl -s https://plumbline.108-61-70-169.sslip.io/api/ledger/public -o ledger.json
+node scripts/verify-ledger.mjs ledger.json</pre>
+<p class="mut" style="font-size:12.5px">The script is in the public repository, has no dependencies and prints one line per check.</p></details>
+<details style="margin-top:8px"><summary>What this proves, and what it does not</summary>
+<p class="mut" style="font-size:12.5px"><b>Proves:</b> no row was edited, removed or reordered after it was written, every server the agent created is tied to an ALLOW decision, and each recorded request matches the fingerprint the verdict was made on. <b>Does not prove by itself:</b> that the broker recorded every action truthfully in the first place, because the ledger is the broker's own record. That gap is closed from outside: the verifier in the second region reads the live Vultr account with its own key and compares it with this ledger (see Reconcile), and it pins the head of this chain so a rewrite of history is caught.</p></details></div>
 <div id="trust" style="margin-top:14px"></div>
 </main>
 <script src="/app.js"></script></body></html>

@@ -562,3 +562,16 @@ nav.jump { flex-wrap: wrap; }
 @media (max-width: 1180px) { .landing-page header.top { gap: var(--s-3); } .landing-page header.top .truth .long, .landing-page header.top .truth #truth-age { display: none; } .landing-page header.top nav a { padding: 8px 8px; } }
 
 main.narrow .tablewrap, main.wide .tablewrap { overflow-x: auto; max-width: 100%; } main.narrow .tablewrap table, main.wide .tablewrap table { min-width: 520px; }
+
+/* ledger check */
+.checkit { margin-top: 14px; padding: 10px 12px; border: 1px solid var(--ink-14); border-radius: var(--r-2); background: var(--ink-04); font-size: 12.5px; color: var(--muted); }
+.checkit b { color: var(--text); }
+.vres { border: 1px solid var(--ink-14); border-radius: var(--r-2); padding: 12px 14px; }
+.vres.ok { border-color: var(--true-30); background: var(--true-12); }
+.vres.bad { border-color: var(--deny-30); background: var(--deny-12); }
+.vhead { font-weight: 600; font-size: 15px; }
+.vsteps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.vsteps li { display: flex; gap: 8px; align-items: baseline; }
+.vsteps .vmark { flex: none; width: 1.2em; font-weight: 700; }
+.vsteps li.ok .vmark { color: var(--true); } .vsteps li.bad .vmark { color: var(--deny); }
+tr.picked td { background: var(--ink-06); }

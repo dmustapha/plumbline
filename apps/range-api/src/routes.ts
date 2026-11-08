@@ -88,6 +88,14 @@ function registerReads(app: FastifyInstance, d: ApiDeps): void {
     if (!gate.ok) return rateLimited(reply, gate.retryAfterS);
     return relay(reply, d.liveListCache.get(sid, () => d.broker.call('GET', `/v1/live-list?session_id=${encodeURIComponent(sid)}`)));
   });
+  // The whole hash-chained ledger, public and read-only, so a visitor can recompute the chain on their own machine instead of trusting
+  // the page. Same per-address allowance as the live list; one broker call per 3 s shared by every caller.
+  app.get<{ Querystring: { download?: string } }>('/api/ledger/public', async (req, reply) => {
+    const gate = d.liveListLimit.take(req.ip);
+    if (!gate.ok) return rateLimited(reply, gate.retryAfterS);
+    if (req.query.download === '1') void reply.header('content-disposition', 'attachment; filename="plumbline-ledger.json"');
+    return relay(reply, d.liveListCache.get('ledger:public', () => d.broker.call('GET', '/v1/ledger/public')));
+  });
   app.get('/api/canned', async () => CANNED);
   app.get('/api/status', async (_r, reply) => {
     const st = await d.broker.call<Record<string, unknown>>('GET', '/v1/status').catch(() => null);

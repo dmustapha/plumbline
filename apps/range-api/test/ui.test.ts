@@ -208,10 +208,22 @@ describe('honest readings and no needless errors', () => {
   });
 });
 
+describe('a visitor can check the ledger without trusting the page', () => {
+  it('the ledger page verifies in the browser, can demonstrate a cheat, and states what it does not prove', () => {
+    const h = read('replay.html'); const js = read('app.js');
+    expect(js).toContain('verifyLedgerExport'); expect(js).toContain('ledgerCheatCopy'); expect(js).toContain('api("/api/ledger/public")'); expect(js).toContain('crypto.subtle.digest');
+    expect(h).toContain('What this proves, and what it does not'); expect(h).toContain('verify-ledger.mjs');
+  });
+  it('every verdict on Try it links to its own row in the ledger', () => {
+    const js = read('app.js'); expect(js).toContain('checkItBlock(v)'); expect(js).toContain('/audit/ledger?id=');
+  });
+});
+
 describe('the ledger is built for the audit job', () => {
   it('filters by verdict and rule, hides system housekeeping by default, pages 50 at a time, and offers the export', () => {
     const h = read('replay.html'); const js = read('app.js');
-    for (const t of ['data-f="DENY"', 'data-f="ESCALATE"', 'id="lrule"', 'id="lsys"', 'id="lmore"', 'href="/ledger/export"']) expect(h, t).toContain(t);
+    for (const t of ['data-f="DENY"', 'data-f="ESCALATE"', 'id="lrule"', 'id="lsys"', 'id="lmore"', 'href="/api/ledger/public?download=1"', 'id="lv-run"', 'id="lv-cheat"', 'id="lv-out"']) expect(h, t).toContain(t);
+    expect(h).not.toContain('href="/ledger/export"'); // that path is signed for the verifier host only: a public visitor got a 401
     expect(js).toContain("sys: false"); expect(js).toContain('F.page * 50'); expect(js).toContain("api('/api/replay?limit=400')");
   });
   it('the reconcile table adapts to its own width and never depends on the window', () => {

@@ -156,6 +156,18 @@ curl -s https://plumbline.108-61-70-169.sslip.io/api/proof | head -c 400
 curl -s https://plumbline.108-61-70-169.sslip.io/api/verify | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['status'], d['counts'])"
 ```
 
+Check the ledger without trusting any page or server of ours. It is public, hash-chained, and the script has no dependencies:
+
+```bash
+curl -s https://plumbline.108-61-70-169.sslip.io/api/ledger/public -o ledger.json
+node scripts/verify-ledger.mjs ledger.json
+# PASS 2608 decisions chained ... PASS every created resource is tied to the ALLOW decision that authorised it ... LEDGER OK
+```
+
+The same check runs in the browser on the [Ledger page](https://plumbline.108-61-70-169.sslip.io/audit/ledger) (it recomputes every fingerprint locally, compares the result with the head the second-region verifier pinned, and can flip one verdict in your copy to show the chain break). Every verdict on the Try it page links to its own row. A hash chain proves history was not edited after the fact; it does not prove the broker recorded every action truthfully, which is why the verifier in the second region reads the live Vultr account separately.
+
+![Ledger page verifying the whole chain in the browser](docs/images/ledger-verify.png)
+
 After the clone and install below, the claims ledger re-derives every citable claim from the evidence files. The gate evidence was recorded at the range's first hostname (`108-61-70-169.sslip.io`). Both names are declared as one deployment in `evidence/declared-hosts.json`, so the ledger accepts either:
 
 ```bash

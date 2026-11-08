@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
-const html = readFileSync(fileURLToPath(new URL('../../../apps/range-api/public/rewind.html', import.meta.url)), 'utf8');
+const html = readFileSync(fileURLToPath(new URL('../../../apps/range-api/public/recovery.html', import.meta.url)), 'utf8');
 const script = /<script>\n([\s\S]*?)<\/script>/.exec(html)?.[1] ?? '';
 
 class El {
@@ -36,7 +36,7 @@ const listing = {
   fetched_at: '2026-11-06T00:04:00Z',
 };
 
-describe('rewind.html', () => {
+describe('recovery.html (rewind)', () => {
   it('uses textContent only and declares a viewport', () => {
     for (const bad of ['innerHTML', 'outerHTML', 'insertAdjacentHTML', 'document.write', 'eval(']) expect(html, bad).not.toContain(bad);
     expect(html).toContain('textContent');

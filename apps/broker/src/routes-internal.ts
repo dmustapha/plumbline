@@ -218,6 +218,10 @@ export function registerInternalRoutes(app: FastifyInstance, d: InternalDeps): v
     return buildExport(d.db, d.clock());
   });
 
+  // The same frozen v2 export, for anyone to re-check: reached only through range-api (api token), which republishes it read-only.
+  // Nothing in it is secret: decisions, resource labels, session ids and request parameters are already public in /api/replay.
+  app.get('/v1/ledger/public', async () => buildExport(d.db, d.clock()));
+
   app.post<{ Body: { reason?: string } }>('/v1/admin/kill-switch/engage', async (req, reply) => {
     if (!same(String(req.headers['x-plumbline-admin-token'] ?? ''), d.secrets.adminToken)) return reply.code(401).send({ status: 'AUTH_ADMIN_INVALID' });
     d.kill.engage(req.body?.reason ?? 'owner engaged');
