@@ -445,3 +445,16 @@ textarea.code { white-space: pre; overflow-x: auto; }
 @media (max-width: 1100px) { #canned { max-height: 176px; overflow-y: auto; overscroll-behavior: contain; } }
 /* the brand block's sidebar padding must not make the landing header taller than its 64px bar */
 .landing-page header.top .brand { padding: 0; }
+
+/* ============ 94. STRESS ROUND: tablet widths and the verdict legend ============ */
+/* the landing header (brand + 4 links + truth strip + theme button) does not fit in one row below about 1000px: wrap it like the phone layout */
+@media (max-width: 1000px) {
+  .landing-page header.top { height: auto; flex-wrap: wrap; padding: var(--s-3) var(--s-5); gap: var(--s-2) var(--s-4); }
+  .landing-page header.top nav { order: 3; flex: 1 1 100%; margin-left: 0; flex-wrap: wrap; }
+  .landing-page header.top .cta { gap: var(--s-3); flex-wrap: wrap; justify-content: flex-end; }
+  .landing-page header.top .truth { flex: 0 1 auto; }
+}
+.vlegend { flex-wrap: wrap; gap: var(--s-2) var(--s-5); }
+/* WCAG 2.2 target size (2.5.8, 24 x 24 CSS px): the per-row copy buttons in the ledger tables */
+.copybtn { display: inline-flex; align-items: center; min-height: 24px; min-width: 24px; padding: 2px 0; }
+.verdict-big .why.also { margin-top: 2px; color: var(--faint); font-size: var(--t-micro); }

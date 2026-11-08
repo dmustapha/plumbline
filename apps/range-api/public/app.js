@@ -680,7 +680,10 @@ function verdictBig(v) {
   const box = $('#verdictbig'); if (!box) return;
   const q = v.quoted_call || {}; const tgt = q.target || {}; const tried = q.verb ? `${q.verb} ${q.class || ''} ${tgt.label || q.id || ''}`.trim() : null;
   box.replaceChildren(h('div', {}, h('span', { class: 'badge ' + v.decision }, v.decision), ' ', h('span', { class: 'mut mono' }, (tried ? `agent tried: ${tried} → ` : '') + `${v.layer} layer · decided by coded policy outside the model`)),
-    h('div', { class: 'rid' }, v.rule_id), h('div', { class: 'why' }, v.reason));
+    h('div', { class: 'rid' }, v.rule_id), h('div', { class: 'why' }, v.reason),
+    // every other layer that denied the same call is stated too: the engine reports the session layer's rule first, so the floor's own deny (for
+    // example ceiling-dollar-deny with its arithmetic) would otherwise be visible only in the feed
+    ...(v.layers || []).filter((l) => l && l.effect === 'deny' && l.rule_id && l.rule_id !== v.rule_id).map((l) => h('div', { class: 'why also' }, `also denied by the ${l.layer} layer: ${l.rule_id}${l.reason ? ' · ' + l.reason : ''}`)));
   anim(box.firstChild.firstChild, [{ transform: 'scale(1.5)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 360, easing: 'cubic-bezier(.22,1,.36,1)', still: false });
 }
 
