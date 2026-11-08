@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset=utf-8><title>Plumbline cover</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap');
+@page { size: 1920px 1080px; margin: 0; }
+:root { --void: oklch(15% .008 230); --sunken: oklch(11.5% .008 230); --s1: oklch(20% .009 230); --s2: oklch(25% .010 230); --s3: oklch(30% .011 230);
+  --ink: oklch(95% .006 90); --mut: color-mix(in oklab, var(--ink) 70%, transparent); --faint: color-mix(in oklab, var(--ink) 52%, transparent);
+  --line: color-mix(in oklab, var(--ink) 14%, transparent); --acc: oklch(78% .085 230); --acc-hi: oklch(86% .07 230);
+  --true: oklch(80% .17 160); --deny: oklch(66% .22 20); --esc: oklch(82% .15 80); --block: oklch(80% .045 240);
+  --block-12: color-mix(in oklab, var(--block) 14%, transparent); --block-30: color-mix(in oklab, var(--block) 38%, transparent);
+  --esc-12: color-mix(in oklab, var(--esc) 12%, transparent); --esc-30: color-mix(in oklab, var(--esc) 30%, transparent);
+  --true-12: color-mix(in oklab, var(--true) 12%, transparent); --true-30: color-mix(in oklab, var(--true) 30%, transparent); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--void); color: var(--ink); font-family: 'Geist', 'Inter', system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.slide { position: relative; width: 1920px; height: 1080px; overflow: hidden; page-break-after: always; break-after: page;
+  background: radial-gradient(1200px 700px at 78% 8%, color-mix(in oklab, var(--acc) 9%, transparent), transparent 70%), radial-gradient(900px 600px at 6% 100%, color-mix(in oklab, var(--true) 5%, transparent), transparent 70%), var(--void); }
+.slide:last-child { page-break-after: auto; break-after: auto; }
+.grid { position: absolute; inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 120px 120px; opacity: .22; mask-image: radial-gradient(ellipse at 70% 40%, #000 0%, transparent 72%); -webkit-mask-image: radial-gradient(ellipse at 70% 40%, #000 0%, transparent 72%); }
+/* the plumb line that hangs down the left margin on every slide */
+.plumb { position: absolute; left: 96px; top: 0; width: 2px; height: 214px; background: linear-gradient(var(--acc), color-mix(in oklab, var(--acc) 30%, transparent)); opacity: .55; }
+.plumb::after { content: ''; position: absolute; left: -7px; bottom: -14px; width: 16px; height: 16px; border-radius: 50%; background: var(--true); box-shadow: 0 0 0 5px var(--true-12); }
+.eyebrow { position: absolute; left: 148px; top: 86px; font: 500 22px 'Geist Mono', ui-monospace, monospace; letter-spacing: .2em; text-transform: uppercase; color: var(--acc); }
+.eyebrow b { color: var(--faint); font-weight: 500; }
+h1 { font: 600 112px/.94 'Barlow Semi Condensed', 'Archivo Narrow', system-ui, sans-serif; letter-spacing: -.015em; }
+.copy { position: absolute; left: 148px; top: 196px; width: 800px; }
+.copy h1 { margin-bottom: 44px; }
+.copy p { font: 400 36px/1.5 'Geist', system-ui, sans-serif; color: var(--mut); margin-bottom: 22px; }
+.copy p b { color: var(--ink); font-weight: 500; }
+.foot { position: absolute; left: 148px; right: 96px; bottom: 56px; display: flex; align-items: center; justify-content: space-between; font: 500 20px 'Geist Mono', monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+.foot .brand { display: flex; align-items: center; gap: 14px; color: var(--ink); }
+.foot .brand svg { width: 34px; height: 34px; }
+.panel { position: absolute; background: color-mix(in oklab, var(--s1) 92%, transparent); border: 1px solid var(--line); border-radius: 22px; }
+.mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+.badge { display: inline-block; font: 600 24px 'Geist Mono', monospace; letter-spacing: .08em; padding: 8px 18px; border-radius: 4px; }
+.b-deny { background: var(--block-12); color: var(--block); box-shadow: inset 0 0 0 1px var(--block-30); }
+.b-esc { background: var(--esc-12); color: var(--esc); box-shadow: inset 0 0 0 1px var(--esc-30); }
+.b-allow { background: color-mix(in oklab, var(--ink) 8%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.shot { position: absolute; overflow: hidden; border-radius: 20px; border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0,0,0,.45); background: var(--sunken); }
+.shot .in { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.cap { position: absolute; font: 500 20px 'Geist Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.pill { display: inline-block; font: 500 24px 'Geist Mono', monospace; letter-spacing: .06em; padding: 12px 22px; border-radius: 999px; background: var(--s2); border: 1px solid var(--line); color: var(--mut); margin: 0 12px 14px 0; }
+.card { position: absolute; background: color-mix(in oklab, var(--s1) 94%, transparent); border: 1px solid var(--line); border-radius: 18px; padding: 30px 34px; }
+.card .k { font: 600 40px/1 'Barlow Semi Condensed', sans-serif; letter-spacing: -.005em; margin-bottom: 14px; }
+.card .v { font: 400 25px/1.4 'Geist', sans-serif; color: var(--mut); }
+.card .n { font: 500 18px 'Geist Mono', monospace; letter-spacing: .18em; color: var(--acc); margin-bottom: 18px; }
+
+body{width:1920px;height:1080px;overflow:hidden}
+.cover{position:relative;width:1920px;height:1080px;background:radial-gradient(1300px 800px at 82% 20%, color-mix(in oklab, var(--acc) 12%, transparent), transparent 70%), radial-gradient(900px 600px at 0% 100%, color-mix(in oklab, var(--true) 7%, transparent), transparent 70%), var(--void);overflow:hidden}
+.mark{position:absolute;left:120px;top:96px;display:flex;align-items:center;gap:22px;font:600 34px 'Geist Mono';letter-spacing:.26em;text-transform:uppercase}
+.mark svg{width:64px;height:64px}
+.claim{position:absolute;left:120px;top:250px;width:760px}
+.claim h1{font-size:128px;line-height:.93;margin-bottom:38px}
+.claim p{font:400 40px/1.45 Geist;color:var(--mut)}
+.claim p b{color:var(--ink);font-weight:500}
+.tag{position:absolute;left:120px;bottom:90px;font:500 24px 'Geist Mono';letter-spacing:.2em;text-transform:uppercase;color:var(--acc)}
+.url{position:absolute;right:96px;bottom:90px;font:500 24px 'Geist Mono';letter-spacing:.08em;color:var(--faint)}
+</style></head><body><div class="cover"><div class="grid"></div>
+<div class="mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Plumbline: a plumb bob hanging true">
+  <title>Plumbline</title>
+  <g transform="translate(0 -4)">
+    <path fill="#7cc2e4" fill-rule="evenodd" d="M150 69h212a3 3 0 0 1 3 3v5a3 3 0 0 1 -3 3h-212a3 3 0 0 1 -3 -3v-5a3 3 0 0 1 3 -3Z"/>
+    <rect x="250.5" y="80" width="11" height="28" fill="#7cc2e4"/>
+    <path fill="#7cc2e4" fill-rule="evenodd" d="M236.5 122a19.5 19.5 0 1 0 39.0 0a19.5 19.5 0 1 0 -39.0 0ZM243.5 122a12.5 12.5 0 1 0 25.0 0a12.5 12.5 0 1 0 -25.0 0Z"/>
+    <path fill="#30de97" fill-rule="evenodd" d="M256 122 L341 213 L256 443 L171 213Z M256 134 L273 213 L256 424 L239 213Z"/>
+  </g>
+</svg>
+<span>Plumbline</span></div>
+<div class="claim"><h1>Attack an AI agent that holds a live Vultr account.</h1><p>A coded policy engine says <b>no</b>. A second region proves the account did not move.</p></div>
+<div class="shot" style="left:900px;top:320px;width:982px;height:296px"><div class="in" style="transform:scale(1.2) translate(-688px,-192px)"><img src="file:///Users/MAC/vultr-rush/plumbline/app/evidence/rehearsal/S1-delete-prod.png" style="display:block"></div></div>
+<div class="panel" style="left:900px;top:656px;width:982px;height:128px;padding:0 40px;display:flex;align-items:center;gap:26px">
+ <span style="width:20px;height:20px;border-radius:50%;background:var(--true);box-shadow:0 0 0 8px var(--true-12);flex:none"></span>
+ <span class="mono" style="font-size:30px;letter-spacing:.04em;color:var(--true);white-space:nowrap">PROD-DB UNCHANGED</span><span class="mono" style="font-size:22px;color:var(--faint);white-space:nowrap">re-read from Vultr after the attack</span></div>
+<div class="tag">Vultr Agent Rush · Blast Radius Zero</div><div class="url">plumbline.108-61-70-169.sslip.io</div></div></body></html>
