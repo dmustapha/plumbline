@@ -7,3 +7,28 @@ node_modules/
 *.env
 !ops/env/*.env.example
 !evidence/.gitkeep
+
+# Build artifacts
+dist/
+build/
+*.log
+.DS_Store
+
+# Local
+.vercel
+.playwright-mcp/
+.*-state.json
+.craft-law.json
+.design-render-375.json
+.env-proof.json
+.stage5-hardening.json
+DEBUG-*.md
+WIRE-*.md
+DESIGN-FORGE-RESULTS.md
+STRESS-TEST-PLAN.md
+debug-results/
+docs/prompts/
+
+# Secrets
+.env.local
+.env*.local

@@ -1,8 +1,8 @@
-# Stress Test Report: Plumbline
-> hackathon-stress, 2026-11-08, adapted to this project (see STRESS-TEST-PLAN.md "Adaptations")
+# Stress Test Report
+> 2026-11-08, run against the deployed range and in-process suites
 
 ## Result
-**Complete with declared gaps.** the full suite passes, tsc clean. Stage-5 gate: 7 distinct attack classes + fuzz, spine CLOSED, 2 spine findings fixed with proof (`bash ~/.claude/skills/utils/stage5-hardening-gate.sh plumbline/app` rc 0).
+**Complete with declared gaps.** the full suite passes, tsc clean. Stage-5 gate: 7 distinct attack classes + fuzz, spine CLOSED, 2 spine findings fixed with proof (adversarial-round gate exit 0).
 
 ## Coverage achieved per tier
 - **P0 (F1-F6):** exhaustive classes in-process (API 69 tests, agent 98, isolation 36, falsification 46, ablation: engine no-oped breaks 147 of 420 tests) plus 30 live attacks.
