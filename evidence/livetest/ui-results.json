@@ -1,15 +1,10 @@
 {
  "base": "https://plumbline.108-61-70-169.sslip.io",
- "ran_at": "2026-11-08T14:14:21.087Z",
+ "ran_at": "2026-11-08T15:30:02.300Z",
  "domains": {
   "console_errors": {
-   "status": "FAIL",
-   "errors": [
-    {
-     "page": "/verify",
-     "err": "Failed to load resource: the server responded with a status of 409 ()"
-    }
-   ]
+   "status": "PASS",
+   "errors": []
   },
   "visual": {
    "status": "PASS",
@@ -89,7 +84,7 @@
      "page": "/range",
      "overflow": false,
      "small": 1,
-     "minFont": 11.5
+     "minFont": 11
     },
     {
      "page": "/range/policy",
@@ -151,7 +146,7 @@
   "core_flows": {
    "status": "PASS",
    "verdictPanel": "DENY agent tried: delete instance plumbline-prod-db → session layer · decided by coded policy outside the model | Blocked. The agent tried to delete instance plumbline-prod-db and the policy engine re",
-   "uiDecisionId": "d-mw7x1eeu-dbbeaec2",
+   "uiDecisionId": "d-mw7zqahu-758f7b98",
    "idInLedger": true
   }
  }
