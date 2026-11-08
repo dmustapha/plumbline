@@ -22,5 +22,9 @@
   {
     "commit": "a332a4584b69fccc01cbf337fcc65c5425fe7462",
     "reason": "Stress-test regression: gates l2 to l7 were run live on 2026-11-08 (l4/l6/l7 08:53Z, l2 09:06Z, l5/l3 09:31Z; l1 earlier on a clean tree). The tree was dirty only through apps/range-api/public/app.js (the MALFORMED_REPLY guard in the attack call, deployed, committed right after), tests/stress/recovery.mjs and evidence/. An earlier attempt at 08:36Z failed on the owner-side harness (PLUMBLINE_SSH_BROKER unset, session-creation limit) and is kept under evidence/stress/gate-attempt-0836/. Commits after it change only evidence/ and docs."
+  },
+  {
+    "commit": "e8c50c2e6ffcb5d83330e4e9000b88717ee51786",
+    "reason": "Stress-test regression re-run of gate l1 (09:53Z) and gate l2 twice (09:06Z and 10:05Z; run1 and run2 files) on the deployed range at this commit. The tree was dirty only through evidence/ and CLAIMS.md written by the gate harness and verify-claims. Commits after it change only evidence/ and docs."
   }
 ]

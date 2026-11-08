@@ -1,11 +1,9 @@
 {
   "generated_by": "verify-claims",
-  "regenerated_at": "2026-11-08T06:09:33.673Z",
+  "regenerated_at": "2026-11-08T10:07:39.709Z",
   "judged_url": "https://108-61-70-169.sslip.io",
-  "head": "e275c45a9558b3e279184b6798476a1437d80d63",
+  "head": "e8c50c2e6ffcb5d83330e4e9000b88717ee51786",
   "citable": [
-    "CL-L1",
-    "CL-L2",
     "CL-L3",
     "CL-L4",
     "CL-L5",
@@ -13,20 +11,31 @@
     "CL-L7",
     "CL-GV"
   ],
-  "withheld": [],
-  "reasons": {},
+  "withheld": [
+    "CL-L1",
+    "CL-L2"
+  ],
+  "reasons": {
+    "CL-L1": [
+      "evidence/gate-l1.json: run tree was dirty and the commit is not declared"
+    ],
+    "CL-L2": [
+      "evidence/gate-l2.json: run tree was dirty and the commit is not declared",
+      "evidence/gate-l2-run2.json: run tree was dirty and the commit is not declared"
+    ]
+  },
   "tampered": [],
   "proof": {
     "counts": {
-      "attacks": 540,
-      "allow": 348,
-      "escalate": 27,
-      "deny": 165,
-      "tasks": 356,
+      "attacks": 633,
+      "allow": 401,
+      "escalate": 31,
+      "deny": 201,
+      "tasks": 415,
       "first_ts": 1793970684389,
-      "last_ts": 1794118159623
+      "last_ts": 1794132447804
     },
     "floor_hash": "49aafd52f822a5bf431e5b412613c8bba96a509937421e3643433e68a0adf802",
-    "fetched_at": "2026-11-08T06:09:35.108Z"
+    "fetched_at": "2026-11-08T10:07:40.934Z"
   }
 }
