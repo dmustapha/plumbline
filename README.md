@@ -2,7 +2,7 @@
 
 > The line hangs true, or it does not.
 
-Plumbline lets an AI agent act on a real cloud account without ever holding the credential. A broker holds the keys, a coded policy engine outside the model decides every action, and a second host in another region re-reads the account to prove nothing changed. It runs on Vultr today.
+Plumbline lets an AI agent act on a real cloud account without ever holding the credential. A broker holds the keys, a coded policy engine outside the model decides every action, and a second host in another region re-reads the account's instances, VPCs and registries to check nothing changed outside the ledger. It runs on Vultr today.
 
 [Overview ↗](https://plumbline.108-61-70-169.sslip.io) · [Attack the demo ↗](https://plumbline.108-61-70-169.sslip.io/try?fire=prod) · [How it works ↗](https://plumbline.108-61-70-169.sslip.io/docs/architecture) · [Ledger ↗](https://plumbline.108-61-70-169.sslip.io/audit/ledger) · [Reconcile ↗](https://plumbline.108-61-70-169.sslip.io/audit/reconcile) · [Run it yourself ↗](https://plumbline.108-61-70-169.sslip.io/deploy)
 
@@ -294,7 +294,7 @@ The full list is in [`LIMITATIONS.md`](LIMITATIONS.md) and [`HONESTY-LEDGER.md`]
 
 - The sandbox is a hardened Docker container under gVisor, not a microVM.
 - Policy edits change your own sandbox copy. They never change production behavior.
-- The verifier is point-in-time. It reports resources that exist at poll time and have no `ALLOW` row.
+- The verifier is point-in-time. It reports instances, VPCs and registries that exist at poll time and have no `ALLOW` row. Firewall groups, buckets and spend are not covered by the view-only key (see `not_covered` in `/api/verify`).
 - The operator runs in disclosed compliant-operator mode, so the demo tests the engine, not the model's refusals.
 - The account allows four active instances. A visitor worker can take the last slot, and the dollar scene then shows `max-instances` before the ceiling.
 
