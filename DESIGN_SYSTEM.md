@@ -140,7 +140,18 @@ No horizontal-bar family (progress bars, bar charts, stat bars; severity is a 5-
 
 ## Logo
 
-Pending Phase 3. Concept: a plumb bob hanging true; chalk cord, true-green bob, graphite ground; must survive 16px favicon, 32px nav mark, 512px social and one-colour mono. To be generated with image gen and chosen by Dami, not by the agent.
+**Concept.** A plumb bob hanging true. One thin chalk cord (`#7cc2e4`) falls from a datum point to a faceted diamond bob in true-green (`#30de97`) on graphite (`#080c0e`). The mark is the product's thesis drawn as an object: gravity is the only judge, and the line hangs true. It is the same bob the signature engine animates, held still.
+
+**Constraints (must hold before a candidate is craftable).**
+- Reads at 16px (favicon): cord plus bob only, no ring, no tick marks, no scale.
+- Reads at 32px (nav mark), 512px (social) and in one colour (mono: ink on paper, and paper on graphite).
+- Vertical and symmetrical about the cord; the bob is the only filled shape; one soft glow at most, and none in the mono version.
+- No text inside the mark. The wordmark is a separate lockup: PLUMBLINE in Barlow Semi Condensed 600, tracked as in the nav (`.18em`).
+- Colour discipline: chalk for the cord, green for the bob only because green means "true" here; no red or amber anywhere in the logo.
+
+**Process.** Generated with an image model as candidates, then chosen by Dami (not by the agent), then redrawn as clean vector (symmetry, consistent stroke, optical centring) and exported: `logo.svg`, `logo-mono.svg`, `favicon.svg`, `favicon-32.png`, `og-image.png` (1200x630, "Blast Radius Zero"). No hand-coded geometric scaffold ships as the logo.
+
+**Status.** Candidates generated; waiting on Dami's pick. Provider: fal was unavailable (invalid key), so stablestudio (Flux 2 Pro, $0.03 per image).
 
 ## Honesty states (what the UI may claim)
 
