@@ -1,65 +1,71 @@
 <!-- File: apps/range-api/public/index.html -->
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline</title><meta name="theme-color" content="#111a1e">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline: let an AI agent act on your cloud and know exactly what it did</title><meta name="theme-color" content="#111a1e">
 <script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline"><meta property="og:description" content="Let an AI agent operate your cloud account with a blast radius of zero. A live Vultr demo you can attack, and a second host that re-reads the account to prove nothing changed."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
 <body data-page="index">
-<main>
-<section class="scene hero">
-<div class="eyebrow fade-up" style="--d:0s"><b>FOR TEAMS GIVING AI AGENTS CLOUD ACCESS</b><span class="long"> · Vultr today · a live demo account you may attack</span></div>
-<h1 class="h1 mask-swipe">Give an agent your cloud account. Keep the <span class="loud">blast radius</span> at zero.</h1>
-<p class="lede fade-up" style="--d:.25s">Plumbline holds the credential so the agent never does. A coded policy outside the model decides every action, and a second host in another region re-reads the account to prove nothing changed. Below is a live demo account we own. Try to make the agent break it.</p>
-<div class="ctas fade-up" style="--d:.5s"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/run">Run it on your account</a><a class="btn" href="/verify">Reconcile the account</a></div>
-<div class="heroset">
-<div id="stagehost" class="fade-up" style="--d:.2s"></div>
-<div id="payoff" class="payoff fade-up" style="--d:.45s"></div>
+<main class="ov">
+<section class="ov-hero">
+<div class="ov-copy">
+<div class="eyebrow">FOR PLATFORM TEAMS GIVING AI AGENTS CLOUD ACCESS<span class="long"> · Vultr today</span></div>
+<h1 class="h1">Let an agent act on your cloud. Know exactly what it did.</h1>
+<p class="lede">Plumbline holds the credential so the agent never does. A coded policy decides every action, and a second host in another region re-reads the account to prove nothing changed.</p>
+<div class="ctas"><a class="btn fire" href="/try?fire=prod">Attack prod-db</a><a class="btn" href="/deploy">Run it on your account</a><a class="btn quiet" href="/docs/architecture">How it works</a></div>
+<p class="mut ov-note">Attack prod-db runs on a demo account we own, so nothing you do touches yours.</p>
+</div>
+<aside class="panel procard" id="procard" aria-label="Live status of the demo account">
+<h2>Live on our demo account</h2>
+<div class="pc-row"><span class="pc-k">Verifier</span><span id="pc-ver">checking...</span></div>
+<div class="pc-row"><span class="pc-k">Decisions judged</span><span id="pc-counts">reading...</span></div>
+<div class="pc-last"><span class="pc-k">Latest verdict</span><div id="pc-last" class="mut">loading the ledger...</div></div>
+<a class="pc-link" href="/audit/ledger">Open the ledger</a>
+</aside>
+</section>
+
+<section class="ov-sec" id="guarantees">
+<h2>Three guarantees, each checked independently</h2>
+<div class="ov-cards">
+<div class="panel"><div class="ov-n">1</div><h3>The agent never holds the key</h3><p>It runs in a throwaway sandbox with no credential and one route out, to the broker. The broker holds every key.</p><a href="/docs/architecture">See the architecture</a></div>
+<div class="panel"><div class="ov-n">2</div><h3>A coded policy decides every action</h3><p>Rules are data, tested and loaded outside the model. The answer is ALLOW, ESCALATE or DENY with the rule that fired, and a dollar ceiling the agent cannot raise.</p><a href="/controls/policy">See the policy</a></div>
+<div class="panel"><div class="ov-n">3</div><h3>A second host verifies the account</h3><p>It has its own read-only key, re-reads Vultr and compares it to the ledger. GREEN means no difference. RED names the resource.</p><a href="/audit/reconcile">See it reconcile</a></div>
 </div>
 </section>
 
-<section class="scene" id="how">
-<div class="scene-head">
-<h2 class="fade-up" style="--d:0s">The agent never touches the key. The engine never asks the model. Vultr has the last word.</h2>
-<p class="fade-up" style="--d:.1s">Three layers, each one outside the one before it. You attack the first; the third one answers.</p>
-</div>
-<div class="split">
-<div class="claims">
-<div class="claim fade-up" style="--d:0s"><div class="rule">layer 1 · the sandbox</div><h3>No credential in the agent process</h3><p>The operator runs inside a hardened container under gVisor with no Vultr key. Every cloud call is a request to a broker on a different process boundary.</p></div>
-<div class="claim fade-up" style="--d:.1s"><div class="rule">layer 2 · the engine</div><h3>A coded policy decides, with a rule id</h3><p>Rules are data, unit-tested, loaded outside the model. ALLOW, ESCALATE or DENY, every time, with the rule that fired. A dollar ceiling the agent cannot raise.</p></div>
-<div class="claim fade-up" style="--d:.2s"><div class="rule">layer 3 · the verifier</div><h3>Reconciled against the live account</h3><p>A second host in a second region, with its own read-only key, re-reads Vultr and compares it to authority. GREEN means no drift. RED names the resource.</p></div>
-</div>
-<div class="diagram fade-up" style="--d:.15s" id="diagram"></div>
+<section class="ov-sec" id="flow">
+<h2>One request</h2>
+<div class="panel archwrap" tabindex="0" role="region" aria-label="Request flow diagram, scrollable"><svg class="ovflow" viewBox="0 0 940 230" role="img" aria-labelledby="ovT ovD" xmlns="http://www.w3.org/2000/svg">
+<title id="ovT">How a request flows through Plumbline</title><desc id="ovD">The agent in a sandbox asks the broker. The broker's policy engine decides. Only an allowed request reaches your Vultr account. A verifier in another region reads the account and checks it against the ledger.</desc>
+<defs><marker id="oa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="ahead"/></marker></defs>
+<g class="node"><rect x="10" y="50" width="190" height="90" rx="8"/><text x="26" y="86" class="t1">Your agent</text><text x="26" y="108" class="t2">sandbox, no credential</text></g>
+<g class="node core"><rect x="290" y="30" width="250" height="130" rx="8"/><text x="306" y="64" class="t1">Broker</text><text x="306" y="88" class="t2">policy engine: ALLOW,</text><text x="306" y="106" class="t2">ESCALATE or DENY + rule id</text><text x="306" y="136" class="t3">spend ceiling, ledger, keys</text></g>
+<g class="node vultr"><rect x="630" y="50" width="190" height="90" rx="8"/><text x="646" y="86" class="t1">Your Vultr account</text><text x="646" y="108" class="t2">only an ALLOW reaches it</text></g>
+<g class="node"><rect x="470" y="180" width="230" height="44" rx="8" style="stroke-dasharray:5 4"/><text x="486" y="207" class="t2">Verifier, second region</text></g>
+<path class="wire" d="M200 95 L290 95" marker-end="url(#oa)"/><text x="212" y="86" class="wl">asks</text>
+<path class="wire ok" d="M540 95 L630 95" marker-end="url(#oa)"/><text x="548" y="86" class="wl ok">if allowed</text>
+<path class="wire read" d="M725 180 L725 142" marker-end="url(#oa)" style="stroke-dasharray:4 4"/><path class="wire read" d="M470 202 L415 202 L415 162" marker-end="url(#oa)" style="stroke-dasharray:4 4"/><text x="735" y="168" class="wl">re-reads</text><text x="290" y="196" class="wl">checks the ledger</text>
+</svg></div>
+<p class="mut">Only an ALLOW reaches your account. The full component diagram, the trust boundaries and the nine steps of one request are on <a href="/docs/architecture">How it works</a>.</p>
+</section>
+
+<section class="ov-sec" id="whofor">
+<h2>Who it is for</h2>
+<div class="ov-cards">
+<div class="panel"><h3>Platform and FinOps leads</h3><p>You decide what an agent may do and spend. Policy is a file you review, production is locked unless a signed change says otherwise, and the spend ceiling is checked before any call.</p><a href="/controls/limits">Spend limits</a> · <a href="/deploy">Run it yourself</a></div>
+<div class="panel"><h3>Security and audit</h3><p>You answer "did it create anything it should not have?" The ledger records every decision, and a second host compares the live account to it.</p><a href="/audit/reconcile">Reconcile</a> · <a href="/audit/evidence">Evidence</a></div>
+<div class="panel"><h3>Agent builders</h3><p>Keep the credential out of your agent. It asks the broker, and the broker answers with a rule id. The contract is one route.</p><a href="/docs/integrate">Integrate an agent</a> · <a href="/docs/concepts">Concepts</a></div>
 </div>
 </section>
 
-<section class="scene" id="whofor">
-<div class="scene-head">
-<h2 class="fade-up" style="--d:0s">Built for the people who have to say yes to an agent holding a credential.</h2>
-<p class="fade-up" style="--d:.1s">The demo above runs on an account we own, so nothing you do touches yours. The same pieces run on your own Vultr account. It is Vultr today: the policy engine judges verbs, resource classes and targets, so another cloud needs an adapter, not a new engine.</p>
+<section class="ov-sec" id="honest">
+<h2>What this release is, and is not</h2>
+<div class="ov-two">
+<div class="panel"><h3>It is</h3><ul><li>A working reference implementation: engine, broker, sandbox, verifier, watchdog and ledger on real Vultr infrastructure.</li><li>A live demo account you can attack, so you can see the verdicts and the reconcile for yourself.</li><li>Software you can run on your own account, and an audit command that works on any account.</li></ul></div>
+<div class="panel"><h3>It is not</h3><ul><li>A hosted team product: there is no web setup, approval inbox, alerting or spend history yet.</li><li>A claim that the model resists attacks, that the sandbox is a microVM, or that create-then-delete is prevented.</li><li>A multi-cloud tool: only Vultr has an adapter.</li></ul></div>
 </div>
-<div class="claims">
-<div class="claim fade-up" style="--d:0s"><div class="rule">platform and FinOps leads</div><h3>Decide what the agent may do and spend</h3><p>Policy is a file you review. A dollar ceiling the agent cannot raise. Production is locked unless a signed change says otherwise. <a href="/run">Run it yourself</a>.</p></div>
-<div class="claim fade-up" style="--d:.1s"><div class="rule">security and audit</div><h3>Answer: did it create anything it should not have?</h3><p>A second host with a read-only key compares the live account to the ledger. GREEN, RED naming the resource, or DEGRADED when it cannot tell. <a href="/verify">See it reconcile</a>.</p></div>
-<div class="claim fade-up" style="--d:.2s"><div class="rule">agent builders</div><h3>Keep the credential out of the agent</h3><p>The policy engine is a small library with 65 attack fixtures and a property test. Your agent asks; the engine answers with a rule id. <a href="/proof">See the evidence</a>.</p></div>
-</div>
+<p class="mut">The full list of claims and non-claims is on the <a href="/docs/safety">Safety model</a>.</p>
 </section>
 
-<section class="scene" id="verdicts">
-<div class="scene-head">
-<h2 class="fade-up" style="--d:0s">Every verdict is real. None of them are seeded.</h2>
-<p class="fade-up" style="--d:.1s">The last hundred decisions from the append-only store, oldest on the left. A tall red tick is an attack the box held.</p>
-</div>
-<div class="panel fade-up" style="--d:.1s"><div id="vgrid" class="vgrid"></div><div class="vlegend"><span><i style="background:var(--deny)"></i>held (DENY)</span><span><i style="background:var(--esc)"></i>escalated</span><span><i style="background:var(--true-30)"></i>allowed, in scope</span><span id="vgridsum"></span></div></div>
-<div class="panel fade-up" style="--d:.2s;margin-top:24px"><div class="tablewrap" tabindex="0" role="region" aria-label="Scrollable table"><table><thead><tr><th></th><th>time</th><th>verdict</th><th>rule id</th><th>call · layer · model</th><th></th></tr></thead><tbody id="recent"><tr><td class="mut" colspan="6"><span class="skel"></span></td></tr></tbody></table></div><div class="row"><a class="btn" href="/replay">Open the full ledger</a><a class="btn primary ghost" href="/verify">Reconcile the account now</a></div></div>
-</section>
-
-<section class="scene closer" id="closer">
-<div class="inner">
-<svg id="closerplumb" class="closerplumb fade-up" viewBox="0 0 160 220" aria-hidden="true" style="--d:0s"></svg>
-<div class="big fade-up" id="closerN" style="--d:.1s">…</div>
-<h2 class="fade-up" style="--d:.2s">breaches · no drift · reconciled against the live Vultr account</h2>
-<div class="ctas fade-up" style="--d:.3s"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/about">Safety model</a></div>
-</div>
-</section>
-<div id="trust" style="margin-top:32px"></div>
+<section class="ov-sec ov-end"><h2>Try it, or run it</h2><div class="ctas"><a class="btn fire" href="/try?fire=prod">Attack prod-db</a><a class="btn" href="/deploy">Run it on your account</a></div></section>
+<div id="trust"></div>
 </main>
 <script src="/app.js"></script></body></html>

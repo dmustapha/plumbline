@@ -14,7 +14,7 @@ async function scenario(name, setup, act, check) {
   page.on('request', (r) => { if (r.url().includes('/api/attack')) reqs.push(r.method()); });
   try {
     if (setup) await setup(page, ctx);
-    await page.goto(BASE + '/range', { waitUntil: 'load' }); await page.waitForTimeout(8000);
+    await page.goto(BASE + '/try', { waitUntil: 'load' }); await page.waitForTimeout(8000);
     const out = await act(page, reqs);
     const verdict = await check(page, out, reqs);
     res.push({ name, ok: verdict.ok && errs.length === 0, pageerrors: errs, note: verdict.note });

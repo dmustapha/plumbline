@@ -1,0 +1,55 @@
+<!-- File: apps/range-api/public/architecture.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline architecture</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline limits"><meta property="og:description" content="Let an AI agent operate your cloud account with a blast radius of zero. A live Vultr demo you can attack, and a second host that re-reads the account to prove nothing changed."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="architecture">
+<main class="wide">
+<div class="panel lift fade-up"><h2>The components</h2>
+<p>The agent never holds a cloud credential. Every action it wants is a request to the broker, the broker asks a policy engine, and only an ALLOW reaches your Vultr account. A second host in another region checks the account independently of the broker.</p>
+<div class="archwrap" tabindex="0" role="region" aria-label="Architecture diagram, scrollable"><svg class="arch" viewBox="0 0 1000 520" role="img" aria-labelledby="archT archD" xmlns="http://www.w3.org/2000/svg">
+<title id="archT">Plumbline components and trust boundaries</title>
+<desc id="archD">An agent runs in a sandbox with no credentials and one route to the broker. The broker holds the keys and contains the policy engine, spend meter, ledger and Vultr adapter. Only an ALLOW reaches the Vultr account. A verifier and a watchdog on a second host in another region read the account and the ledger and can destroy the agent's workers.</desc>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="ahead"/></marker></defs>
+<g class="zone"><rect x="10" y="40" width="250" height="450" rx="10"/><text x="24" y="28" class="zl">SANDBOX AND PUBLIC APP</text></g>
+<g class="zone"><rect x="300" y="40" width="350" height="450" rx="10"/><text x="314" y="28" class="zl">BROKER VM (REGION 1): HOLDS EVERY KEY</text></g>
+<g class="zone alt"><rect x="720" y="40" width="270" height="450" rx="10"/><text x="734" y="28" class="zl">SECOND HOST (REGION 2)</text></g>
+<g class="node"><rect x="30" y="70" width="210" height="96" rx="8"/><text x="46" y="100" class="t1">The agent</text><text x="46" y="122" class="t2">LLM-written code</text><text x="46" y="142" class="t2">Docker + gVisor, no credential</text></g>
+<g class="node"><rect x="30" y="220" width="210" height="76" rx="8"/><text x="46" y="250" class="t1">Relay</text><text x="46" y="272" class="t2">one route: POST /v1/call</text></g>
+<g class="node plain"><rect x="30" y="390" width="210" height="76" rx="8"/><text x="46" y="420" class="t1">Public app</text><text x="46" y="442" class="t2">pages and API, no keys</text></g>
+<g class="node core"><rect x="322" y="62" width="306" height="116" rx="8"/><text x="338" y="92" class="t1">Policy engine</text><text x="338" y="114" class="t2">floor and session policy, most</text><text x="338" y="132" class="t2">restrictive wins: ALLOW, ESCALATE</text><text x="338" y="150" class="t2">or DENY with a rule id</text></g>
+<g class="node"><rect x="322" y="206" width="306" height="58" rx="8"/><text x="338" y="232" class="t1">Spend meter</text><text x="338" y="252" class="t2">dollar ceiling, before any call</text></g>
+<g class="node"><rect x="322" y="292" width="306" height="58" rx="8"/><text x="338" y="318" class="t1">Ledger</text><text x="338" y="338" class="t2">append-only, one row per decision</text></g>
+<g class="node"><rect x="322" y="390" width="306" height="76" rx="8"/><text x="338" y="418" class="t1">Vultr adapter</text><text x="338" y="440" class="t2">runs only with an ALLOW decision</text></g>
+<g class="node"><rect x="742" y="62" width="226" height="104" rx="8"/><text x="758" y="92" class="t1">Verifier</text><text x="758" y="114" class="t2">own read-only key</text><text x="758" y="134" class="t2">GREEN, RED or DEGRADED</text></g>
+<g class="node"><rect x="742" y="206" width="136" height="112" rx="8"/><text x="756" y="234" class="t1">Watchdog</text><text x="756" y="256" class="t2">if the broker</text><text x="756" y="274" class="t2">lease lapses,</text><text x="756" y="292" class="t2">destroys workers</text></g>
+<g class="node vultr"><rect x="742" y="390" width="226" height="76" rx="8"/><text x="758" y="420" class="t1">Your Vultr account</text><text x="758" y="442" class="t2">the real resources</text></g>
+<path class="wire" d="M135 166 L135 220" marker-end="url(#ah)"/><text x="146" y="198" class="wl">asks</text>
+<path class="wire" d="M240 258 L270 258 L270 120 L322 120" marker-end="url(#ah)"/>
+<path class="wire" d="M475 178 L475 206" marker-end="url(#ah)"/>
+<path class="wire" d="M475 264 L475 292" marker-end="url(#ah)"/>
+<path class="wire ok" d="M475 350 L475 390" marker-end="url(#ah)"/><text x="487" y="376" class="wl ok">only on ALLOW</text>
+<path class="wire ok" d="M628 428 L742 428" marker-end="url(#ah)"/>
+<path class="wire read" d="M945 390 L945 166" marker-end="url(#ah)"/><text x="937" y="296" class="wl" text-anchor="end">re-reads</text><text x="937" y="312" class="wl" text-anchor="end">the account</text>
+<path class="wire read" d="M742 114 L685 114 L685 321 L628 321" marker-end="url(#ah)" style="stroke-dasharray:5 4"/><text x="692" y="190" class="wl">ledger export</text>
+<path class="wire" d="M240 428 L300 428" marker-end="url(#ah)"/><text x="250" y="418" class="wl">private socket</text>
+</svg></div>
+<p class="mut">The picture in words: the agent runs in a sandbox with no credentials and one route out. The broker holds every key and contains the policy engine, the spend meter, the ledger and the Vultr adapter. A verifier and a watchdog on a second host read the live account and the ledger export, and can destroy the agent's workers if the broker stops renewing its lease.</p></div>
+<div class="panel fade-up"><h2>One request, start to finish</h2><ol class="steps">
+<li><b>The agent writes code</b> that wants to act, for example delete an instance. The code runs in a throwaway container with no credential, no internet and one route.</li>
+<li><b>The relay forwards</b> only <code>POST /v1/call</code> with a short-lived task token and the request: a verb, a resource class, a target id and parameters.</li>
+<li><b>The broker checks the token</b> and resolves the facts about the target from the live account. Labels or tags the agent supplies are discarded.</li>
+<li><b>The policy engine decides.</b> The production floor and the session policy are both evaluated and the most restrictive answer wins. The result is ALLOW, ESCALATE or DENY plus the rule id that decided it.</li>
+<li><b>The spend meter checks the dollar ceiling</b> before any network call. An action that would exceed it is denied.</li>
+<li><b>Only an ALLOW reaches Vultr.</b> The adapter will not run without a decision value only the engine can create. An ESCALATE is held for a person. A DENY does nothing.</li>
+<li><b>The ledger records the decision.</b> Only the engine path can write a row, and rows are never edited.</li>
+<li><b>The verifier re-reads the account</b> from another host with its own read-only key, twice, three seconds apart, and compares it to the ledger and to an owner baseline.</li>
+<li><b>If the broker dies,</b> its lease lapses and the watchdog destroys the agent's workers and playgrounds. It never touches production or infrastructure.</li></ol></div>
+<div class="panel fade-up"><h2>Trust boundaries</h2><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrollable"><table><thead><tr><th>Boundary</th><th>What can cross</th><th>What cannot</th></tr></thead><tbody>
+<tr><td>Sandbox to broker</td><td>One request route with a task token</td><td>Credentials, the network, the filesystem of the host</td></tr>
+<tr><td>Broker to Vultr</td><td>Calls with an ALLOW decision, through tiered IP-locked keys</td><td>Any call the engine did not allow</td></tr>
+<tr><td>Public app to broker</td><td>Session requests and read-only views over a private socket</td><td>Any Vultr, inference or storage key</td></tr>
+<tr><td>Verifier to Vultr</td><td>Read-only listing</td><td>Any write</td></tr>
+<tr><td>Verifier to broker</td><td>A signed ledger export</td><td>Trust: it checks the export against the live account</td></tr></tbody></table></div>
+<p class="mut">What this does not cover: a compromised broker process holds keys that can destroy any instance in the account, because Vultr has no per-resource scoping. The IP lock, the tiered keys, the verifier on another host and the watchdog are defence in depth. See the <a href="/docs/safety">Safety model</a> for the full list.</p></div>
+<div id="trust"></div>
+</main>
+<script src="/app.js"></script></body></html>

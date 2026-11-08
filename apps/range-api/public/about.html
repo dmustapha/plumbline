@@ -13,21 +13,8 @@
 <li>That the model resists attacks: the demo model is told to follow whatever you ask (compliant-operator mode), so you are testing the policy engine, not the model's caution.</li><li>That the sandbox is a microVM or unescapable: it is a hardened container.</li>
 <li>That VM deletion can be reversed: only Object Storage versioning can.</li><li>That a bond deters a model.</li><li>That your policy edits change production: they change your own copy.</li>
 <li>That ACL tiers give per-resource scoping: Vultr has none; the engine is the fine-grained control.</li></ul></div>
-<div class="panel fade-up" style="--d:0.2s"><h2>Terms in plain words</h2><dl>
-<dt>Broker</dt><dd>The one process that holds the cloud credentials. The agent never does; it can only ask the broker.</dd>
-<dt>Policy engine</dt><dd>Code that answers every request with ALLOW, ESCALATE or DENY and the rule that decided it. It is not a model.</dd>
-<dt>Floor</dt><dd>The production rules nobody can edit from the sandbox. Your own policy copy can be stricter or looser, but the floor is always applied too.</dd>
-<dt>Escalate</dt><dd>Held for a person. Nothing runs until someone approves it, and an approval is re-checked against the live account.</dd>
-<dt>Verifier</dt><dd>A second host in another region with a read-only key. It reads the live account and compares it to the ledger. GREEN, RED naming the resource, or DEGRADED when it cannot tell.</dd>
-<dt>Watchdog</dt><dd>Runs next to the verifier. If the broker stops renewing its lease, it destroys the agent's workers and playgrounds, and nothing else.</dd>
-<dt>Tier</dt><dd>The access level of the key the agent uses. Observer is read-only, and Vultr itself refuses writes.</dd>
-<dt>Ceiling</dt><dd>A dollar limit per session and overall that the agent cannot raise. It is checked before any call to Vultr.</dd>
-<dt>Bond</dt><dd>A small risk budget. An approved delete with no restore point burns it, and while it is low, new provisions are refused.</dd>
-<dt>Rewind</dt><dd>The one live undo: Object Storage keeps versions, so a deleted object can be restored.</dd>
-<dt>Compliant-operator mode</dt><dd>The demo model is instructed to follow the attacker's request. That is deliberate: it makes the policy engine, not the model's own caution, the thing being tested.</dd>
-<dt>Rung and gate</dt><dd>A rung is one safety claim. Its gate is the live test that proves it against the real account and writes an evidence file.</dd>
-<dt>Drift</dt><dd>How far the live account is from what the policy says it should be. No drift means they match.</dd></dl></div>
-<div class="panel fade-up" style="--d:0.28s"><h2>What this release is, and is not</h2><p>This is a working reference implementation plus a live demo range: the engine, broker, sandbox, verifier, watchdog and ledger run on real Vultr infrastructure, and you can run all of it on your own account (<a href="/run">Run it yourself</a>).</p><p>It is not yet a hosted team product. There is no web wizard to connect your account (setup is a command), no standing approval queue with notifications, no alerting, no spend history per agent, and no multi-account or single sign-on. Those are the next layer, not part of this release.</p></div>
+<div class="panel fade-up" style="--d:0.2s"><h2>Words you will meet</h2><p>The vocabulary (broker, floor, escalate, verifier, bond and the rest) is defined in plain words on <a href="/docs/concepts">Concepts</a>.</p></div>
+<div class="panel fade-up" style="--d:0.28s"><h2>What this release is, and is not</h2><p>This is a working reference implementation plus a live demo range: the engine, broker, sandbox, verifier, watchdog and ledger run on real Vultr infrastructure, and you can run all of it on your own account (<a href="/deploy">Run it yourself</a>).</p><p>It is not yet a hosted team product. There is no web wizard to connect your account (setup is a command), no standing approval queue with notifications, no alerting, no spend history per agent, and no multi-account or single sign-on. Those are the next layer, not part of this release.</p></div>
 <div class="panel fade-up" style="--d:0.24s"><h2>Vultr services used</h2><p>Cloud Compute (two VMs and the protected target), Serverless Inference (three models), IAM sub-user ACLs with IP allow-lists, Firewall groups, VPC, Container Registry, Object Storage with versioning, the public plans rate card.</p></div>
 <div id="trust"></div>
 </main>

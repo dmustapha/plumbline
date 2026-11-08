@@ -1,0 +1,46 @@
+<!-- File: apps/range-api/public/deploy.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Run Plumbline yourself</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline limits"><meta property="og:description" content="Let an AI agent operate your cloud account with a blast radius of zero. A live Vultr demo you can attack, and a second host that re-reads the account to prove nothing changed."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="deploy">
+<main class="narrow">
+<div class="panel lift fade-up"><h2>Run Plumbline on your own Vultr account</h2>
+<p>The demo runs on an account we own. Everything you see there is the same software you can run on yours: the policy engine, the broker that holds the keys, the hardened sandbox, the second-region verifier and the watchdog. The status strip at the top of every page, including this one, shows our demo account.</p>
+<div class="glance">
+<div><b>What you run</b><span>Two small Vultr VMs in two regions, a protected production resource and a versioned bucket</span></div>
+<div><b>Time</b><span>About an hour for the first run, mostly waiting for the VMs and the live gates</span></div>
+<div><b>Cost</b><span>About $25 a month for the VMs, plus inference usage metered against a dollar ceiling</span></div>
+<div><b>Not included yet</b><span>A hosted option, a web setup wizard, an approval inbox, alerting, spend history, other clouds</span></div></div>
+<nav class="jump" aria-label="On this page"><a href="#before">Before you start</a><a href="#setup">Set it up</a><a href="#keys">Keys</a><a href="#policy">Policy</a><a href="#agent">Your agent</a><a href="#approvals">Approvals</a><a href="#audit">Audit</a><a href="#status">Status</a></nav></div>
+<section id="before" class="panel fade-up"><h2>1. Before you start</h2><ul>
+<li>A Vultr account with an owner API key, and credit or a card for two small VMs.</li>
+<li>A machine with Node 24 and git to run the setup commands from.</li>
+<li>Vultr today. The policy engine judges verbs, resource classes and targets, so another cloud needs an adapter, not a new engine. Only the Vultr adapter exists.</li></ul>
+<h3>What gets created</h3><ul>
+<li><b>Broker VM</b> (one region): the public app, the broker that holds every key, and the sandbox runner. Three services.</li>
+<li><b>Verifier VM</b> (a second region): the verifier and the watchdog, each with its own scoped key.</li>
+<li><b>A protected production resource</b> the agent must not touch, and a versioned Object Storage bucket for the undo demo.</li>
+<li><b>Six IP-locked sub-user keys</b>, one per access tier, each with an explicit expiry.</li></ul></section>
+<section id="setup" class="panel fade-up"><h2>2. Set it up</h2><ol class="steps">
+<li>Clone the repository and install: <code>git clone https://github.com/dmustapha/plumbline &amp;&amp; cd plumbline &amp;&amp; npm ci</code></li>
+<li>On your machine, with your owner API key in the environment, create the infrastructure: <code>npm run bootstrap:range</code>. It is idempotent and prints only a summary.</li>
+<li>Install the systemd units from <code>ops/systemd/</code> on the two VMs and start them.</li>
+<li>Sign your production policy with your own key: <code>npm run sign-policy</code>. Production changes need that signature.</li>
+<li>Prove each rung on your account: <code>npm run gate -- l1</code> through <code>l7</code>. Each writes an evidence file.</li>
+<li>When you are done: <code>npm run teardown</code> lists everything it created and deletes only with <code>--yes</code>.</li></ol></section>
+<section id="keys" class="panel fade-up"><h2>3. Where your keys live</h2><ul>
+<li>Only on the broker VM, in a root-owned environment file. Never in the agent, the sandbox or the browser.</li>
+<li>Your owner key never goes on a VM. Every service refuses to start if it finds one.</li>
+<li>The agent talks to the broker over one route. It can ask; it cannot read.</li></ul></section>
+<section id="policy" class="panel fade-up"><h2>4. Write your policy</h2><p>Rules are data in a YAML file you can review, test and version. The production floor is signed and immutable; your session policy can be stricter or looser, and the most restrictive answer wins. See <a href="/docs/concepts">Concepts</a> for the rule format, and try it on the <a href="/controls/policy">Policy</a> page of the demo.</p></section>
+<section id="agent" class="panel fade-up"><h2>5. Plug in your agent</h2><p>The agent never holds a cloud credential. It sends its actions to the broker, and the broker answers ALLOW, ESCALATE or DENY. Today the bundled operator is the agent; to use your own, route its cloud calls through the broker. The contract is on <a href="/docs/integrate">Integrate an agent</a>. There is no packaged SDK or MCP server yet.</p></section>
+<section id="approvals" class="panel fade-up"><h2>6. Approvals</h2><p>When a rule says ESCALATE, the action is held. An approval is bound to that decision and a one-time token, is re-checked against the live account at the moment you approve, and cannot override a floor DENY. Today approvals are handled on the demo page for the session that made the request; there is no standing queue or notification yet.</p></section>
+<section id="audit" class="panel fade-up"><h2>7. Audit your account</h2><p>The verifier ships as a command that reads your account with a view-only key and a ledger export, and writes nothing to Vultr:</p>
+<pre tabindex="0">PLUMBLINE_VERIFY_KEY=&lt;view-only key&gt; npx tsx apps/verifier/src/cli.ts --ledger ledger.json --baseline baseline.json
+# exit 0 GREEN, 1 RED, 2 DEGRADED</pre>
+<p>The broker serves a signed ledger export at <code>/ledger/export</code>. The same check runs live on the <a href="/audit/reconcile">Reconcile</a> page.</p></section>
+<section id="status" class="panel fade-up"><h2>8. Status and roadmap</h2><p><b>Today:</b> the engine, broker, sandbox, verifier, watchdog and ledger on your own infrastructure, with evidence files you can regenerate.</p>
+<p><b>Next layer, not in this release:</b> a hosted version, a web wizard to connect an account, a standing approval queue with notifications, alerting, spend history per agent, an SDK or MCP server, multi-account and single sign-on, other clouds.</p>
+<p>Questions and issues: <a href="https://github.com/dmustapha/plumbline/issues">GitHub</a>. The code is MIT licensed. There is no hosted service, support plan or pricing today.</p></section>
+<div id="trust"></div>
+</main>
+<script src="/app.js"></script></body></html>

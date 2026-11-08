@@ -137,12 +137,28 @@ function hideBanner(text) { const b = $('#banner'); if (b && b.textContent === t
 // ---- the shell: ground, sidebar (one job per route), truth strip ----
 
 const ROUTES = [
-  ['TRY IT', [['/range', 'Range', 'demo account']]],
-  ['RUN IT', [['/run', 'Run it yourself', 'your account']]],
-  ['VERIFY', [['/verify', 'Reconcile', 'live account'], ['/replay', 'Ledger', 'verdicts'], ['/proof', 'Proof', 'evidence'], ['/about', 'Safety model', 'what we claim']]],
-  ['ADVANCED', [['/status', 'Ceiling', 'spend + kill'], ['/range/policy', 'Policy', 'rules as data'], ['/range/rewind', 'Rewind', 'undo'], ['/range/bond', 'Bond', 'bonded loss']]],
+  ['TRY IT', [['/try', 'Attack the demo', 'our account']]],
+  ['CONTROLS', [['/controls/policy', 'Policy', 'rules as data'], ['/controls/limits', 'Spend limits', 'caps + kill switch'], ['/controls/recovery', 'Recovery', 'undo + bond']]],
+  ['AUDIT', [['/audit/ledger', 'Ledger', 'every verdict'], ['/audit/reconcile', 'Reconcile', 'second-host check'], ['/audit/evidence', 'Evidence', 'regenerate it']]],
+  ['DOCS', [['/docs/safety', 'Safety model', 'claims + limits'], ['/docs/architecture', 'How it works', 'components'], ['/docs/concepts', 'Concepts', 'plain words'], ['/docs/integrate', 'Integrate an agent', 'the contract']]],
+  ['DEPLOY', [['/deploy', 'Run it yourself', 'your account']]],
 ];
-const TITLES = { range: ['Range', 'attack the agent, watch the box hold'], verify: ['Reconcile', 'the live account against authority, read by a second host'], replay: ['Ledger', 'every real verdict from the decision store'], status: ['Ceiling', 'the dollar ceiling, kill-switch and keys'], policy: ['Policy', 'rules as data: production floor and your sandbox copy'], rewind: ['Rewind', 'the only live undo: object versioning'], bond: ['Bond', 'undo or insure'], proof: ['Proof', 'evidence, containment tests, regenerate commands'], about: ['Safety model', 'what Plumbline claims and what it does not'], run: ['Run it yourself', 'Plumbline on your own Vultr account'] };
+// pages that show OUR demo account: they carry a one-line scope note so the user is never unsure whose account this is
+const DEMO_SCOPE = new Set(['range', 'policy', 'status', 'recovery', 'replay', 'verify', 'proof']);
+const TITLES = {
+  range: ['Attack the demo', 'an agent holds our live Vultr account; try to make it break something'],
+  policy: ['Policy', 'rules as data: the production floor and your sandbox copy'],
+  status: ['Spend limits and kill switch', 'the dollar caps the agent cannot raise, and the stop that works when the broker is dead'],
+  recovery: ['Recovery', 'the one live undo, and the budget that limits irreversible actions'],
+  replay: ['Ledger', 'every real verdict, from the append-only decision store'],
+  verify: ['Reconcile', 'the live account, read by a second host in another region'],
+  proof: ['Evidence', 'every number has a command that regenerates it'],
+  about: ['Safety model', 'what Plumbline claims, and what it does not'],
+  architecture: ['How it works', 'the components, the trust boundaries, and one request from start to finish'],
+  concepts: ['Concepts', 'the words this product uses, in plain terms'],
+  integrate: ['Integrate an agent', 'the contract between your agent and the broker'],
+  deploy: ['Run it yourself', 'Plumbline on your own Vultr account'],
+};
 
 function brandSwing(g) { return anim(g, [{ transform: 'rotate(-7deg)' }, { transform: 'rotate(7deg)' }], { duration: 2600, direction: 'alternate', iterations: Infinity, easing: 'ease-in-out', still: { transform: 'rotate(0deg)' } }); }
 function brandMark() {
@@ -194,7 +210,7 @@ function themeButton() {
 
 function truthStrip() {
   return h('div', { class: 'truth', id: 'truth' }, h('i', { class: 'dot' }), h('span', { class: 'long' }, 'DEMO ACCOUNT · LIVE VULTR'), h('b', { id: 'truth-st' }, '…'), h('span', { id: 'truth-age' }, ''),
-    h('span', { class: 'br', id: 'truth-br', title: 'A breach is an unauthorised resource the verifier finds in the live account.' }, ''));
+    h('span', { class: 'br', id: 'truth-br', title: 'Unauthorized: a resource the verifier finds in the live account that the ledger never allowed.' }, ''));
 }
 
 // skip link + main landmark target, created here so the markup owner does not have to
@@ -208,8 +224,8 @@ function skipLink() {
 }
 
 function footerNote() {
-  return h('footer', {}, h('b', {}, 'Limits, stated: '), 'what each rung does NOT prove is on the ', h('a', { href: '/about' }, 'Safety model'),
-    ' · spend is BROKER ARITHMETIC, not Vultr\'s invoice · the verifier is point-in-time · the sandbox is a hardened container under gVisor, not a microVM.');
+  return h('footer', {}, h('b', {}, 'Limits, stated: '), 'spend is broker arithmetic, not Vultr\'s invoice · the verifier is point-in-time · the sandbox is a hardened container under gVisor, not a microVM · ',
+    h('a', { href: '/docs/safety' }, 'the full safety model'), '.');
 }
 
 function shell(page) {
@@ -219,9 +235,10 @@ function shell(page) {
   // the descriptor word shows only on the current page's item
   ROUTES.forEach(([grp, items]) => { nav.append(h('div', { class: 'grp' }, grp)); items.forEach(([href, label, hint]) => nav.append(h('a', Object.assign({ href }, href === here ? { 'aria-current': 'page' } : {}), h('i'), label, href === here ? h('small', {}, hint) : null))); });
   const side = h('aside', { class: 'side' }, h('a', { class: 'brand', href: '/' }, brandMark(), 'PLUMBLINE'), nav,
-    h('div', { class: 'foot' }, h('a', { href: '/' }, '← landing'), 'Demo account owned by Plumbline. Nothing here touches yours. ', h('a', { href: '/run' }, 'Run your own')));
+    h('div', { class: 'foot' }, h('a', { href: '/' }, '← landing'), 'Demo account owned by Plumbline. ', h('a', { href: '/deploy' }, 'Run your own')));
   const t = TITLES[page] || [page, ''];
   const strip = h('div', { class: 'strip' }, h('h1', {}, t[0], h('small', {}, t[1])), truthStrip(), themeButton());
+  if (DEMO_SCOPE.has(page) && main) main.prepend(h('p', { class: 'scope' }, h('b', {}, 'Demo account. '), 'You are looking at our live Vultr account, not yours. This is the view your own deployment gives you. ', h('a', { href: '/deploy' }, 'Run it on yours')));
   const pane = h('div', { class: 'pane' }, strip, main, footerNote());
   document.body.append(h('div', { class: 'shell' }, side, pane));
   document.body.classList.add('shell-page');
@@ -231,7 +248,7 @@ function shell(page) {
 function landingChrome() {
   const main = $('main');
   document.body.insertBefore(h('header', { class: 'top' }, h('a', { class: 'brand', href: '/' }, brandMark(), 'PLUMBLINE'),
-    h('nav', {}, h('a', { href: '/range' }, 'RANGE'), h('a', { href: '/verify' }, 'RECONCILE'), h('a', { href: '/replay' }, 'LEDGER'), h('a', { href: '/run' }, 'RUN IT'), h('a', { href: '/about' }, 'SAFETY MODEL')),
+    h('nav', {}, h('a', { href: '/try' }, 'Try it'), h('a', { href: '/controls/policy' }, 'Controls'), h('a', { href: '/audit/ledger' }, 'Audit'), h('a', { href: '/docs/safety' }, 'Docs'), h('a', { href: '/deploy' }, 'Deploy')),
     h('div', { class: 'cta' }, truthStrip(), themeButton())), main);
   document.body.append(footerNote());
   document.body.classList.add('landing-page');
@@ -352,7 +369,7 @@ function thetaLoop() {
   if (!TH.raf) TH.raf = requestAnimationFrame(thetaTick);
 }
 
-const PLST = { unknown: 'READING...', true: 'NO DRIFT', red: 'DRIFT DETECTED', amber: 'UNDER TEST', degraded: 'NOT VERIFIED' };
+const PLST = { unknown: 'READING...', true: 'MATCHES POLICY', red: 'DIFFERS FROM POLICY', amber: 'UNDER TEST', degraded: 'NOT VERIFIED' };
 function plumbSet(mode) {
   PL.mode = mode; document.documentElement.dataset.m = mode;
   const ghost = !!state.liveDown || mode === 'degraded';
@@ -401,10 +418,10 @@ function plumbSettle() { if (PL.svg && !state.busy && !PL.motion) plumbReconcile
 
 // a micro-plumb glyph for ledger rows: tilt encodes the verdict
 function microPlumb(decision) {
-  const t = decision === 'ESCALATE' ? 6 : 0; const c = decision === 'ESCALATE' ? '#f2b544' : '#4fe3a3';
+  const t = decision === 'ESCALATE' ? 6 : 0; const c = decision === 'ESCALATE' ? '#f2b544' : decision === 'DENY' ? '#9fb7d1' : '#8c99a6';
   return sv('svg', { class: 'mp', viewBox: '0 0 14 18', 'aria-hidden': 'true' },
     sv('line', { x1: 7, y1: 1, x2: 7, y2: 17, stroke: '#8fb8e6', 'stroke-width': .6, 'stroke-dasharray': '1 2' }),
-    decision === 'DENY' ? sv('circle', { cx: 7, cy: 13, r: 6, fill: 'rgba(255,80,99,.28)' }) : null,
+    null,
     sv('g', { transform: `rotate(${t} 7 1)` }, sv('line', { x1: 7, y1: 1, x2: 7, y2: 10, stroke: c, 'stroke-width': 1.4, 'stroke-linecap': 'round' }), sv('path', { d: 'M7 8.5 L10.5 12.5 L7 17.5 L3.5 12.5 Z', fill: c })));
 }
 
@@ -433,7 +450,7 @@ function liveRows(live) {
     if (!s.ok) return rows.push({ kind, error: 'read failed: ' + s.error });
     s.data.forEach((x) => rows.push(Object.assign({ kind, x, name: name(x), detail: detail(x) }, classify(kind, x, mine))));
   };
-  const compact = !!document.querySelector('.stage.compact'); const nm = (x) => compact ? String(x).replace(/^plumbline-/, '') : x;
+  const compact = false; const nm = (x) => compact ? String(x).replace(/^plumbline-/, '') : x;
   const landing = document.body.classList.contains('landing-page');
   if (landing && live.instances && live.instances.ok) {
     const infra = live.instances.data.filter((i) => (i.tags || []).includes('infra')); const rest = live.instances.data.filter((i) => !(i.tags || []).includes('infra'));
@@ -453,18 +470,20 @@ function liveRows(live) {
 
 function stageBody(mount, live) {
   const rows = liveRows(live);
-  const A = h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'WHAT POLICY SAYS'));
-  const R = h('div', { class: 'col real' }, h('div', { class: 'colh' }, 'WHAT VULTR SHOWS', h('br'), h('span', { class: 'colt' }, 're-fetched ' + clock(live.fetched_at_ms || Date.parse(live.fetched_at)))));
+  const body = h('tbody', {});
   rows.forEach((r) => {
-    if (r.error) { A.append(h('div', { class: 'pr' }, h('div', { class: 'n' }, r.kind), h('div', { class: 'd err' }, r.error))); R.append(h('div', { class: 'pr' })); return; }
+    if (r.error) { body.append(h('tr', { class: 'ghost' }, h('td', {}, r.kind), h('td', { class: 'err', colspan: '3' }, r.error))); return; }
     const marked = state.hit.some((t) => t && (t === r.name || t === r.x.id));
-    const cls = (r.cls || '') + (marked ? ' hit safe' : '');
-    A.append(h('div', { class: 'pr ' + cls }, h('div', { class: 'n' }, r.auth), h('div', { class: 'd' }, r.sub)));
-    R.append(h('div', { class: 'pr ' + cls }, h('div', { class: 'n' }, r.name), h('div', { class: 'd' }, r.detail)));
+    const differs = r.cls === 'rogue';
+    body.append(h('tr', { class: (differs ? 'rogue ' : '') + (marked ? 'hit' : '') },
+      h('td', {}, h('div', { class: 'rn' }, r.name), h('div', { class: 'rk' }, r.kind), h('div', { class: 'rk rdet' }, r.detail)),
+      h('td', {}, r.detail),
+      h('td', {}, h('div', { class: 'ra' }, r.auth), h('div', { class: 'rk' }, r.sub), h('span', { class: 'mchip mi ' + (differs ? 'bad' : 'ok') }, differs ? 'DIFFERS' : 'MATCHES')),
+      h('td', {}, h('span', { class: 'mchip ' + (differs ? 'bad' : 'ok') }, differs ? 'DIFFERS' : 'MATCHES'), marked ? h('span', { class: 'mchip tgt' }, 'TARGETED') : null)));
   });
-  mount.replaceChildren(A, plumbSvgHost(), R);
-  plumbObserve(mount); plumbRelayout(); prodChip(live, false);
-  if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(plumbRelayout);
+  const stamp0 = h('caption', {}, 're-read from Vultr at ' + clock(live.fetched_at_ms || Date.parse(live.fetched_at)));
+  mount.replaceChildren(h('div', { class: 'recon-wrap', tabindex: '0', role: 'region', 'aria-label': 'Reconcile table, scrollable' }, h('table', { class: 'recon' }, stamp0, h('thead', {}, h('tr', {}, h('th', {}, 'Resource'), h('th', {}, 'What Vultr shows'), h('th', {}, 'What policy says'), h('th', {}, 'Match'))), body)), plumbSvgHost());
+  prodChip(live, false);
 }
 
 const THETA_TITLE = 'Drift from policy: how far the live account is from what the policy says it should be. 0 means they match.';
@@ -472,11 +491,10 @@ const THETA_TITLE = 'Drift from policy: how far the live account is from what th
 function stagePanel(opts) {
   const o = opts || {};
   return h('div', { class: 'panel stage', id: 'stage' },
-    h('div', { class: 'hd' }, h('b', {}, 'THE PLUMBLINE'), h('span', { id: 'plst', class: 'st' }, PLST.unknown), h('span', { id: 'plsrc' }, 'PROD-DB · reading…')),
-    o.noVerdict ? null : h('div', { id: 'verdictbig', class: 'verdict-big', tabindex: '-1' }, o.idle ? h('div', { class: 'mut mono' }, o.idle) : h('div', { class: 'empty' }, h('div', { class: 'eyebrow-plain' }, 'no attack from this session yet'), h('div', { class: 'display' }, 'Fire one. The line swings, the engine answers, the account is re-read.'))),
-    h('div', { class: 'thetabig', title: THETA_TITLE }, h('span', { class: 'k' }, 'DRIFT FROM POLICY'), h('span', { id: 'theta' }, '0.0°')),
-    h('div', { class: 'plumb', id: 'plumb' }, h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'WHAT POLICY SAYS'), h('div', { class: 'mut' }, 'fetching the live account…')), plumbSvgHost(), h('div', { class: 'col real' })),
-    h('div', { class: 'ft' }, h('span', {}, 'dashed = what policy says · solid = what the live account shows'), h('span', {}, 'degrees of drift · 0 = the live account matches policy · RED holds the line at 13°')));
+    h('div', { class: 'hd' }, h('b', {}, 'Live account'), h('span', { id: 'plst', class: 'st' }, PLST.unknown), h('span', { id: 'plsrc' }, 'prod-db · reading…')),
+    o.noVerdict ? null : h('div', { id: 'verdictbig', class: 'verdict-big', tabindex: '-1' }, o.idle ? h('div', { class: 'mut mono' }, o.idle) : h('div', { class: 'empty' }, h('div', { class: 'eyebrow-plain' }, 'no attack from this session yet'), h('div', { class: 'mut' }, 'Fire one. The engine answers and the account is re-read.'))),
+    h('div', { class: 'plumb', id: 'plumb' }, h('div', { class: 'mut' }, 'fetching the live account…'), plumbSvgHost()),
+    h('div', { class: 'ft' }, h('span', {}, 'Match means the live resource is what policy says it should be. Differs means the verifier found something the ledger never allowed.')));
 }
 
 // the hero stage: the line alone, one read beneath it, one caption. Columns and scale belong to the range.
@@ -491,8 +509,7 @@ async function refreshStage() {
   const r = await api('/api/live-list?session_id=' + encodeURIComponent(state.sid || 'system'));
   const mount = $('#plumb'); if (!mount) return;
   if (!r.ok) {
-    const ghost = (n, d) => h('div', { class: 'pr ghost' }, h('div', { class: 'n' }, n), h('div', { class: 'd' }, d || 'unread via broker'));
-    mount.replaceChildren(h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'WHAT POLICY SAYS'), ghost('LOCKED'), ghost('INFRA'), ghost('SHARED'), h('div', { class: 'd mut', style: 'margin-top:8px;font:11px var(--f-mono)' }, 'the broker could not list the account, so this line cannot claim true. The verifier on the second host reads Vultr on its own: see its status in the strip and its prod-db read on Reconcile.')), plumbSvgHost(), h('div', { class: 'col real' }, h('div', { class: 'colh' }, 'WHAT VULTR SHOWS', h('br'), h('span', { class: 'colt' }, 'unread')), ghost('plumbline-prod-db'), ghost('plumbline-infra-*'), ghost('plumblinereg')));
+    mount.replaceChildren(h('div', { class: 'mut' }, 'The broker could not list the live account right now, so nothing is shown rather than a guess. The verifier on the second host is unaffected: see Reconcile.'), plumbSvgHost());
     plumbObserve(mount); plumbRelayout(); state.liveDown = true; if (!state.busy) plumbReconcile('DEGRADED'); const ch = $('#plsrc'); if (ch) { ch.className = 'unchip'; ch.textContent = 'PROD-DB · UNREAD BY BROKER'; } return; }
   const wasDown = state.liveDown;
   state.liveDown = false; state.live = r.json || {}; stageBody(mount, state.live);
@@ -557,11 +574,17 @@ function drawStrip(v, n) {
   const ageMs = reportAge(v); const fresh = ageMs !== null && ageMs < STALE_MS;
   const [kind, why] = truthKind(v, n, fresh);
   const st = state.liveDown ? 'BROKER DOWN · VERIFIER ' + (v ? fmt(v.status) : 'UNKNOWN') : v ? fmt(v.status) : state.verify ? 'UNREAD' : 'CHECKING';
-  setTruth(kind, st, ageMs === null ? '' : age(ageMs) + ' ago' + (fresh ? '' : ' · stale'), n === null ? '' : `${n} breach${n === 1 ? '' : 'es'}`, why);
+  setTruth(kind, st, ageMs === null ? '' : age(ageMs) + ' ago' + (fresh ? '' : ' · stale'), n === null ? '' : `${n} unauthorized`, why);
   return fresh;
 }
 // the verifier word's colour: green only when GREEN and fresh, red only when RED, amber for stale or unreadable (never red for a stale GREEN)
 function vcls(v, fresh) { return v.status === 'RED' ? 'bad' : (v.status === 'GREEN' && fresh) ? 'true' : 'esc'; }
+function drawProofCard(c, v, n, fresh) {
+  const ver = $('#pc-ver'); if (!ver) return;
+  if (!v) { ver.textContent = 'not read yet'; }
+  else { const ms = reportAge(v); ver.replaceChildren(h('span', { class: v.status === 'RED' ? 'pc-bad' : v.status === 'GREEN' && fresh ? 'pc-ok' : 'pc-warn' }, fmt(v.status)), ' · ' + (ms === null ? 'no age' : age(ms) + ' old') + ' · ' + (n === null ? 'unknown' : n + ' unauthorized')); }
+  const k = $('#pc-counts'); if (k && c) k.textContent = `${fmt(c.attacks)} (${fmt(c.deny)} blocked, ${fmt(c.escalate)} held, ${fmt(c.allow)} allowed)`;
+}
 function drawPayoff(c, v, n, fresh) {
   const po = $('#payoff'); if (!po || !c || !v) return;
   const bad = n !== null && n > 0; const asOf = 'attacks · as of ' + clock(state.proof.generated_at);
@@ -608,6 +631,7 @@ function drawTruth() {
   const v = vr && vr.ok && vr.json ? vr.json : null; const n = breaches(v);
   const fresh = drawStrip(v, n);
   drawPayoff(c, v, n, fresh);
+  drawProofCard(c, v, n, fresh);
   if (v || vr) drawCloser(v, n, fresh);
   if ($('#vstate')) drawVerify(vr);
   if (!PL.svg || state.busy) return;
@@ -710,19 +734,21 @@ function spendSub(spent, cap) {
   if (!known(spent) || !known(cap)) return 'spent ' + (known(spent) ? '$' + spent.toFixed(4) : 'not reported') + ' of ' + (known(cap) ? '$' + cap.toFixed(2) : 'a cap that is not reported');
   if (cap <= 0) return spent > 0 ? `OVERRUN: spent $${spent.toFixed(4)} against a $0.00 cap` : 'the cap is $0.00: nothing can be spent';
   if (spent >= cap) return `OVERRUN: spent $${spent.toFixed(4)}, ${((spent / cap) * 100).toFixed(0)}% of the stop`;
-  return `spent $${spent.toFixed(4)} · the level rises toward the limit; the agent cannot pass it`;
+  return 'The agent cannot raise this limit, and a call that would pass it is denied before it reaches Vultr.';
 }
 function spendStop(lbl, spentRaw, capRaw) {
   const spent = known(spentRaw) ? Number(spentRaw) : null; const cap = known(capRaw) ? Number(capRaw) : null;
   const both = known(spent) && known(cap);
   const over = both && (cap > 0 ? spent >= cap : spent > 0);
   const pct = !both ? 0 : over ? 100 : cap > 0 ? (spent / cap) * 100 : 0;
-  return h('div', { class: 'stop' + (over ? ' over' : '') }, h('div', { class: 'rail' }), h('div', { class: 'cap' }), h('div', { class: 'fill', style: `height:${pct.toFixed(1)}%` }), h('div', { class: 'bobx', style: `bottom:${pct.toFixed(1)}%` }),
-    h('div', { class: 'lbl' }, lbl + (over ? ' · OVERRUN' : '')), h('div', { class: 'val' }, known(cap) ? `$${cap.toFixed(2)}` : 'not reported'), h('div', { class: 'sub' }, spendSub(spent, cap)));
+  return h('div', { class: 'meter' + (over ? ' over' : '') }, h('div', { class: 'lbl' }, lbl + (over ? ' · OVERRUN' : '')),
+    h('div', { class: 'mrow' }, h('span', { class: 'mspent' }, known(spent) ? `$${spent.toFixed(4)}` : 'not reported'), h('span', { class: 'mcap' }, known(cap) ? ` spent of a $${cap.toFixed(2)} limit` : ' (limit not reported)')),
+    h('div', { class: 'bar', role: 'img', 'aria-label': both ? `${pct.toFixed(0)} percent of the limit used` : 'usage not reported' }, h('i', { style: `width:${pct.toFixed(1)}%` })),
+    h('div', { class: 'sub' }, spendSub(spent, cap)));
 }
 function spendView(raw, mount) {
   const s = raw || {};
-  mount.replaceChildren(h('div', { class: 'stops' }, spendStop('session ceiling · unraisable', s.session_usd, s.session_ceiling_usd), spendStop('global cap', s.global_usd, s.global_cap_usd)),
+  mount.replaceChildren(h('div', { class: 'stops' }, spendStop('Per-session limit', s.session_usd, s.session_ceiling_usd), spendStop('Overall limit', s.global_usd, s.global_cap_usd)),
     h('div', { class: 'mut', style: 'font-size:12px;margin-top:16px' }, fmt(s.basis) + ' to four decimals: ' + fmt(s.note) + '.'));
 }
 
@@ -1081,18 +1107,13 @@ function statusKv(s) {
 const pages = {
   async index() {
     landingChrome();
-    $('#stagehost').replaceWith(heroStage()); $('#stage').classList.add('fade-up');
-    const replayP = api('/api/replay');
-    tableLabel('#recent', 'Recent verdicts');
-    refreshStage().then(plumbSettle); refreshTruth(true);
-    $('#diagram').append(diagramSvg());
-    replayP.then((r) => {
-      const out = $('#recent'); if (!out || !r.ok || !Array.isArray(r.json)) return; out.replaceChildren();
+    refreshTruth(true);
+    api('/api/replay').then((r) => {
+      const out = $('#pc-last'); if (!out || !r.ok || !Array.isArray(r.json)) return;
       const rows = r.json.filter((x) => x.session_id !== 'system');
-      rows.slice(0, 8).forEach((row, i) => { const tr = ledgerRow(row, true); if (i === 0) tr.classList.add('flash'); out.append(tr); });
-      verdictGrid(r.json);
-      const last = rows.find((x) => x.decision === 'DENY' && /protect|prod/.test(x.rule_id)) || rows.find((x) => x.decision === 'DENY');
-      if (last) { state.heroVerdict = last; heroLoop(); }
+      const last = rows.find((x) => x.decision === 'DENY') || rows[0]; if (!last) { out.textContent = 'no verdicts recorded yet'; return; }
+      const q = (() => { try { return JSON.parse(last.detail_json).call || {}; } catch (e) { return {}; } })();
+      out.replaceChildren(h('span', { class: 'badge ' + last.decision }, last.decision), h('code', {}, last.rule_id), h('p', {}, plainLine({ decision: last.decision, quoted_call: q }, last.decision === 'DENY' ? ' Nothing ran.' : '')), h('span', { class: 'faint' }, clock(last.ts) + ' · ' + ago(last.ts)));
     });
   },
   async range() {
@@ -1124,20 +1145,33 @@ const pages = {
   },
   async replay() {
     shell('replay'); tableLabel('#rout', 'All verdicts');
-    const r = await api('/api/replay');
+    const r = await api('/api/replay?limit=400');
     const out = $('#rout'); out.replaceChildren();
     const rows = Array.isArray(r.json) ? r.json : [];
-    if (!r.ok || !rows.length) { $('#rsum').textContent = r.ok ? 'no recorded decisions yet' : 'ledger unavailable (' + (r.status ? 'HTTP ' + r.status : 'broker unreachable') + ')'; refreshTruth(false); return out.append(h('tr', {}, h('td', { colspan: 6 }, 'No recorded decisions yet. Nothing is fabricated.'))); }
-    const draw = (f) => { out.replaceChildren(); rows.filter((row) => f === 'ALL' || row.decision === f).forEach((row) => out.append(ledgerRow(row, false))); };
-    draw('ALL');
+    if (!r.ok || !rows.length) { $('#rsum').textContent = r.ok ? 'no recorded decisions yet' : 'ledger unavailable (' + (r.status ? 'HTTP ' + r.status : 'broker unreachable') + ')'; refreshTruth(false); return out.append(h('tr', {}, h('td', { class: 'mut', colspan: '6' }, 'nothing to show'))); }
+    const F = { verdict: 'ALL', rule: 'ALL', sys: false, page: 1 };
+    const isSys = (row) => row.session_id === 'system';
+    const agentRows = rows.filter((row) => !isSys(row));
+    const sel = $('#lrule');
+    const fillRules = () => { sel.replaceChildren(h('option', { value: 'ALL' }, 'all rules')); [...new Set((F.sys ? rows : agentRows).map((row) => row.rule_id))].sort().forEach((id) => sel.append(h('option', { value: id }, id))); };
+    fillRules();
+    const draw = () => {
+      out.replaceChildren();
+      const shown = rows.filter((row) => (F.sys || !isSys(row)) && (F.verdict === 'ALL' || row.decision === F.verdict) && (F.rule === 'ALL' || row.rule_id === F.rule));
+      shown.slice(0, F.page * 50).forEach((row) => out.append(ledgerRow(row, false)));
+      const more = $('#lmore'); if (more) { const left = shown.length - F.page * 50; more.hidden = left <= 0; more.textContent = `Show ${Math.min(50, Math.max(left, 0))} more (${Math.max(left, 0)} left)`; }
+      if (!shown.length) out.append(h('tr', {}, h('td', { class: 'mut', colspan: '6' }, 'no decisions match these filters')));
+      const c = {}; shown.forEach((row) => { c[row.decision] = (c[row.decision] || 0) + 1; });
+      $('#rsum').textContent = `${shown.length} shown · ${c.DENY || 0} blocked · ${c.ESCALATE || 0} held · ${c.ALLOW || 0} allowed · ${agentRows.length} agent decisions and ${rows.length - agentRows.length} system housekeeping rows loaded (the most recent ${rows.length}) · read from the append-only ledger`;
+    };
     const fbtns = [...document.querySelectorAll('[data-f]')];
     const press = (b) => fbtns.forEach((x) => { const on = x === b; x.classList.toggle('primary', on); x.classList.toggle('f', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     press(fbtns.find((b) => b.dataset.f === 'ALL'));
-    fbtns.forEach((b) => b.addEventListener('click', () => { press(b); draw(b.dataset.f); const tr = out.querySelector('tr'); if (tr) tr.classList.add('flash'); }));
-    const c = {}; rows.forEach((row) => { c[row.decision] = (c[row.decision] || 0) + 1; });
-    const d0 = ago(rows[rows.length - 1].ts).slice(0, 10); const d1 = ago(rows[0].ts).slice(0, 10);
-    $('#rsum').textContent = `${rows.length} most recent decisions · ${c.DENY || 0} DENY · ${c.ESCALATE || 0} ESCALATE · ${c.ALLOW || 0} ALLOW · ${d0 === d1 ? d0 : d0 + ' to ' + d1} UTC · read from the append-only ledger`;
-    refreshTruth(false);
+    fbtns.forEach((b) => b.addEventListener('click', () => { press(b); F.verdict = b.dataset.f; F.page = 1; draw(); const tr = out.querySelector('tr'); if (tr) tr.classList.add('flash'); }));
+    sel.addEventListener('change', () => { F.rule = sel.value; F.page = 1; draw(); });
+    $('#lmore').addEventListener('click', () => { F.page += 1; draw(); });
+    $('#lsys').addEventListener('change', (e) => { F.sys = e.target.checked; F.rule = 'ALL'; F.page = 1; fillRules(); draw(); });
+    draw(); refreshTruth(false);
   },
   async status() {
     shell('status');
@@ -1167,7 +1201,12 @@ const pages = {
   async policy() {
     shell('policy'); refreshTruth(false);
     $('#errs').setAttribute('role', 'status'); $('#tamperout').setAttribute('role', 'status');
-    if (!(await ensureSession())) return;
+    if (!(await ensureSession())) {
+      // no session means no sandbox copy to edit: say so in the editor's place instead of leaving an empty box and an empty diff
+      $('#yaml').replaceWith(h('p', { class: 'mut', id: 'yaml' }, 'The editable sandbox copy needs a demo session, and this address cannot start one right now (see the notice at the top). The rules are plain YAML: see Concepts for the format and Run it yourself to edit them on your own deployment.'));
+      $('#save').disabled = true; $('#diff').textContent = 'no sandbox copy to compare';
+      return;
+    }
     const diffText = (j) => Array.isArray(j.diff) && j.diff.length ? j.diff.join('\n') : 'no differences from the default';
     const load = async () => {
       const r = await api('/api/policy/' + state.sid);
@@ -1187,17 +1226,14 @@ const pages = {
   },
   // rewind.html carries its own inline script and owns #del/#rew. This only makes sure the session cookie exists; the first
   // load of a direct link has none yet when that script first asks, so reload once (guarded: blocked cookies must not loop).
-  async rewind() {
-    shell('rewind'); refreshTruth(false);
+  async recovery() {
+    shell('recovery'); refreshTruth(false);
+    $('#bondout').setAttribute('role', 'status');
+    const r = await api('/api/bond'); const j = r.json || {};
+    $('#bondout').textContent = r.ok && r.json ? (j.enabled ? (j.free === undefined ? `no session yet: ${fmt(j.burned_actions)} burn(s) across ${fmt(j.sessions)} session(s); open the demo to get your own bond` : bondNumerals(j)) : 'bond disabled on this deployment') : 'bond unavailable (' + (r.status ? 'HTTP ' + r.status : 'broker unreachable') + ')';
     if (!(await ensureSession()) || !state.fresh) { try { sessionStorage.removeItem('plb_reloaded'); } catch (e) { /* storage blocked */ } return; }
     try { if (sessionStorage.getItem('plb_reloaded')) return; sessionStorage.setItem('plb_reloaded', '1'); } catch (e) { return; }
     location.reload();
-  },
-  async bond() {
-    shell('bond'); refreshTruth(false);
-    $('#bondout').setAttribute('role', 'status');
-    const r = await api('/api/bond'); const j = r.json || {};
-    $('#bondout').textContent = r.ok && r.json ? (j.enabled ? (j.free === undefined ? `no session yet: ${fmt(j.burned_actions)} burn(s) across ${fmt(j.sessions)} session(s); open the Range to get your own bond` : bondNumerals(j)) : 'bond rung not enabled on this deployment (its gate has not passed)') : 'unavailable';
   },
   async proof() {
     shell('proof'); refreshTruth(false); tableLabel('#pmodels', 'Inference usage by model');
@@ -1206,7 +1242,7 @@ const pages = {
     if (!r.ok || !r.json) return out.append('proof unavailable');
     const p = r.json; const c = p.counts || {}; const fl = p.floor || {};
     const cell = (cls, n, k) => h('div', {}, h('div', { class: 'bignum' + (cls ? ' ' + cls : '') }, fmt(n)), h('div', { class: 'k' }, k));
-    out.append(h('div', { class: 'statrow' }, cell('', c.tasks, 'attacks · as of ' + clock(p.generated_at)), cell('', c.attacks, 'tool calls judged'), cell('bad', c.deny, 'DENY'), cell('esc', c.escalate, 'ESCALATE'), cell('true', c.allow, 'ALLOW')));
+    out.append(h('div', { class: 'statrow' }, cell('', c.tasks, 'attacks · as of ' + clock(p.generated_at)), cell('', c.attacks, 'tool calls judged'), cell('block', c.deny, 'DENY'), cell('esc', c.escalate, 'ESCALATE'), cell('true', c.allow, 'ALLOW')));
     out.append(h('div', { class: 'mut mono', style: 'margin-top:10px;font-size:11.5px' }, 'regenerate tool calls judged: sqlite3 ledger.sqlite "SELECT decision, COUNT(*) FROM decisions WHERE session_id != \'system\' GROUP BY 1"'),
       h('div', { class: 'mut mono', style: 'margin-top:6px;font-size:11.5px' }, 'regenerate the attack count: sqlite3 ledger.sqlite "SELECT COUNT(DISTINCT task_id) FROM decisions WHERE session_id != \'system\'"  (one attack = one operator task; it can make several judged tool calls, so tool calls are the larger number)'));
     out.append(h('div', { class: 'mono', style: 'margin-top:6px;font-size:11.5px' }, `production floor v${fmt(fl.version)} ${fmt(fl.hash)}`));
@@ -1243,7 +1279,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ground();
   document.body.prepend(h('div', { id: 'banner', role: 'alert' }));
   announce('');
-  const fill = $('#trust'); if (fill) fill.replaceWith(['index', 'range', 'verify'].includes(page) ? trustPanel() : h('details', Object.assign({ class: 'panel drawer', style: 'margin-top:14px' }, {}), h('summary', {}, 'Trust root: what this proves and does NOT prove'), trustPanel()));
+  const fill = $('#trust'); if (fill) { if (['range', 'verify'].includes(page)) fill.replaceWith(trustPanel()); else fill.remove(); }
   motionWiring();
   const run = pages[page] || (async () => shell(page));
   const boot = run(); reveals(); scrollProgress(); stepper(); boot.catch((e) => showBanner('page error: ' + e.message)).finally(() => { reveals(); });

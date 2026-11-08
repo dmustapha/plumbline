@@ -123,49 +123,68 @@ describe('brand assets (design-forge logo)', () => {
   });
 });
 
-describe('product framing for the real users (platform leads first)', () => {
-  it('the landing states the platform-team claim, labels the demo account and links the run-it-yourself page', () => {
+describe('structure for the real users (platform leads first)', () => {
+  const NEW_PAGES = ['index', 'range', 'policy', 'status', 'recovery', 'replay', 'verify', 'proof', 'about', 'architecture', 'concepts', 'integrate', 'deploy'];
+  it('ships every page of the six-part structure and no page of the old layout that was merged away', () => {
+    for (const p of NEW_PAGES) expect(html, p).toContain(`${p}.html`);
+    expect(html).not.toContain('rewind.html'); expect(html).not.toContain('bond.html'); expect(html).not.toContain('run.html');
+  });
+  it('the route table maps the new addresses and redirects the old ones', () => {
+    const r = readFileSync(new URL('../src/routes.ts', import.meta.url), 'utf8');
+    for (const route of ["'/try'", "'/controls/policy'", "'/controls/limits'", "'/controls/recovery'", "'/audit/ledger'", "'/audit/reconcile'", "'/audit/evidence'", "'/docs/safety'", "'/docs/architecture'", "'/docs/concepts'", "'/docs/integrate'", "'/deploy'"]) expect(r, route).toContain(route);
+    expect(r).toContain('MOVED');
+  });
+  it('the overview states the platform-team claim, labels the demo and routes each audience to its pages', () => {
     const idx = read('index.html');
-    expect(idx).toContain('FOR TEAMS GIVING AI AGENTS CLOUD ACCESS');
+    expect(idx).toContain('FOR PLATFORM TEAMS GIVING AI AGENTS CLOUD ACCESS');
     expect(idx).toContain('demo account we own');
-    expect(idx).toContain('href="/run"');
-    expect(idx).toContain('id="whofor"');
+    for (const id of ['procard', 'guarantees', 'flow', 'whofor', 'honest']) expect(idx, id).toContain(`id="${id}"`);
+    for (const href of ['/try?fire=prod', '/deploy', '/docs/architecture', '/docs/integrate', '/audit/reconcile']) expect(idx, href).toContain(`href="${href}"`);
+    expect(idx).not.toMatch(/blast radius at zero/i);
   });
-  it('/run exists, is registered as a route, and covers setup, keys, policy, approvals, audit and the scope', () => {
-    expect(html).toContain('run.html');
-    expect(readFileSync(new URL('../src/routes.ts', import.meta.url), 'utf8')).toContain("'/run': 'run.html'");
-    const run = read('run.html');
-    for (const h of ['Set it up', 'Where your keys live', 'Write your policy', 'Approvals', 'Audit your account', 'What you get today, and what you do not']) expect(run, h).toContain(h);
-  });
-  it('the safety model defines every unfamiliar term in plain words and states the release scope', () => {
-    const about = read('about.html');
-    for (const t of ['Broker', 'Policy engine', 'Floor', 'Escalate', 'Verifier', 'Watchdog', 'Tier', 'Ceiling', 'Bond', 'Rewind', 'Drift']) expect(about, t).toContain(`<dt>${t}</dt>`);
-    expect(about).toContain('What this release is, and is not');
-  });
-  it('the metaphor labels were replaced by plain ones, and the verdict panel leads with one plain sentence', () => {
+  it('the navigation uses the six groups and the new addresses', () => {
     const js = read('app.js');
-    for (const old of ['HANGING TRUE', 'OFF PLUMB', 'AUTHORITY · ENGINE', 'REALITY · VULTR', 'ANGLE OFF TRUE']) expect(js, old).not.toContain(old);
-    for (const now of ['NO DRIFT', 'WHAT POLICY SAYS', 'WHAT VULTR SHOWS', 'DRIFT FROM POLICY', 'plainverdict']) expect(js, now).toContain(now);
+    for (const g of ["'TRY IT'", "'CONTROLS'", "'AUDIT'", "'DOCS'", "'DEPLOY'"]) expect(js, g).toContain(g);
+    for (const h of ['/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy']) expect(js, h).toContain(`'${h}'`);
+  });
+  it('every page that shows our demo account carries the scope note', () => {
+    expect(read('app.js')).toMatch(/DEMO_SCOPE = new Set\(\['range', 'policy', 'status', 'recovery', 'replay', 'verify', 'proof'\]\)/);
+  });
+  it('recovery merges the undo and the bond, with both scripts and no duplicate element ids', () => {
+    const rec = read('recovery.html');
+    for (const id of ['undo', 'bond', 'del', 'rew', 'bondout', 'burnlist']) expect(rec, id).toContain(`id="${id}"`);
+    const ids = [...rec.matchAll(/ id="([^"]+)"/g)].map((m) => m[1]); expect(new Set(ids).size).toBe(ids.length);
+  });
+  it('the docs pages exist with their content: architecture, concepts, integration contract, deploy', () => {
+    const arch = read('architecture.html'); for (const t of ['The components', 'One request, start to finish', 'Trust boundaries', 'role="img"']) expect(arch, t).toContain(t);
+    const con = read('concepts.html'); for (const t of ['Broker', 'Policy engine', 'Floor', 'Escalate', 'Verifier', 'Watchdog', 'Tier', 'Spend limit', 'Kill switch', 'Bond', 'Rewind', 'Ledger', 'Rung and gate', 'Compliant-operator mode']) expect(con, t).toContain(`<dt>${t}</dt>`);
+    const int = read('integrate.html'); for (const t of ['POST /v1/call', 'AUTH_TASK_TOKEN_INVALID', 'ARGS_INVALID', 'ESCALATE']) expect(int, t).toContain(t);
+    const dep = read('deploy.html'); for (const t of ['Before you start', 'Set it up', 'Where your keys live', 'Write your policy', 'Plug in your agent', 'Approvals', 'Audit your account', 'Status and roadmap', 'class="glance"']) expect(dep, t).toContain(t);
+  });
+  it('the safety model keeps claims, non-claims and scope and points to Concepts for the vocabulary', () => {
+    const about = read('about.html'); expect(about).toContain('What this release is, and is not'); expect(about).toContain('/docs/concepts'); expect(about).not.toContain('<dt>');
+  });
+  it('colour semantics: DENY is a calm block colour, red is reserved for a differing account or an error', () => {
+    const css = read('style.css');
+    expect(css).toMatch(/\.badge\.DENY \{[^}]*var\(--block/); expect(css).not.toMatch(/\.badge\.DENY[^{]*\{[^}]*var\(--deny/);
+    expect(css).toMatch(/\.badge\.ALLOW \{[^}]*var\(--ink/);
+  });
+  it('the swinging gauge is gone from the pages: a reconcile table with match chips replaces it', () => {
+    const js = read('app.js').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+    for (const t of ["'What Vultr shows'", "'What policy says'", "'MATCHES'", "'DIFFERS'", 'MATCHES POLICY']) expect(js, t).toContain(t);
+    for (const old of ['HANGING TRUE', 'OFF PLUMB', 'AUTHORITY · ENGINE', 'REALITY · VULTR', 'ANGLE OFF TRUE', 'THE PLUMBLINE', 'DRIFT FROM POLICY']) expect(js, old).not.toContain(old);
+    expect(js).toContain('plainverdict');
   });
 });
 
 describe('plain words on every page and no leftover metaphor copy', () => {
   it('every working page opens with a plain-words line', () => {
-    for (const f of ['status', 'bond', 'policy', 'rewind', 'proof', 'verify', 'replay']) expect(read(`${f}.html`), f).toContain('class="plainline"');
+    for (const f of ['status', 'policy', 'proof', 'verify', 'replay', 'recovery']) expect(read(`${f}.html`), f).toContain('class="plainline"');
   });
   it('no user-facing page says the line hangs true, the bob, or off plumb (comments excepted)', () => {
     for (const f of html) expect(read(f), f).not.toMatch(/hangs true|off plumb/i);
     const code = read('app.js').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n').replace(/\/\/ .*$/gm, '');
     for (const bad of ['the line hangs true', 'the line is off plumb', 'the bob rises', 'the bob stays', 'the bob:']) expect(code, bad).not.toContain(bad);
-  });
-  it('/run covers adoption: prerequisites, how an agent plugs in, supported clouds, support, and that the strip is the demo', () => {
-    const run = read('run.html');
-    for (const t of ['Read this first', 'Before you start', 'How your agent plugs in', 'Only the Vultr adapter exists', 'Questions and support']) expect(run, t).toContain(t);
-  });
-  it('the safety model defines compliant-operator mode and rung/gate in plain words', () => {
-    const about = read('about.html');
-    expect(about).toContain('<dt>Compliant-operator mode</dt>');
-    expect(about).toContain('<dt>Rung and gate</dt>');
   });
 });
 
@@ -179,9 +198,6 @@ describe('the shipped script is valid JavaScript', () => {
 });
 
 describe('honest readings and no needless errors', () => {
-  it('the drift readout is exactly 0.0 while the verifier says the account matches', () => {
-    expect(read('app.js')).toMatch(/PL\.mode === 'true' \? '0\.0°'/);
-  });
   it('the proof page mints a session only when a live probe is pressed', () => {
     const js = read('app.js'); const i = js.indexOf('async containment()'); const body = js.slice(i, js.indexOf('async policy()', i));
     expect(body).not.toMatch(/^\s*if \(!\(await ensureSession\(\)\)\) return;\s*$/m);
@@ -189,6 +205,17 @@ describe('honest readings and no needless errors', () => {
   });
   it('the session-limit message says what to do instead of printing a status code', () => {
     expect(read('app.js')).toContain('maximum of live demo sessions');
+  });
+});
+
+describe('the ledger is built for the audit job', () => {
+  it('filters by verdict and rule, hides system housekeeping by default, pages 50 at a time, and offers the export', () => {
+    const h = read('replay.html'); const js = read('app.js');
+    for (const t of ['data-f="DENY"', 'data-f="ESCALATE"', 'id="lrule"', 'id="lsys"', 'id="lmore"', 'href="/ledger/export"']) expect(h, t).toContain(t);
+    expect(js).toContain("sys: false"); expect(js).toContain('F.page * 50'); expect(js).toContain("api('/api/replay?limit=400')");
+  });
+  it('the reconcile table adapts to its own width and never depends on the window', () => {
+    const css = read('style.css'); expect(css).toContain('container-type: inline-size'); expect(css).toContain('@container (max-width: 620px)');
   });
 });
 

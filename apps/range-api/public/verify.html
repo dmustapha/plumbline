@@ -8,12 +8,6 @@
 <div class="panel fade-up" style="--d:0.00s"><h2>Independent verifier</h2><h3 class="display">A second host, a second region, its own read‑only key</h3>
 <div id="vstate" class="mut">loading...</div>
 <div class="row"><button id="vrun" class="primary ghost">Re-read the account now</button><span class="mut" style="font-size:12px">lists the live Vultr account twice, 3 s apart; compares it to the hash-chained ledger export and the owner baseline; re-runs the policy engine on what Vultr reports</span></div></div>
-<div id="stagehost"></div>
-</div>
-<div class="two" style="margin-top:14px">
-<div class="panel fade-up" style="--d:0.08s" id="vprod"><h3>The second host&#39;s own read of plumbline-prod-db</h3>
-<p class="mut" style="font-size:12.5px">Read by the verifier host from the Vultr API, not relayed by the broker.</p>
-<div id="vprodout" class="mut mono" style="font-size:11.5px">loading...</div></div>
 <div class="panel fade-up" style="--d:0.16s" id="vlimits"><h3>Stated limits</h3>
 <ul style="font-size:12.5px">
 <li>Point-in-time: a resource created and destroyed between two polls is not seen. A destroy is visible within about 0.8 s, so a rogue VM is declared only when it is present at both polls.</li>
@@ -21,6 +15,10 @@
 <li>Not covered with a view-only key: firewall groups (403), Object Storage buckets (403), dollar ceiling and session spend. Covered: instances, VPCs, container registries.</li>
 </ul></div>
 </div>
+<div id="stagehost" style="margin-top:var(--s-5)"></div>
+<div style="margin-top:var(--s-5)"><div class="panel fade-up" style="--d:0.08s" id="vprod"><h3>The second host&#39;s own read of plumbline-prod-db</h3>
+<p class="mut" style="font-size:12.5px">Read by the verifier host from the Vultr API, not relayed by the broker.</p>
+<div id="vprodout" class="mut mono" style="font-size:11.5px">loading...</div></div></div>
 <div id="trust" style="margin-top:14px"></div>
 </main>
 <script src="/app.js"></script></body></html>

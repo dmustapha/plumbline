@@ -1,0 +1,702 @@
+[
+ {
+  "path": "/",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [
+   "svg.ovflow@669",
+   "g.node core@397",
+   "rect.@397",
+   "text.t2@327"
+  ],
+  "smallTargets": 13,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 13,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 12,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 13,
+  "axe": []
+ },
+ {
+  "path": "/",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 13,
+  "axe": []
+ },
+ {
+  "path": "/try",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [
+   "TABLE.recon@500",
+   "CAPTION.@500",
+   "THEAD.@500",
+   "TR.@500"
+  ],
+  "smallTargets": 0,
+  "axe": []
+ },
+ {
+  "path": "/try",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [
+   "TABLE.recon@804",
+   "CAPTION.@804",
+   "THEAD.@804",
+   "TR.@804"
+  ],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/try",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [
+   "TABLE.recon@1072",
+   "CAPTION.@1072",
+   "THEAD.@1072",
+   "TR.@1072"
+  ],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/try",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [
+   "TABLE.recon@1476",
+   "CAPTION.@1476",
+   "THEAD.@1476",
+   "TR.@1476"
+  ],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/try",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/controls/policy",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 0,
+  "axe": []
+ },
+ {
+  "path": "/controls/policy",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/controls/policy",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/controls/policy",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/controls/policy",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/controls/limits",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 0,
+  "axe": []
+ },
+ {
+  "path": "/controls/limits",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/controls/limits",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/controls/limits",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/controls/limits",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/controls/recovery",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 0,
+  "axe": []
+ },
+ {
+  "path": "/controls/recovery",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/controls/recovery",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/controls/recovery",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/controls/recovery",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/audit/ledger",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/audit/ledger",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/audit/ledger",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 6,
+  "axe": []
+ },
+ {
+  "path": "/audit/ledger",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/audit/ledger",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/audit/reconcile",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [
+   "TABLE.recon@498",
+   "CAPTION.@498",
+   "THEAD.@498",
+   "TR.@498"
+  ],
+  "smallTargets": 0,
+  "axe": []
+ },
+ {
+  "path": "/audit/reconcile",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [
+   "TABLE.recon@796",
+   "CAPTION.@796",
+   "THEAD.@796",
+   "TR.@796"
+  ],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/audit/reconcile",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [
+   "TABLE.recon@1064",
+   "CAPTION.@1064",
+   "THEAD.@1064",
+   "TR.@1064"
+  ],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/audit/reconcile",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/audit/reconcile",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/audit/evidence",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 0,
+  "axe": []
+ },
+ {
+  "path": "/audit/evidence",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/audit/evidence",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/audit/evidence",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/audit/evidence",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/docs/safety",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/docs/safety",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/docs/safety",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 6,
+  "axe": []
+ },
+ {
+  "path": "/docs/safety",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/safety",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/architecture",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [
+   "svg.arch@806",
+   "g.zone@540",
+   "rect.@540",
+   "text.zl@495"
+  ],
+  "smallTargets": 0,
+  "axe": []
+ },
+ {
+  "path": "/docs/architecture",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [
+   "svg.arch@822",
+   "g.zone alt@814",
+   "rect.@814",
+   "g.node@798"
+  ],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/docs/architecture",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/architecture",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/architecture",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/concepts",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 1,
+  "axe": []
+ },
+ {
+  "path": "/docs/concepts",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/docs/concepts",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/concepts",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/concepts",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 4,
+  "axe": []
+ },
+ {
+  "path": "/docs/integrate",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 2,
+  "axe": []
+ },
+ {
+  "path": "/docs/integrate",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 3,
+  "axe": []
+ },
+ {
+  "path": "/docs/integrate",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 6,
+  "axe": []
+ },
+ {
+  "path": "/docs/integrate",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/docs/integrate",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/deploy",
+  "w": 320,
+  "iw": 320,
+  "sw": 320,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 5,
+  "axe": []
+ },
+ {
+  "path": "/deploy",
+  "w": 768,
+  "iw": 768,
+  "sw": 768,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 6,
+  "axe": []
+ },
+ {
+  "path": "/deploy",
+  "w": 1024,
+  "iw": 1024,
+  "sw": 1024,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 8,
+  "axe": []
+ },
+ {
+  "path": "/deploy",
+  "w": 1440,
+  "iw": 1440,
+  "sw": 1440,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 8,
+  "axe": []
+ },
+ {
+  "path": "/deploy",
+  "w": 1920,
+  "iw": 1920,
+  "sw": 1920,
+  "overflow": false,
+  "wide": [],
+  "smallTargets": 8,
+  "axe": []
+ }
+]

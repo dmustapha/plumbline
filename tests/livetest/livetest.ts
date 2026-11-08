@@ -27,7 +27,7 @@ const decisive = (run: { verdicts: Json[] }): Json => (run.verdicts.find((v) => 
 async function pace(last: { t: number }): Promise<void> { const wait = 21_000 - (Date.now() - last.t); if (wait > 0) await sleep(wait); last.t = Date.now(); }
 
 // ---------------- V1: every named feature works at all ----------------
-const PAGES = ['/', '/range', '/range/policy', '/range/rewind', '/range/bond', '/verify', '/replay', '/status', '/proof', '/about'];
+const PAGES = ['/', '/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy'];
 for (const p of PAGES) { const r = await raw(p); T(`V1-PAGE-${p}`, 'V1', `GET ${p}`, '200 + html + brand marker', `${r.status} ${r.text.length}b`, r.status === 200 && r.text.length > 1024 && /Plumbline/i.test(r.text)); }
 for (const a of ['/logo.svg', '/favicon.svg', '/favicon-32.png', '/og-image.png', '/app.js', '/style.css']) { const r = await raw(a); T(`V1-ASSET-${a}`, 'V1', `GET ${a}`, '200', r.status, r.status === 200); }
 const h = await get('/healthz'); T('V1-HEALTH', 'V1', '/healthz', 'ok:true', h.json, h.json.ok === true);

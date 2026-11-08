@@ -1,9 +1,12 @@
-<!-- File: apps/range-api/public/rewind.html -->
+<!-- File: apps/range-api/public/recovery.html -->
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline rewind</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline rewind"><meta property="og:description" content="Let an AI agent operate your cloud account with a blast radius of zero. A live Vultr demo you can attack, and a second host that re-reads the account to prove nothing changed."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
-<body data-page="rewind"><main class="sheet">
-<p class="plainline"><b>In plain words:</b> Object Storage keeps old versions, so a deleted object can be brought back. This is the one live undo; a deleted server cannot be restored.</p>
-<div class="panel lift"><h2>Rewind: bucket plumbline-orders-db (versioned)</h2>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline recovery</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline rewind"><meta property="og:description" content="Let an AI agent operate your cloud account with a blast radius of zero. A live Vultr demo you can attack, and a second host that re-reads the account to prove nothing changed."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="recovery">
+<main>
+<p class="plainline"><b>In plain words:</b> recovery has two parts. Object Storage keeps old versions, so a deleted object can be brought back; that is the one live undo, and a deleted server cannot be restored. For actions that cannot be undone, each session has a small dollar bond: an approved irreversible delete burns some of it, and while it is low, new servers are refused.</p>
+<nav class="jump" aria-label="On this page"><a href="#undo">Undo</a><a href="#bond">Bond</a></nav>
+<section id="undo">
+<div class="panel lift"><h2>Undo: restore a deleted object (bucket plumbline-orders-db, versioned)</h2>
 <p class="mut">Object Storage versioning is the only live undo here. A VM snapshot takes minutes, so no VM undo is claimed. You act on your own copy of the canary object; the shared orders.json is never touched.</p>
 <div class="row"><button id="del">Delete your orders.json</button><button id="rew" class="primary">Rewind</button><button id="approve" hidden>Approve irreversible delete</button></div>
 <p id="state" class="mut">loading...</p>
@@ -12,6 +15,19 @@
 <p class="mut">Read straight from Object Storage ListObjectVersions on every refresh. It is not this page's state.</p>
 <div id="versions" class="mut">loading...</div>
 <p id="source" class="mut"></p></div>
+
+</section>
+<section id="bond">
+<div class="panel lift"><h2>Bond: the budget for irreversible actions</h2>
+<p class="mut">A risk budget, not a deterrent: authority is the deterrent. An approved irreversible delete (an object with no restore point) holds then burns bond; while the free bond is below the price of a provision, that provision is refused with <code>bond-insufficient</code> before any network call.</p>
+<pre id="bondout">loading...</pre></div>
+<div class="panel"><h2>Ledger rows</h2>
+<p class="mut">Every line below is a decision row read from the append-only ledger. Nothing here is typed or computed in the page.</p>
+<div id="burns"><h3>Burned by an approved delete</h3><ul id="burnlist"></ul></div>
+<div id="refusals"><h3>Refused after the slash</h3><ul id="refuselist"></ul></div>
+</div>
+
+</section>
 <div id="trust"></div>
 </main>
 <script src="/app.js"></script>
@@ -140,4 +156,44 @@
   $('approve').addEventListener('click', approve);
   refresh();
 }());
-</script></body></html>
+</script>
+<script>
+(function () {
+  function line(row, text) {
+    var li = document.createElement('li');
+    var code = document.createElement('code');
+    code.textContent = row.id;
+    li.append(code, document.createTextNode(' ' + text));
+    return li;
+  }
+  function fill(id, rows, none, text) {
+    var ul = document.getElementById(id);
+    ul.replaceChildren();
+    if (!rows.length) { var li = document.createElement('li'); li.className = 'mut'; li.textContent = none; ul.append(li); return; }
+    rows.forEach(function (r) { ul.append(line(r, text(r))); });
+  }
+  // a missing, unparseable or literal-null detail is an empty object, never a crash
+  function detail(r) { try { var d = JSON.parse(r.detail_json); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; } }
+  function call(r) { var c = detail(r).call; return c && typeof c === 'object' ? c : {}; }
+  function stamp(r) { var d = new Date(r.ts); return isFinite(d.getTime()) ? d.toISOString().replace('T', ' ').slice(0, 19) + 'Z' : 'time not reported'; }
+  function unavailable(why) {
+    ['burnlist', 'refuselist'].forEach(function (id) {
+      var ul = document.getElementById(id); ul.replaceChildren();
+      var li = document.createElement('li'); li.className = 'mut'; li.textContent = 'ledger unavailable (' + why + '): nothing is shown rather than a guess'; ul.append(li);
+    });
+  }
+  var opts = { credentials: 'same-origin' };
+  if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) opts.signal = AbortSignal.timeout(15000);
+  fetch('/api/replay', opts).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }).then(function (rows) {
+    if (!Array.isArray(rows)) throw new Error('no ledger rows in the answer');
+    var burns = rows.filter(function (r) { return r && r.decision === 'ALLOW' && r.class === 'bucket_object' && r.verb === 'delete' && call(r).approved_from; });
+    var refusals = rows.filter(function (r) { return r && r.decision === 'DENY' && r.rule_id === 'bond-insufficient'; });
+    fill('burnlist', burns, 'no approved irreversible delete in the recent ledger', function (r) { return 'ALLOW delete ' + r.target_id + ' (approved ' + call(r).approved_from + ') at ' + stamp(r); });
+    fill('refuselist', refusals, 'no bond refusal in the recent ledger', function (r) { return 'DENY bond-insufficient ' + r.verb + ' ' + r.class + ' at ' + stamp(r) + ': ' + (detail(r).reason || ''); });
+  }).catch(function (e) { unavailable(e && e.message ? e.message : 'unreachable'); });
+}());
+</script>
+</body></html>

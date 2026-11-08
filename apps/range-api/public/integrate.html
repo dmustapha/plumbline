@@ -1,0 +1,34 @@
+<!-- File: apps/range-api/public/integrate.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline integration contract</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline limits"><meta property="og:description" content="Let an AI agent operate your cloud account with a blast radius of zero. A live Vultr demo you can attack, and a second host that re-reads the account to prove nothing changed."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="integrate">
+<main class="narrow">
+<div class="panel lift fade-up"><h2>The contract between an agent and the broker</h2>
+<p>An agent integrates by sending its cloud actions to the broker instead of to Vultr. The broker answers every request with a decision. Nothing else in the agent needs to change.</p>
+<p><b>Today:</b> the bundled operator (a planner and an executor model on Vultr Serverless Inference) is the agent. To use your own agent, make its cloud calls through the route below. There is no packaged SDK or MCP server yet; that is the next layer.</p></div>
+<div class="panel fade-up"><h2>The request</h2>
+<pre tabindex="0">POST /v1/call
+Authorization: Bearer &lt;task token&gt;
+Content-Type: application/json
+
+{ "verb": "delete", "class": "instance", "target": { "id": "&lt;instance id&gt;" }, "params": {} }</pre>
+<ul><li>The task token is minted by the broker for one task, expires after 120 seconds, and is revoked for everyone when the kill switch is engaged.</li>
+<li><code>verb</code> and <code>class</code> must be a known pair (see <a href="/docs/concepts">Concepts</a>). An unknown pair is refused with <code>ARGS_INVALID</code>.</li>
+<li><code>target.id</code> may contain only safe characters. Labels, tags or owners you send are ignored: the broker resolves the facts about the target from the live account.</li>
+<li>Each task has a call budget. Over it, the answer is 429.</li></ul></div>
+<div class="panel fade-up"><h2>The answers</h2><div class="tablewrap" tabindex="0" role="region" aria-label="Table, scrollable"><table><thead><tr><th>Outcome</th><th>HTTP</th><th>Body</th></tr></thead><tbody>
+<tr><td>Allowed</td><td>200</td><td><code>{ "status": "DECIDED", "decision": { "decision": "ALLOW", "rule_id": "allow-worker-create", ... }, "result": ... }</code>, with the Vultr result</td></tr>
+<tr><td>Denied</td><td>200</td><td><code>{ "status": "DECIDED", "decision": { "decision": "DENY", "rule_id": "protect-tagged-destroy", "reason": "...", ... } }</code>, nothing ran</td></tr>
+<tr><td>Held</td><td>200</td><td><code>{ "status": "DECIDED", "decision": { "decision": "ESCALATE", ... }, "approval": { "nonce": "..." } }</code>, nothing ran until approved</td></tr>
+<tr><td>Malformed</td><td>400</td><td><code>{ "status": "ARGS_INVALID", "errors": [ ... ] }</code></td></tr>
+<tr><td>Bad token</td><td>401</td><td><code>{ "status": "AUTH_TASK_TOKEN_INVALID" }</code></td></tr>
+<tr><td>Over budget</td><td>429</td><td><code>{ "status": "RATE_LIMITED" }</code></td></tr></tbody></table></div>
+<p>Every decision carries a <code>decision_id</code> that appears in the <a href="/audit/ledger">Ledger</a>, the rule id that decided it, the layers that were consulted, the projected cost, and the model that proposed it.</p></div>
+<div class="panel fade-up"><h2>What your agent should do with each answer</h2><ul>
+<li><b>ALLOW:</b> continue. The result is in the response.</li>
+<li><b>DENY:</b> do not retry the same call. Read the rule id and reason, and change the plan.</li>
+<li><b>ESCALATE:</b> stop and wait. A person approves or rejects it, and the approval is re-checked against the live account at that moment.</li>
+<li><b>429 or 401:</b> back off or ask for a new task token. Never fall back to calling Vultr directly: the agent should not hold a credential at all.</li></ul></div>
+<div id="trust"></div>
+</main>
+<script src="/app.js"></script></body></html>

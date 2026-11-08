@@ -2,11 +2,11 @@
 
 > The line hangs true, or it does not.
 
-An AI agent holds a real Vultr account and obeys on purpose. You are the red team. Every action the agent attempts passes through a coded policy engine outside the model, and a second host in another region re-reads the live account to prove nothing broke.
+Plumbline lets an AI agent act on a real cloud account without ever holding the credential. A broker holds the keys, a coded policy engine outside the model decides every action, and a second host in another region re-reads the account to prove nothing changed. It runs on Vultr today.
 
-[Attack it live ↗](https://plumbline.108-61-70-169.sslip.io) · [Reconcile the account ↗](https://plumbline.108-61-70-169.sslip.io/verify) · [Ledger ↗](https://plumbline.108-61-70-169.sslip.io/replay) · [Proof ↗](https://plumbline.108-61-70-169.sslip.io/proof) · [Run it locally ↗](#setup-and-verification)
+[Overview ↗](https://plumbline.108-61-70-169.sslip.io) · [Attack the demo ↗](https://plumbline.108-61-70-169.sslip.io/try?fire=prod) · [How it works ↗](https://plumbline.108-61-70-169.sslip.io/docs/architecture) · [Ledger ↗](https://plumbline.108-61-70-169.sslip.io/audit/ledger) · [Reconcile ↗](https://plumbline.108-61-70-169.sslip.io/audit/reconcile) · [Run it yourself ↗](https://plumbline.108-61-70-169.sslip.io/deploy)
 
-Built for the Vultr Agent Rush hackathon, challenge **Blast Radius Zero**.
+Built for the Vultr Agent Rush hackathon, challenge **Blast Radius Zero**. The live site runs on a demo account we own; the same software runs on yours.
 
 ![Plumbline range: an attack on prod-db is denied, the live account is re-fetched and unchanged](docs/images/range-deny.png)
 
@@ -28,9 +28,23 @@ The claim is reconciliation, not logging. After every attack the range re-fetche
 
 | You are | Start here | What you get |
 |---|---|---|
-| A judge or reviewer with three minutes | [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md), then click `Attack prod-db` on the live range | A verdict with a rule id and an unchanged live Vultr account in under 30 seconds. No sign-up. |
-| Someone deciding whether to give an agent a cloud credential | [`/about`](https://plumbline.108-61-70-169.sslip.io/about) and [`/proof`](https://plumbline.108-61-70-169.sslip.io/proof) | The admission checklist, each item linked to live evidence, and what is not claimed |
-| An auditor who must answer "did the agent create anything outside its authority?" | `plumbline-verify`, below | GREEN, RED or DEGRADED about your own account, from a read-only key and an exported ledger |
+| A platform or FinOps lead deciding whether an agent may hold a cloud credential | [Overview](https://plumbline.108-61-70-169.sslip.io), [Safety model](https://plumbline.108-61-70-169.sslip.io/docs/safety), [Run it yourself](https://plumbline.108-61-70-169.sslip.io/deploy) | What the agent can and cannot do, the spend limits, what is not claimed, and the setup, cost and roadmap |
+| A security or audit lead who must answer "did the agent create anything outside its authority?" | [Ledger](https://plumbline.108-61-70-169.sslip.io/audit/ledger), [Reconcile](https://plumbline.108-61-70-169.sslip.io/audit/reconcile), `plumbline-verify` below | Every decision, a second-host check of the live account, and a command that audits any account |
+| An engineer building agents | [Integrate an agent](https://plumbline.108-61-70-169.sslip.io/docs/integrate), [Concepts](https://plumbline.108-61-70-169.sslip.io/docs/concepts), [How it works](https://plumbline.108-61-70-169.sslip.io/docs/architecture) | The one-route contract with the broker, the vocabulary, and the component diagram |
+| A reviewer with three minutes | [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md), then `Attack prod-db` on the demo | A verdict with a rule id and an unchanged live account in under 30 seconds. No sign-up. |
+
+### Site map
+
+| Area | Pages |
+|---|---|
+| Overview | `/` |
+| Try it | `/try`: attack the demo account |
+| Controls | `/controls/policy`, `/controls/limits` (spend limits and kill switch), `/controls/recovery` (undo and bond) |
+| Audit | `/audit/ledger` (filters, export), `/audit/reconcile` (second-host check), `/audit/evidence` |
+| Docs | `/docs/safety`, `/docs/architecture`, `/docs/concepts`, `/docs/integrate` |
+| Deploy | `/deploy` |
+
+Pages that show the demo account carry a note saying so. The addresses of the first layout (`/range`, `/verify`, `/replay`, `/proof`, `/about`, `/status`, `/run`) redirect permanently.
 
 **Audit your own account.** The verifier ships as a command. It reads your Vultr account with a view-only key, reads a ledger export, and writes nothing to Vultr:
 

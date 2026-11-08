@@ -3,11 +3,19 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Plumbline ledger</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline ledger"><meta property="og:description" content="Let an AI agent operate your cloud account with a blast radius of zero. A live Vultr demo you can attack, and a second host that re-reads the account to prove nothing changed."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
 <body data-page="replay">
 <main>
-<p class="plainline"><b>In plain words:</b> every verdict the policy engine has made, read from an append-only store. Nothing here is typed in.</p>
-<div class="panel fade-up" style="--d:0.00s"><h2>Every verdict · append-only ledger</h2>
+<p class="plainline"><b>In plain words:</b> every verdict the policy engine has made, read from an append-only store. Nothing here is typed in. The agent's actions are shown first; routine housekeeping the broker does for itself is hidden unless you ask for it.</p>
+<div class="panel fade-up" style="--d:0.00s"><h2>Every verdict, append-only</h2>
 <p id="rsum" class="mut" style="font-size:12.5px">loading...</p>
-<div class="row ledger-f" style="margin-bottom:10px"><button data-f="ALL" class="primary f">All</button><button data-f="DENY">DENY</button><button data-f="ESCALATE">ESCALATE</button><button data-f="ALLOW">ALLOW</button></div>
-<div class="tablewrap" tabindex="0" role="region" aria-label="Scrollable table"><table><thead><tr><th></th><th>time</th><th>verdict</th><th>rule id</th><th>call · layer · model</th><th>decision id</th></tr></thead><tbody id="rout"><tr><td colspan="6" class="mut">loading...</td></tr></tbody></table></div></div>
+<div class="lfilters">
+<div class="row ledger-f" role="group" aria-label="Filter by verdict"><button data-f="ALL" class="primary f">All</button><button data-f="DENY">Blocked (DENY)</button><button data-f="ESCALATE">Held (ESCALATE)</button><button data-f="ALLOW">Allowed (ALLOW)</button></div>
+<label class="lsel">Rule <select id="lrule" aria-label="Filter by rule id"><option value="ALL">all rules</option></select></label>
+<label class="lchk"><input type="checkbox" id="lsys"> Include system housekeeping</label>
+</div>
+<div class="tablewrap" tabindex="0" role="region" aria-label="Scrollable table"><table><thead><tr><th></th><th>time</th><th>verdict</th><th>rule id</th><th>what was tried, and where it was decided</th><th>decision id</th></tr></thead><tbody id="rout"><tr><td colspan="6" class="mut">loading...</td></tr></tbody></table></div><div class="row" style="margin-top:var(--s-3)"><button id="lmore" hidden>Show more</button></div></div>
+<div class="panel fade-up" style="--d:0.08s"><h2>Export and verify</h2>
+<p class="mut" style="font-size:12.5px">The broker serves a signed export of the whole ledger. The verifier checks its hash chain and compares it to the live account, and the same check runs on any account with the command below.</p>
+<div class="row"><a class="btn" href="/ledger/export">Download the ledger export (JSON)</a></div>
+<pre tabindex="0">PLUMBLINE_VERIFY_KEY=&lt;view-only key&gt; npx tsx apps/verifier/src/cli.ts --ledger ledger.json</pre></div>
 <div id="trust" style="margin-top:14px"></div>
 </main>
 <script src="/app.js"></script></body></html>

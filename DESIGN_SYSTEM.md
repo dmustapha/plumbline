@@ -186,3 +186,27 @@ No horizontal-bar family (progress bars, bar charts, stat bars; severity is a 5-
 ## Security headers (served by range-api)
 
 `Content-Security-Policy` is built per page from the inline scripts actually present (sha256 of each), `script-src 'self'` plus those hashes, `style-src 'self' 'unsafe-inline' fonts.googleapis.com` (inline style attributes carry the stagger delays and plumb geometry), `font-src fonts.gstatic.com`, `connect-src 'self'` plus the two font hosts, `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'none'`, `form-action 'none'`. Also `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: no-referrer`. Tested in `ui.test.ts`.
+
+## Revision 2026-11-08: designed for the platform lead
+
+The first system was shaped around a live attack demo. This revision fits the product's real user: a platform, infrastructure or FinOps lead deciding whether an AI agent may hold a cloud credential, then adopting and operating it (secondary: security and audit).
+
+**Structure.** Six areas, in the order a user decides: Overview, Try it, Controls (policy, spend limits and kill switch, recovery), Audit (ledger, reconcile, evidence), Docs (safety model, how it works, concepts, integrate an agent), Deploy. Pages that show the demo account carry a scope note. The first layout's addresses redirect permanently.
+
+**Verdict colour semantics.** A verdict is not a failure.
+| Meaning | Token | Used for |
+|---|---|---|
+| Blocked (DENY) | `--block`, a calm cool grey-blue | the DENY badge, ticks, card edge, the "targeted" chip |
+| Held (ESCALATE) | `--esc` | the held badge, ticks |
+| Allowed (ALLOW) | neutral ink | the ALLOW badge, ticks |
+| Verified | `--true` | a GREEN verifier, a MATCHES chip |
+| Breach or error | `--deny`, red | a RED verifier, a DIFFERS chip, a rogue resource, an error |
+Red is reserved for something that is actually wrong with the account. Green means a verified state, never decoration.
+
+**Signature.** The plumb bob is a small brand mark. The swinging gauge, the degree readout and the ambient glow are gone from the pages. The reconcile view is a table: resource, what Vultr shows, what policy says, match. The table adapts to its own panel width (container query), not the window.
+
+**Type.** Card titles are sentence case in the body face; the mono small-caps face is kept for labels only, with reduced tracking. Muted and faint text were raised to meet 4.5 to 1 on the surfaces.
+
+**Overview.** One idea per screen: a plain headline, a live proof card (verifier state, counts, latest verdict, from the real ledger), three guarantees, the request flow, who it is for, what it is and is not.
+
+**Docs.** A real component diagram with trust zones, the nine steps of one request, a plain vocabulary, and the broker contract.

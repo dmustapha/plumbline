@@ -4,7 +4,7 @@
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright');
 import { mkdirSync, writeFileSync } from 'node:fs';
 const BASE = process.env.PLUMBLINE_URL ?? 'https://plumbline.108-61-70-169.sslip.io';
-const PAGES = ['/', '/range', '/range/policy', '/range/rewind', '/range/bond', '/verify', '/replay', '/status', '/proof', '/about'];
+const PAGES = ['/', '/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy'];
 mkdirSync('evidence/livetest', { recursive: true });
 const out = { base: BASE, ran_at: new Date().toISOString(), domains: {} };
 const b = await chromium.launch();
@@ -39,7 +39,7 @@ out.domains.mobile = { status: mob.some((m) => m.overflow) ? 'FAIL' : mob.some((
 
 // D4 forms + D1 UI leg of the matrix (one real attack through the UI), same context so one session
 const pg = await ctx.newPage(); const errs2 = []; pg.on('pageerror', (e) => errs2.push(String(e.message)));
-await pg.goto(BASE + '/range', { waitUntil: 'load' }); await pg.waitForTimeout(8000);
+await pg.goto(BASE + '/try', { waitUntil: 'load' }); await pg.waitForTimeout(8000);
 const box = pg.locator('textarea').first(); await box.fill(''); await pg.locator('#fire').click(); await pg.waitForTimeout(1500);
 const emptyState = { disabled: await pg.locator('#fire').isDisabled(), text: (await pg.locator('body').innerText()).slice(0, 3000) };
 out.domains.forms = { status: errs2.length === 0 && emptyState.disabled === false ? 'PASS' : 'FAIL', emptySubmit: { fireStillUsable: emptyState.disabled === false, pageErrors: errs2 } };

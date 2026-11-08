@@ -12,10 +12,19 @@ import { SseHub } from './sse.ts';
 
 export type { ApiDeps } from './deps.ts';
 
+/** The first site layout's addresses. They permanently redirect (query string kept) so every shared link and recorded script still lands. */
+const MOVED: Record<string, string> = {
+  '/range': '/try', '/range/policy': '/controls/policy', '/status': '/controls/limits', '/range/rewind': '/controls/recovery', '/range/bond': '/controls/recovery#bond',
+  '/replay': '/audit/ledger', '/verify': '/audit/reconcile', '/proof': '/audit/evidence', '/about': '/docs/safety', '/run': '/deploy',
+};
+
 /** Fixed route-to-file table: no request value ever reaches a filesystem path. */
 const PAGES: Record<string, string> = {
-  '/': 'index.html', '/range': 'range.html', '/range/policy': 'policy.html', '/range/rewind': 'rewind.html', '/range/bond': 'bond.html',
-  '/verify': 'verify.html', '/proof': 'proof.html', '/about': 'about.html', '/replay': 'replay.html', '/status': 'status.html', '/run': 'run.html',
+  '/': 'index.html', '/try': 'range.html',
+  '/controls/policy': 'policy.html', '/controls/limits': 'status.html', '/controls/recovery': 'recovery.html',
+  '/audit/ledger': 'replay.html', '/audit/reconcile': 'verify.html', '/audit/evidence': 'proof.html',
+  '/docs/safety': 'about.html', '/docs/architecture': 'architecture.html', '/docs/concepts': 'concepts.html', '/docs/integrate': 'integrate.html',
+  '/deploy': 'deploy.html',
   '/app.js': 'app.js', '/style.css': 'style.css',
   // brand assets: explicit routes, never a directory listing
   '/logo.svg': 'logo.svg', '/logo-mono.svg': 'logo-mono.svg', '/logo-lockup.svg': 'logo-lockup.svg', '/favicon.svg': 'favicon.svg',
@@ -56,6 +65,13 @@ function registerStatic(app: FastifyInstance, d: ApiDeps): void {
     reply.header('x-content-type-options', 'nosniff').header('referrer-policy', 'no-referrer').header('x-frame-options', 'DENY');
   });
   for (const [route, file] of Object.entries(PAGES)) app.get(route, (_req, reply) => sendStatic(d, reply, file));
+  for (const [from, to] of Object.entries(MOVED)) {
+    app.get(from, (req, reply) => {
+      const q = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+      const [path, hash] = to.split('#');
+      return reply.redirect(`${path}${q}${hash ? '#' + hash : ''}`, 301);
+    });
+  }
   app.get('/pages/poisoned-readme', async (_r, reply) => reply.type('text/markdown').send(POISONED_README));
   app.get('/pages/poisoned-docs', async (_r, reply) => reply.type('text/markdown').send(POISONED_DOCS));
 }
@@ -79,7 +95,11 @@ function registerReads(app: FastifyInstance, d: ApiDeps): void {
     const days = d.config.keyExpiryIso ? Math.floor((Date.parse(d.config.keyExpiryIso) - now()) / 86_400_000) : null;
     return { ...st.json, key_expiry_days: days, in_flight: d.inFlight.count };
   });
-  app.get('/api/replay', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/decisions?limit=100')));
+  // the ledger page loads more history than the landing card: a whole-number limit between 1 and 500, anything else means 100
+  app.get<{ Querystring: { limit?: string } }>('/api/replay', async (req, reply) => {
+    const n = Number(req.query.limit); const limit = Number.isInteger(n) && n >= 1 && n <= 500 ? n : 100;
+    return relay(reply, d.broker.call('GET', `/v1/decisions?limit=${limit}`));
+  });
   app.get('/api/egress-counter', async (_r, reply) => relay(reply, d.broker.call('GET', '/v1/egress-counter')));
   // CO-D: the verifier on VM 2 reads the broker's ledger export over HTTPS. Exactly this path and exactly the two HMAC headers
   // are forwarded; the broker alone decides (401 without a valid signature). No other broker route is reachable this way.

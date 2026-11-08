@@ -53,8 +53,10 @@ function sane(r: { statusCode: number; headers: Record<string, unknown>; body: s
 }
 
 // ---------------------------------------------------------------- 1. method matrix
-const PAGE_ROUTES = ['/', '/range', '/range/policy', '/range/rewind', '/range/bond', '/verify', '/proof', '/about', '/replay', '/status', '/app.js', '/style.css',
+const PAGE_ROUTES = ['/', '/try', '/controls/policy', '/controls/limits', '/controls/recovery', '/audit/ledger', '/audit/reconcile', '/audit/evidence', '/docs/safety', '/docs/architecture', '/docs/concepts', '/docs/integrate', '/deploy', '/app.js', '/style.css',
   '/logo.svg', '/logo-mono.svg', '/logo-lockup.svg', '/favicon.svg', '/favicon-32.png', '/favicon.ico', '/og-image.png'];
+// the first layout's addresses: GET redirects, nothing else is allowed
+const MOVED_ROUTES = ['/range', '/range/policy', '/range/rewind', '/range/bond', '/verify', '/proof', '/about', '/replay', '/status', '/run'];
 const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] as const;
 
 describe('1 method matrix: a wrong verb is 404/405, never 5xx, never a body leak', () => {
@@ -66,7 +68,7 @@ describe('1 method matrix: a wrong verb is 404/405, never 5xx, never a body leak
         '/healthz', '/ledger/export', '/v1/ledger/export', '/pages/poisoned-docs', '/pages/poisoned-readme', `/api/stream/${s.sid}`, '/api/policy/production'].map((p) => ({ path: p, allowed: ['GET'] })),
       ...['/api/acl-self-test', '/api/approval/x1', '/api/attack', '/api/env-proof', '/api/rewind/act', '/api/session', `/api/session/${s.sid}/tier`, '/api/verify/run'].map((p) => ({ path: p, allowed: ['POST'] })),
       { path: `/api/policy/${s.sid}`, allowed: ['GET', 'PUT'] },
-      ...PAGE_ROUTES.map((p) => ({ path: p, allowed: ['GET'] })),
+      ...PAGE_ROUTES.map((p) => ({ path: p, allowed: ['GET'] })), ...MOVED_ROUTES.map((p) => ({ path: p, allowed: ['GET'] })),
     ];
     for (const t of table) if (t.path === '/api/policy/production') t.allowed = ['GET', 'PUT', 'POST', 'PATCH', 'DELETE'];
     const bad: string[] = [];
@@ -85,7 +87,7 @@ describe('1 method matrix: a wrong verb is 404/405, never 5xx, never a body leak
     const h = await harness({ loose: true });
     const bad: string[] = [];
     const paths = ['/api/approvals', '/api/bond', '/api/canned', '/api/egress-counter', '/api/live-list', '/api/proof', '/api/replay', '/api/rewind', '/api/status', '/api/verify', '/healthz',
-      '/ledger/export', '/v1/ledger/export', '/pages/poisoned-docs', '/pages/poisoned-readme', '/api/policy/production', '/api/policy/00001000', '/api/stream/00001000', ...PAGE_ROUTES];
+      '/ledger/export', '/v1/ledger/export', '/pages/poisoned-docs', '/pages/poisoned-readme', '/api/policy/production', '/api/policy/00001000', '/api/stream/00001000', ...PAGE_ROUTES, ...MOVED_ROUTES];
     for (const p of paths) { const r = await inj(h.app, { method: 'GET', url: p }); if (r.statusCode >= 500) bad.push(`GET ${p} ${r.statusCode}`); }
     for (const p of ['/api/acl-self-test', '/api/approval/x1', '/api/attack', '/api/env-proof', '/api/rewind/act', '/api/session', '/api/session/00001000/tier', '/api/verify/run']) {
       const r = await inj(h.app, { method: 'POST', url: p, headers: jsonH, payload: '{}' }); if (r.statusCode >= 500) bad.push(`POST ${p} ${r.statusCode}`);
@@ -868,7 +870,7 @@ describe('10 static whitelist and poisoned pages', () => {
   });
   it('a page missing on disk is 404 PAGE_NOT_BUILT without the directory path', async () => {
     const h = await harness({ loose: true, conf: { publicDir: '/nonexistent/secret-dir' } });
-    const r = await inj(h.app, { method: 'GET', url: '/range' });
+    const r = await inj(h.app, { method: 'GET', url: '/try' });
     expect([r.statusCode, J(r).status]).toEqual([404, 'PAGE_NOT_BUILT']);
     expect(r.body).not.toContain('secret-dir');
   });

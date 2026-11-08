@@ -95,7 +95,7 @@ describe('range api', () => {
 
   it('every page this stream ships carries the trust-root mount', async () => {
     const { app } = await makeApi(fakeBroker());
-    for (const url of ['/', '/range', '/range/policy', '/proof', '/replay', '/about', '/status']) {
+    for (const url of ['/try', '/audit/reconcile']) {
       const r = await app.inject({ method: 'GET', url });
       expect(r.statusCode, url).toBe(200);
       expect(r.body, url).toContain('id="trust"');
@@ -105,8 +105,23 @@ describe('range api', () => {
 
   it('a page another stream has not shipped yet is a 404 PAGE_NOT_BUILT, never an empty 200', async () => {
     const { app } = await makeApi(fakeBroker(), {}, { ...cfg, publicDir: '/nonexistent' });
-    const r = await app.inject({ method: 'GET', url: '/range' });
+    const r = await app.inject({ method: 'GET', url: '/try' });
     expect([r.statusCode, r.json().status]).toEqual([404, 'PAGE_NOT_BUILT']);
+  });
+
+  it('the first layout addresses redirect permanently and keep the query string', async () => {
+    const { app } = await makeApi(fakeBroker());
+    const moved: Record<string, string> = { '/range': '/try', '/range/policy': '/controls/policy', '/status': '/controls/limits', '/range/rewind': '/controls/recovery', '/range/bond': '/controls/recovery#bond', '/replay': '/audit/ledger', '/verify': '/audit/reconcile', '/proof': '/audit/evidence', '/about': '/docs/safety', '/run': '/deploy' };
+    for (const [from, to] of Object.entries(moved)) { const r = await app.inject({ method: 'GET', url: from }); expect([from, r.statusCode, r.headers.location]).toEqual([from, 301, to]); }
+    const q = await app.inject({ method: 'GET', url: '/range?fire=prod' });
+    expect([q.statusCode, q.headers.location]).toEqual([301, '/try?fire=prod']);
+  });
+
+  it('the ledger limit is a whole number from 1 to 500; anything else is 100', async () => {
+    const f = fakeBroker(); const { app } = await makeApi(f);
+    const asked = async (q: string): Promise<string> => { await app.inject({ method: 'GET', url: `/api/replay${q}` }); const last = [...f.calls].reverse().find((c) => c.path.startsWith('/v1/decisions')); return String(last?.path); };
+    expect(await asked('')).toContain('limit=100'); expect(await asked('?limit=400')).toContain('limit=400'); expect(await asked('?limit=500')).toContain('limit=500');
+    for (const bad of ['0', '501', '-1', '1.5', 'abc', '1e3', '999999']) expect(await asked(`?limit=${bad}`), bad).toContain('limit=100');
   });
 
   it('a path-traversal attempt never reaches the filesystem', async () => {

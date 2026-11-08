@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 const BASE = process.env.PLUMBLINE_URL ?? 'https://plumbline.108-61-70-169.sslip.io';
 const PAGES = (process.env.PAGES ?? '/,/verify,/replay,/status,/proof,/about').split(',');
 const VPS = [320, 768, 1024, 1440, 1920];
-const P0 = new Set(['/', '/range', '/verify']);
+const P0 = new Set(['/', '/try', '/audit/reconcile']);
 const AXE = process.env.AXE;
 const out = []; mkdirSync('evidence/stress', { recursive: true });
 const browser = await chromium.launch();
