@@ -6,10 +6,10 @@
 <body data-page="index">
 <main>
 <section class="scene hero">
-<div class="eyebrow fade-up" style="--d:0s"><b>BLAST RADIUS ZERO</b><span class="long"> · an agent holds a live Vultr account · you may attack it</span></div>
-<h1 class="h1 mask-swipe">Try to make it <span class="loud">break</span> something.</h1>
-<p class="lede fade-up" style="--d:.25s">An agent holds a live Vultr account and obeys on purpose, so the engine is what you attack: a coded policy outside the model gives the verdict, and a second host re-reads the account. The line hangs true, or it does not.</p>
-<div class="ctas fade-up" style="--d:.5s"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/verify">Reconcile the account</a></div>
+<div class="eyebrow fade-up" style="--d:0s"><b>FOR TEAMS GIVING AI AGENTS CLOUD ACCESS</b><span class="long"> · a live demo account you may attack</span></div>
+<h1 class="h1 mask-swipe">Give an agent your cloud account. Keep the <span class="loud">blast radius</span> at zero.</h1>
+<p class="lede fade-up" style="--d:.25s">Plumbline holds the credential so the agent never does. A coded policy outside the model decides every action, and a second host in another region re-reads the account to prove nothing changed. Below is a live demo account we own. Try to make the agent break it.</p>
+<div class="ctas fade-up" style="--d:.5s"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/run">Run it on your account</a><a class="btn" href="/verify">Reconcile the account</a></div>
 <div class="heroset">
 <div id="stagehost" class="fade-up" style="--d:.2s"></div>
 <div id="payoff" class="payoff fade-up" style="--d:.45s"></div>
@@ -19,15 +19,27 @@
 <section class="scene" id="how">
 <div class="scene-head">
 <h2 class="fade-up" style="--d:0s">The agent never touches the key. The engine never asks the model. Vultr has the last word.</h2>
-<p class="fade-up" style="--d:.1s">Three layers, each one outside the one before it. A judge attacks the first; the third one answers.</p>
+<p class="fade-up" style="--d:.1s">Three layers, each one outside the one before it. You attack the first; the third one answers.</p>
 </div>
 <div class="split">
 <div class="claims">
 <div class="claim fade-up" style="--d:0s"><div class="rule">layer 1 · the sandbox</div><h3>No credential in the agent process</h3><p>The operator runs inside a hardened container under gVisor with no Vultr key. Every cloud call is a request to a broker on a different process boundary.</p></div>
 <div class="claim fade-up" style="--d:.1s"><div class="rule">layer 2 · the engine</div><h3>A coded policy decides, with a rule id</h3><p>Rules are data, unit-tested, loaded outside the model. ALLOW, ESCALATE or DENY, every time, with the rule that fired. A dollar ceiling the agent cannot raise.</p></div>
-<div class="claim fade-up" style="--d:.2s"><div class="rule">layer 3 · the verifier</div><h3>Reconciled against the live account</h3><p>A second host in a second region, with its own read-only key, re-reads Vultr and compares it to authority. GREEN hangs true. RED names the resource.</p></div>
+<div class="claim fade-up" style="--d:.2s"><div class="rule">layer 3 · the verifier</div><h3>Reconciled against the live account</h3><p>A second host in a second region, with its own read-only key, re-reads Vultr and compares it to authority. GREEN means no drift. RED names the resource.</p></div>
 </div>
 <div class="diagram fade-up" style="--d:.15s" id="diagram"></div>
+</div>
+</section>
+
+<section class="scene" id="whofor">
+<div class="scene-head">
+<h2 class="fade-up" style="--d:0s">Built for the people who have to say yes to an agent holding a credential.</h2>
+<p class="fade-up" style="--d:.1s">The demo above runs on an account we own, so nothing you do touches yours. The same pieces run on your own Vultr account.</p>
+</div>
+<div class="claims">
+<div class="claim fade-up" style="--d:0s"><div class="rule">platform and FinOps leads</div><h3>Decide what the agent may do and spend</h3><p>Policy is a file you review. A dollar ceiling the agent cannot raise. Production is locked unless a signed change says otherwise. <a href="/run">Run it yourself</a>.</p></div>
+<div class="claim fade-up" style="--d:.1s"><div class="rule">security and audit</div><h3>Answer: did it create anything it should not have?</h3><p>A second host with a read-only key compares the live account to the ledger. GREEN, RED naming the resource, or DEGRADED when it cannot tell. <a href="/verify">See it reconcile</a>.</p></div>
+<div class="claim fade-up" style="--d:.2s"><div class="rule">agent builders</div><h3>Keep the credential out of the agent</h3><p>The policy engine is a small library with 65 attack fixtures and a property test. Your agent asks; the engine answers with a rule id. <a href="/proof">See the evidence</a>.</p></div>
 </div>
 </section>
 
@@ -44,8 +56,8 @@
 <div class="inner">
 <svg id="closerplumb" class="closerplumb fade-up" viewBox="0 0 160 220" aria-hidden="true" style="--d:0s"></svg>
 <div class="big fade-up" id="closerN" style="--d:.1s">…</div>
-<h2 class="fade-up" style="--d:.2s">breaches · the line hangs true · reconciled against the live Vultr account</h2>
-<div class="ctas fade-up" style="--d:.3s"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/about">What we do not claim</a></div>
+<h2 class="fade-up" style="--d:.2s">breaches · no drift · reconciled against the live Vultr account</h2>
+<div class="ctas fade-up" style="--d:.3s"><a class="btn fire" href="/range?fire=prod">Attack prod-db</a><a class="btn" href="/about">Safety model</a></div>
 </div>
 </section>
 <div id="trust" style="margin-top:32px"></div>

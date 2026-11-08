@@ -136,11 +136,12 @@ function hideBanner(text) { const b = $('#banner'); if (b && b.textContent === t
 // ---- the shell: ground, sidebar (one job per route), truth strip ----
 
 const ROUTES = [
-  ['ATTACK', [['/range', 'Range', 'fire']]],
-  ['VERIFY', [['/verify', 'Reconcile', 'live account'], ['/replay', 'Ledger', 'verdicts'], ['/proof', 'Proof', 'evidence'], ['/about', 'Limits', 'not claimed']]],
-  ['CONTROLS', [['/status', 'Ceiling', 'spend + kill'], ['/range/policy', 'Policy', 'rules as data'], ['/range/rewind', 'Rewind', 'undo'], ['/range/bond', 'Bond', 'bonded loss']]],
+  ['TRY IT', [['/range', 'Range', 'demo account']]],
+  ['RUN IT', [['/run', 'Run it yourself', 'your account']]],
+  ['VERIFY', [['/verify', 'Reconcile', 'live account'], ['/replay', 'Ledger', 'verdicts'], ['/proof', 'Proof', 'evidence'], ['/about', 'Safety model', 'what we claim']]],
+  ['ADVANCED', [['/status', 'Ceiling', 'spend + kill'], ['/range/policy', 'Policy', 'rules as data'], ['/range/rewind', 'Rewind', 'undo'], ['/range/bond', 'Bond', 'bonded loss']]],
 ];
-const TITLES = { range: ['Range', 'attack the agent, watch the box hold'], verify: ['Reconcile', 'the live account against authority, read by a second host'], replay: ['Ledger', 'every real verdict from the decision store'], status: ['Ceiling', 'the dollar ceiling, kill-switch and keys'], policy: ['Policy', 'rules as data: production floor and your sandbox copy'], rewind: ['Rewind', 'the only live undo: object versioning'], bond: ['Bond', 'undo or insure'], proof: ['Proof', 'evidence, containment tests, regenerate commands'], about: ['What we do not claim', 'what Plumbline does and does not claim'] };
+const TITLES = { range: ['Range', 'attack the agent, watch the box hold'], verify: ['Reconcile', 'the live account against authority, read by a second host'], replay: ['Ledger', 'every real verdict from the decision store'], status: ['Ceiling', 'the dollar ceiling, kill-switch and keys'], policy: ['Policy', 'rules as data: production floor and your sandbox copy'], rewind: ['Rewind', 'the only live undo: object versioning'], bond: ['Bond', 'undo or insure'], proof: ['Proof', 'evidence, containment tests, regenerate commands'], about: ['Safety model', 'what Plumbline claims and what it does not'], run: ['Run it yourself', 'Plumbline on your own Vultr account'] };
 
 function brandSwing(g) { return anim(g, [{ transform: 'rotate(-7deg)' }, { transform: 'rotate(7deg)' }], { duration: 2600, direction: 'alternate', iterations: Infinity, easing: 'ease-in-out', still: { transform: 'rotate(0deg)' } }); }
 function brandMark() {
@@ -191,7 +192,7 @@ function themeButton() {
 }
 
 function truthStrip() {
-  return h('div', { class: 'truth', id: 'truth' }, h('i', { class: 'dot' }), h('span', { class: 'long' }, 'LIVE VULTR'), h('b', { id: 'truth-st' }, '…'), h('span', { id: 'truth-age' }, ''),
+  return h('div', { class: 'truth', id: 'truth' }, h('i', { class: 'dot' }), h('span', { class: 'long' }, 'DEMO ACCOUNT · LIVE VULTR'), h('b', { id: 'truth-st' }, '…'), h('span', { id: 'truth-age' }, ''),
     h('span', { class: 'br', id: 'truth-br', title: 'A breach is an unauthorised resource the verifier finds in the live account.' }, ''));
 }
 
@@ -206,7 +207,7 @@ function skipLink() {
 }
 
 function footerNote() {
-  return h('footer', {}, h('b', {}, 'Limits, stated: '), 'what each rung does NOT prove is on ', h('a', { href: '/about' }, 'Limits'),
+  return h('footer', {}, h('b', {}, 'Limits, stated: '), 'what each rung does NOT prove is on the ', h('a', { href: '/about' }, 'Safety model'),
     ' · spend is BROKER ARITHMETIC, not Vultr\'s invoice · the verifier is point-in-time · the sandbox is a hardened container under gVisor, not a microVM.');
 }
 
@@ -217,7 +218,7 @@ function shell(page) {
   // the descriptor word shows only on the current page's item
   ROUTES.forEach(([grp, items]) => { nav.append(h('div', { class: 'grp' }, grp)); items.forEach(([href, label, hint]) => nav.append(h('a', Object.assign({ href }, href === here ? { 'aria-current': 'page' } : {}), h('i'), label, href === here ? h('small', {}, hint) : null))); });
   const side = h('aside', { class: 'side' }, h('a', { class: 'brand', href: '/' }, brandMark(), 'PLUMBLINE'), nav,
-    h('div', { class: 'foot' }, h('a', { href: '/' }, '← landing'), 'Blast Radius Zero · Vultr Agent Rush'));
+    h('div', { class: 'foot' }, h('a', { href: '/' }, '← landing'), 'Demo account owned by Plumbline. Nothing here touches yours. ', h('a', { href: '/run' }, 'Run your own')));
   const t = TITLES[page] || [page, ''];
   const strip = h('div', { class: 'strip' }, h('h1', {}, t[0], h('small', {}, t[1])), truthStrip(), themeButton());
   const pane = h('div', { class: 'pane' }, strip, main, footerNote());
@@ -229,7 +230,7 @@ function shell(page) {
 function landingChrome() {
   const main = $('main');
   document.body.insertBefore(h('header', { class: 'top' }, h('a', { class: 'brand', href: '/' }, brandMark(), 'PLUMBLINE'),
-    h('nav', {}, h('a', { href: '/range' }, 'RANGE'), h('a', { href: '/verify' }, 'RECONCILE'), h('a', { href: '/replay' }, 'LEDGER'), h('a', { href: '/about' }, 'LIMITS')),
+    h('nav', {}, h('a', { href: '/range' }, 'RANGE'), h('a', { href: '/verify' }, 'RECONCILE'), h('a', { href: '/replay' }, 'LEDGER'), h('a', { href: '/run' }, 'RUN IT'), h('a', { href: '/about' }, 'SAFETY MODEL')),
     h('div', { class: 'cta' }, truthStrip(), themeButton())), main);
   document.body.append(footerNote());
   document.body.classList.add('landing-page');
@@ -349,7 +350,7 @@ function thetaLoop() {
   if (!TH.raf) TH.raf = requestAnimationFrame(thetaTick);
 }
 
-const PLST = { unknown: 'READING...', true: 'HANGING TRUE', red: 'OFF PLUMB', amber: 'UNDER TEST', degraded: 'NOT VERIFIED' };
+const PLST = { unknown: 'READING...', true: 'NO DRIFT', red: 'DRIFT DETECTED', amber: 'UNDER TEST', degraded: 'NOT VERIFIED' };
 function plumbSet(mode) {
   PL.mode = mode; document.documentElement.dataset.m = mode;
   const ghost = !!state.liveDown || mode === 'degraded';
@@ -450,8 +451,8 @@ function liveRows(live) {
 
 function stageBody(mount, live) {
   const rows = liveRows(live);
-  const A = h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'AUTHORITY · ENGINE'));
-  const R = h('div', { class: 'col real' }, h('div', { class: 'colh' }, 'REALITY · VULTR', h('br'), h('span', { class: 'colt' }, 're-fetched ' + clock(live.fetched_at_ms || Date.parse(live.fetched_at)))));
+  const A = h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'WHAT POLICY SAYS'));
+  const R = h('div', { class: 'col real' }, h('div', { class: 'colh' }, 'WHAT VULTR SHOWS', h('br'), h('span', { class: 'colt' }, 're-fetched ' + clock(live.fetched_at_ms || Date.parse(live.fetched_at)))));
   rows.forEach((r) => {
     if (r.error) { A.append(h('div', { class: 'pr' }, h('div', { class: 'n' }, r.kind), h('div', { class: 'd err' }, r.error))); R.append(h('div', { class: 'pr' })); return; }
     const marked = state.hit.some((t) => t && (t === r.name || t === r.x.id));
@@ -464,23 +465,23 @@ function stageBody(mount, live) {
   if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(plumbRelayout);
 }
 
-const THETA_TITLE = 'Angle the live account is off authority. 0 means matching.';
+const THETA_TITLE = 'Drift from policy: how far the live account is from what the policy says it should be. 0 means they match.';
 
 function stagePanel(opts) {
   const o = opts || {};
   return h('div', { class: 'panel stage', id: 'stage' },
     h('div', { class: 'hd' }, h('b', {}, 'THE PLUMBLINE'), h('span', { id: 'plst', class: 'st' }, PLST.unknown), h('span', { id: 'plsrc' }, 'PROD-DB · reading…')),
     o.noVerdict ? null : h('div', { id: 'verdictbig', class: 'verdict-big', tabindex: '-1' }, o.idle ? h('div', { class: 'mut mono' }, o.idle) : h('div', { class: 'empty' }, h('div', { class: 'eyebrow-plain' }, 'no attack from this session yet'), h('div', { class: 'display' }, 'Fire one. The line swings, the engine answers, the account is re-read.'))),
-    h('div', { class: 'thetabig', title: THETA_TITLE }, h('span', { class: 'k' }, 'ANGLE OFF TRUE'), h('span', { id: 'theta' }, '0.0°')),
-    h('div', { class: 'plumb', id: 'plumb' }, h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'AUTHORITY · ENGINE'), h('div', { class: 'mut' }, 'fetching the live account…')), plumbSvgHost(), h('div', { class: 'col real' })),
-    h('div', { class: 'ft' }, h('span', {}, 'dashed = true vertical (authority) · solid = the live account'), h('span', {}, 'degrees off true · 0 = the live account matches authority · RED holds the line at 13°')));
+    h('div', { class: 'thetabig', title: THETA_TITLE }, h('span', { class: 'k' }, 'DRIFT FROM POLICY'), h('span', { id: 'theta' }, '0.0°')),
+    h('div', { class: 'plumb', id: 'plumb' }, h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'WHAT POLICY SAYS'), h('div', { class: 'mut' }, 'fetching the live account…')), plumbSvgHost(), h('div', { class: 'col real' })),
+    h('div', { class: 'ft' }, h('span', {}, 'dashed = what policy says · solid = what the live account shows'), h('span', {}, 'degrees of drift · 0 = the live account matches policy · RED holds the line at 13°')));
 }
 
 // the hero stage: the line alone, one read beneath it, one caption. Columns and scale belong to the range.
 function heroStage() {
   return h('div', { class: 'panel stage free', id: 'stage' },
     h('div', { class: 'plumb', id: 'plumb' }, h('div', { class: 'col auth' }), plumbSvgHost(), h('div', { class: 'col real' })),
-    h('div', { class: 'read' }, h('span', { id: 'plst', class: 'st' }, PLST.unknown), h('span', { class: 'k', title: THETA_TITLE }, 'off true ', h('span', { id: 'theta' }, '0.0°')), h('span', { id: 'plsrc' }, 'PROD-DB · reading…')),
+    h('div', { class: 'read' }, h('span', { id: 'plst', class: 'st' }, PLST.unknown), h('span', { class: 'k', title: THETA_TITLE }, 'drift ', h('span', { id: 'theta' }, '0.0°')), h('span', { id: 'plsrc' }, 'PROD-DB · reading…')),
     h('div', { id: 'verdictbig', class: 'cap' }, h('span', { class: 'mut' }, 'loading the last recorded attack…')));
 }
 
@@ -489,7 +490,7 @@ async function refreshStage() {
   const mount = $('#plumb'); if (!mount) return;
   if (!r.ok) {
     const ghost = (n, d) => h('div', { class: 'pr ghost' }, h('div', { class: 'n' }, n), h('div', { class: 'd' }, d || 'unread via broker'));
-    mount.replaceChildren(h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'AUTHORITY · ENGINE'), ghost('LOCKED'), ghost('INFRA'), ghost('SHARED'), h('div', { class: 'd mut', style: 'margin-top:8px;font:11px var(--f-mono)' }, 'the broker could not list the account, so this line cannot claim true. The verifier on the second host reads Vultr on its own: see its status in the strip and its prod-db read on Reconcile.')), plumbSvgHost(), h('div', { class: 'col real' }, h('div', { class: 'colh' }, 'REALITY · VULTR', h('br'), h('span', { class: 'colt' }, 'unread')), ghost('plumbline-prod-db'), ghost('plumbline-infra-*'), ghost('plumblinereg')));
+    mount.replaceChildren(h('div', { class: 'col auth' }, h('div', { class: 'colh' }, 'WHAT POLICY SAYS'), ghost('LOCKED'), ghost('INFRA'), ghost('SHARED'), h('div', { class: 'd mut', style: 'margin-top:8px;font:11px var(--f-mono)' }, 'the broker could not list the account, so this line cannot claim true. The verifier on the second host reads Vultr on its own: see its status in the strip and its prod-db read on Reconcile.')), plumbSvgHost(), h('div', { class: 'col real' }, h('div', { class: 'colh' }, 'WHAT VULTR SHOWS', h('br'), h('span', { class: 'colt' }, 'unread')), ghost('plumbline-prod-db'), ghost('plumbline-infra-*'), ghost('plumblinereg')));
     plumbObserve(mount); plumbRelayout(); state.liveDown = true; if (!state.busy) plumbReconcile('DEGRADED'); const ch = $('#plsrc'); if (ch) { ch.className = 'unchip'; ch.textContent = 'PROD-DB · UNREAD BY BROKER'; } return; }
   const wasDown = state.liveDown;
   state.liveDown = false; state.live = r.json || {}; stageBody(mount, state.live);
@@ -512,6 +513,7 @@ function prodChip(live, after) {
   el.className = p && word !== 'CHANGED' ? 'okchip' : 'badchip';
   const a = ids(live); const b0 = state.before ? ids(state.before) : null; const added = b0 ? [...a].filter(([k, v]) => !b0.has(k) && !isPlay(v)).length : 0; const gone = b0 ? [...b0].filter(([k, v]) => !a.has(k) && !isPlay(v)).length : 0;
   const delta = b0 ? ` · ACCOUNT Δ +${added} −${gone}` : '';
+  const pv = $('#plainverdict'); if (pv && after && p && word === 'UNCHANGED' && state.plainVerdict && state.plainVerdict.decision === 'DENY') pv.textContent = plainLine(state.plainVerdict, ' The live Vultr account was re-read and nothing changed.');
   el.textContent = p ? 'PROD-DB ' + (after ? `${word}${word === 'UNCHANGED' ? ' ✓' : ''}${delta} · ${clock(liveAt(live))}` : fmt(p.status) + ' · locked') : 'PROD-DB NOT FOUND IN LIVE ACCOUNT';
 }
 
@@ -595,7 +597,7 @@ function reconcileTo(v) {
   const n = breaches(v);
   announce('Verifier ' + fmt(v.status) + (n === null ? '' : `, ${n} breach${n === 1 ? '' : 'es'}`) + (state.live ? '; account re-read, ' + PROD_SAY[prodWord(state.live)] : '') + '.');
   const vb = $('#verdictbig');
-  if (vb && v.status === 'RED') vb.replaceChildren(h('div', {}, h('span', { class: 'badge RED' }, 'RED'), ' ', h('span', { class: 'mut mono' }, 'second host re-read the live account · OFF PLUMB')), h('div', { class: 'rid' }, (v.codes || []).join(' ')), h('div', { class: 'why' }, (v.findings || []).map((f) => f.detail).join(' · ')));
+  if (vb && v.status === 'RED') vb.replaceChildren(h('div', {}, h('span', { class: 'badge RED' }, 'RED'), ' ', h('span', { class: 'mut mono' }, 'second host re-read the live account · DRIFT DETECTED')), h('div', { class: 'rid' }, (v.codes || []).join(' ')), h('div', { class: 'why' }, (v.findings || []).map((f) => f.detail).join(' · ')));
 }
 
 function drawTruth() {
@@ -676,14 +678,23 @@ function verdictCard(v) {
     h('pre', {}, JSON.stringify(v.quoted_call, null, 1)));
 }
 
+// one plain sentence first: what the agent tried and what happened, before any rule id or gauge
+function plainLine(v, tail) {
+  const q = v.quoted_call || {}; const tgt = (q.target || {}).label || q.id || 'the target'; const what = `${q.verb || 'act'} ${q.class ? q.class + ' ' : ''}${tgt}`;
+  if (v.decision === 'DENY') return `Blocked. The agent tried to ${what} and the policy engine refused it.${tail || ''}`;
+  if (v.decision === 'ESCALATE') return `Held for approval. The agent tried to ${what}; nothing runs until a person approves it.`;
+  return `Allowed. ${what} is inside the agent's authority.`;
+}
 function verdictBig(v) {
   const box = $('#verdictbig'); if (!box) return;
+  state.plainVerdict = v;
   const q = v.quoted_call || {}; const tgt = q.target || {}; const tried = q.verb ? `${q.verb} ${q.class || ''} ${tgt.label || q.id || ''}`.trim() : null;
   // the dollar ceiling leads when it denied: the engine reports the session layer's rule first, but the ceiling's arithmetic is the scene
   const ceil = (v.layers || []).find((l) => l && l.effect === 'deny' && l.rule_id === 'ceiling-dollar-deny');
   const lead = ceil && v.rule_id !== 'ceiling-dollar-deny' ? ceil : null;
   const leadId = lead ? lead.rule_id : v.rule_id;
   box.replaceChildren(h('div', {}, h('span', { class: 'badge ' + v.decision }, v.decision), ' ', h('span', { class: 'mut mono' }, (tried ? `agent tried: ${tried} → ` : '') + `${lead ? lead.layer : v.layer} layer · decided by coded policy outside the model`)),
+    h('div', { class: 'plain', id: 'plainverdict' }, plainLine(v, '')),
     h('div', { class: 'rid' }, leadId), h('div', { class: 'why' }, lead && lead.reason ? lead.reason : v.reason),
     ...(lead ? [h('div', { class: 'why also' }, `also denied by the ${v.layer} layer: ${v.rule_id} · ${v.reason}`)] : []),
     // every other layer that denied the same call is stated too: the engine reports the session layer's rule first, so the floor's own deny (for

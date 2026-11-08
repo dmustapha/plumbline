@@ -122,14 +122,14 @@ html[data-m="amber"] #ground .lamp { background: radial-gradient(closest-side, v
 aside.side { background: var(--sunken); box-shadow: var(--lv-sunken); border-right: 1px solid var(--hairline-lo); padding: var(--s-5) var(--s-4); display: flex; flex-direction: column; gap: 2px; position: sticky; top: 0; height: 100vh; }
 .brand { display: flex; align-items: center; gap: 12px; font: 600 16px var(--f-display); letter-spacing: .18em; color: var(--text); padding: var(--s-2) var(--s-3) var(--s-6); }
 @media (hover: hover) { .brand:hover { text-decoration: none; } }
-.grp { font: 500 10px var(--f-mono); letter-spacing: .22em; color: var(--faint); padding: var(--s-5) var(--s-3) var(--s-2); }
+.grp { font: 500 11px var(--f-mono); letter-spacing: .22em; color: var(--faint); padding: var(--s-5) var(--s-3) var(--s-2); }
 aside.side nav a { display: flex; align-items: center; gap: 12px; padding: 10px var(--s-3); border-radius: var(--r-2); color: var(--muted); font: 500 var(--t-small) var(--f-body); border: 1px solid transparent; transition: background var(--dur-fast) var(--ease-quart), color var(--dur-fast), transform var(--dur-fast) var(--ease-quart); }
 @media (hover: hover) { aside.side nav a:hover { background: var(--ink-04); color: var(--text); text-decoration: none; transform: translateX(2px); } }
 aside.side nav a[aria-current="page"] { background: var(--card); color: var(--text); border-color: var(--hairline); box-shadow: var(--lv-raised); }
 aside.side nav a i { width: 6px; height: 6px; border-radius: 50%; background: var(--hairline-hi); flex: none; transition: background var(--dur-fast), box-shadow var(--dur-fast); }
 aside.side nav a[aria-current="page"] i { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-aside.side nav a small { margin-left: auto; font: 400 10.5px var(--f-mono); color: var(--faint); }
-.side .foot { margin-top: auto; padding: var(--s-4) var(--s-3) 0; border-top: 1px solid var(--hairline-lo); font: 400 10.5px/1.8 var(--f-mono); color: var(--faint); letter-spacing: .04em; }
+aside.side nav a small { margin-left: auto; font: 400 11px var(--f-mono); color: var(--faint); }
+.side .foot { margin-top: auto; padding: var(--s-4) var(--s-3) 0; border-top: 1px solid var(--hairline-lo); font: 400 11px/1.8 var(--f-mono); color: var(--faint); letter-spacing: .04em; }
 .side .foot a { display: block; color: var(--accent-ink); }
 .pane { min-width: 0; }
 .strip { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: var(--s-5); height: 64px; padding: 0 var(--s-7); background: var(--surface-1); border-bottom: 1px solid var(--hairline); }
@@ -191,7 +191,7 @@ th { color: var(--faint); font-weight: 500; }
 tbody tr { transition: background var(--dur-fast); } @media (hover: hover) { tbody tr:hover td { background: var(--ink-04); } } 
 .tablewrap { overflow-x: auto; }
 td.t { color: var(--faint); } td.rid { font-weight: 600; color: var(--text); } td.copy { cursor: copy; min-width: 150px; } td.mut, td .mut { max-width: 14em; overflow: hidden; text-overflow: ellipsis; }
-.tag { display: inline-block; margin-left: 8px; font: 400 10.5px var(--f-mono); color: var(--faint); }
+.tag { display: inline-block; margin-left: 8px; font: 400 11px var(--f-mono); color: var(--faint); }
 .mp { display: inline-block; width: 16px; height: 22px; vertical-align: middle; overflow: visible; } .mp g { transform-box: view-box; transform-origin: 7px 1px; transition: transform .4s var(--ease-back); }
 tr.flash td { animation: rowFlash 1.6s var(--ease-quart) both; } @keyframes rowFlash { 0% { background: var(--acc-14); } 100% { background: transparent; } }
 .card { border: 1px solid var(--hairline); border-left: 3px solid var(--hairline-hi); border-radius: var(--r-2); padding: 14px 16px; margin: 10px 0 0; background: var(--surface-1); overflow-wrap: anywhere; transition: transform var(--dur-fast) var(--ease-quart), border-color var(--dur-fast); }
@@ -220,7 +220,7 @@ details.drawer > .panel { border: 0; background: transparent; padding: var(--s-3
 html[data-m="red"] #theta { color: var(--deny); } html[data-m="amber"] #theta { color: var(--esc); }
 .plumb { position: relative; display: grid; grid-template-columns: 1fr 200px 1fr; min-height: 300px; padding: 0 var(--s-2) var(--s-4); }
 .plumb .col { padding: var(--s-3) var(--s-3) 0 var(--s-5); grid-column: 1; min-width: 0; } .plumb .col.real { padding: var(--s-3) var(--s-5) 0 var(--s-3); grid-column: 3; text-align: right; }
-.plumb .colh { height: 42px; font: 500 10px var(--f-mono); letter-spacing: .14em; color: var(--faint); text-transform: uppercase; white-space: nowrap; }
+.plumb .colh { height: 42px; font: 500 11px var(--f-mono); letter-spacing: .14em; color: var(--faint); text-transform: uppercase; white-space: nowrap; }
 .plumb .col.auth .colh { color: var(--accent-ink); } .plumb .col.real .colh { color: var(--faint); } .colt { font-weight: 400; letter-spacing: .06em; color: var(--faint); text-transform: none; }
 .pr { min-height: 44px; padding: 6px 0; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px dashed var(--hairline-lo); font: 400 var(--t-small)/1.35 var(--f-mono); min-width: 0; transition: background var(--dur-fast); }
 @media (hover: hover) { .pr:hover { background: var(--ink-04); } }
@@ -428,7 +428,7 @@ button[aria-disabled="true"], .btn[aria-disabled="true"] { opacity: .45; cursor:
 .stop { height: 104px; } .stop .val { color: var(--text); }
 /* the trust-root drawer is a footnote, not a card */
 #trust .panel { background: none; border: 0; box-shadow: none; padding: 0; }
-#trust .panel:hover { transform: none; }
+@media (hover: hover) { #trust .panel:hover { transform: none; } }
 textarea.code { white-space: pre; overflow-x: auto; }
 .hero { padding-top: var(--s-4); } .hero .ctas { margin-bottom: var(--s-4); } .hero .stage.free .plumb { min-height: 220px; }
 /* narrow screens: the attack form, then the verdict, then the supporting panels */
@@ -458,3 +458,9 @@ textarea.code { white-space: pre; overflow-x: auto; }
 /* WCAG 2.2 target size (2.5.8, 24 x 24 CSS px): the per-row copy buttons in the ledger tables */
 .copybtn { display: inline-flex; align-items: center; min-height: 24px; min-width: 24px; padding: 2px 0; }
 .verdict-big .why.also { margin-top: 2px; color: var(--faint); font-size: var(--t-micro); }
+
+/* one plain sentence leads the verdict panel */
+.verdict-big .plain { font: 500 var(--t-body) / 1.5 var(--f-body); color: var(--text); margin: 0 0 var(--s-3); }
+
+/* definition lists on the safety model page */
+dl { margin: 0; } dt { font: 600 var(--t-small) var(--f-mono); color: var(--text); margin-top: var(--s-4); } dd { margin: var(--s-1) 0 0; color: var(--muted); }

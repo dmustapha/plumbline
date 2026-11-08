@@ -1,0 +1,39 @@
+<!-- File: apps/range-api/public/run.html -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Run Plumbline yourself</title><meta name="theme-color" content="#111a1e"><script>(function(){try{var t=localStorage.getItem('plb-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><meta name="description" content="Attack an AI agent that holds a live Vultr account. A second host re-reads the account. Blast Radius Zero."><meta property="og:type" content="website"><meta property="og:site_name" content="Plumbline"><meta property="og:title" content="Plumbline limits"><meta property="og:description" content="An agent holds a live Vultr account. You may attack it. The line hangs true, or it does not."><meta property="og:image" content="https://108-61-70-169.sslip.io/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"></head>
+<body data-page="run">
+<main class="narrow">
+<div class="panel lift fade-up" style="--d:0.00s"><h2>Run it on your own Vultr account</h2><p>The demo range runs on an account we own. Everything you attacked there is the same software you can run on yours: the policy engine, the broker that holds the keys, the hardened sandbox, the second-region verifier and the watchdog.</p><p>Setup today is a short command-line procedure on your own machine, not a web wizard.</p></div>
+<div class="panel fade-up" style="--d:0.08s"><h2>What you run</h2><ul>
+<li><b>Broker VM</b> (one region): the public app, the broker that holds every key, and the sandbox runner. Three services.</li>
+<li><b>Verifier VM</b> (a second region): the verifier and the watchdog, each with its own scoped key.</li>
+<li><b>A protected production resource</b> the agent must not touch, and a versioned Object Storage bucket for the Rewind scene.</li>
+<li><b>Six IP-locked sub-user keys</b>, one per access tier, each with an explicit expiry.</li></ul>
+<p class="mut">Cost: about $25 a month for the two VMs, plus Serverless Inference usage, which the broker meters against a dollar ceiling. We ran the demo on the Vultr event credit.</p></div>
+<div class="panel fade-up" style="--d:0.16s"><h2>Set it up</h2><ol>
+<li>Clone the repository and install: <code>git clone https://github.com/dmustapha/plumbline &amp;&amp; cd plumbline &amp;&amp; npm ci</code></li>
+<li>On your machine, with your owner API key in the environment, create the infrastructure: <code>npm run bootstrap:range</code>. It is idempotent and prints only a summary.</li>
+<li>Install the systemd units from <code>ops/systemd/</code> on the two VMs and start them.</li>
+<li>Sign your production policy with your own key: <code>npm run sign-policy</code>. Production changes need that signature.</li>
+<li>Prove each rung on your account: <code>npm run gate -- l1</code> through <code>l7</code>. Each writes an evidence file.</li>
+<li>When you are done: <code>npm run teardown</code> lists everything it created and deletes only with <code>--yes</code>.</li></ol></div>
+<div class="panel fade-up" style="--d:0.24s"><h2>Where your keys live</h2><ul>
+<li>Only on the broker VM, in a root-owned environment file. Never in the agent, the sandbox or the browser.</li>
+<li>Your owner key never goes on a VM. Every service refuses to start if it finds one.</li>
+<li>The agent talks to the broker over one route. It can ask; it cannot read.</li></ul></div>
+<div class="panel fade-up" style="--d:0.32s"><h2>Write your policy</h2><p>Rules are data in a YAML file you can review, test and version. This is a real rule from the production floor:</p>
+<pre>- id: floor-prod-immutable
+  effect: deny
+  priority: 95
+  match: { verb: [delete, update], class: [instance, firewall_group, vpc, registry], label_prefix: [plumbline-prod-, plumbline-infra-] }
+  reason: "production floor: not editable without a signed approval"</pre>
+<p>Your own session policy can be stricter or looser, but the floor is always applied too, and the most restrictive answer wins. Try this on the <a href="/range/policy">Policy</a> page of the demo.</p></div>
+<div class="panel fade-up" style="--d:0.4s"><h2>Approvals</h2><p>When a rule says ESCALATE, the action is held. An approval is bound to that decision and a one-time token, is re-checked against the live account at the moment you approve, and cannot override a floor DENY. Today approvals are handled on the range page for the session that made the request.</p></div>
+<div class="panel fade-up" style="--d:0.48s"><h2>Audit your account</h2><p>The verifier ships as a command that reads your account with a view-only key and a ledger export, and writes nothing to Vultr:</p>
+<pre>PLUMBLINE_VERIFY_KEY=&lt;view-only key&gt; npx tsx apps/verifier/src/cli.ts --ledger ledger.json --baseline baseline.json
+# exit 0 GREEN, 1 RED, 2 DEGRADED</pre>
+<p>The broker serves a signed ledger export at <code>/ledger/export</code>. The same check runs live on the <a href="/verify">Reconcile</a> page.</p></div>
+<div class="panel fade-up" style="--d:0.56s"><h2>What you get today, and what you do not</h2><p><b>Today:</b> the engine, broker, sandbox, verifier, watchdog and ledger on your own infrastructure, with evidence files you can regenerate.</p><p><b>Not yet:</b> a hosted version, a web wizard to connect an account, a standing approval queue with notifications, alerting, spend history per agent, and multi-account or single sign-on. See the <a href="/about">Safety model</a> for what is and is not claimed.</p></div>
+<div id="trust"></div>
+</main>
+<script src="/app.js"></script></body></html>

@@ -15,7 +15,7 @@ export type { ApiDeps } from './deps.ts';
 /** Fixed route-to-file table: no request value ever reaches a filesystem path. */
 const PAGES: Record<string, string> = {
   '/': 'index.html', '/range': 'range.html', '/range/policy': 'policy.html', '/range/rewind': 'rewind.html', '/range/bond': 'bond.html',
-  '/verify': 'verify.html', '/proof': 'proof.html', '/about': 'about.html', '/replay': 'replay.html', '/status': 'status.html',
+  '/verify': 'verify.html', '/proof': 'proof.html', '/about': 'about.html', '/replay': 'replay.html', '/status': 'status.html', '/run': 'run.html',
   '/app.js': 'app.js', '/style.css': 'style.css',
   // brand assets: explicit routes, never a directory listing
   '/logo.svg': 'logo.svg', '/logo-mono.svg': 'logo-mono.svg', '/logo-lockup.svg': 'logo-lockup.svg', '/favicon.svg': 'favicon.svg',

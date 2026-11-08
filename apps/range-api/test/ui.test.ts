@@ -121,3 +121,30 @@ describe('brand assets (design-forge logo)', () => {
     }
   });
 });
+
+describe('product framing for the real users (platform leads first)', () => {
+  it('the landing states the platform-team claim, labels the demo account and links the run-it-yourself page', () => {
+    const idx = read('index.html');
+    expect(idx).toContain('FOR TEAMS GIVING AI AGENTS CLOUD ACCESS');
+    expect(idx).toContain('demo account we own');
+    expect(idx).toContain('href="/run"');
+    expect(idx).toContain('id="whofor"');
+  });
+  it('/run exists, is registered as a route, and covers setup, keys, policy, approvals, audit and the scope', () => {
+    expect(html).toContain('run.html');
+    expect(readFileSync(new URL('../src/routes.ts', import.meta.url), 'utf8')).toContain("'/run': 'run.html'");
+    const run = read('run.html');
+    for (const h of ['Set it up', 'Where your keys live', 'Write your policy', 'Approvals', 'Audit your account', 'What you get today, and what you do not']) expect(run, h).toContain(h);
+  });
+  it('the safety model defines every unfamiliar term in plain words and states the release scope', () => {
+    const about = read('about.html');
+    for (const t of ['Broker', 'Policy engine', 'Floor', 'Escalate', 'Verifier', 'Watchdog', 'Tier', 'Ceiling', 'Bond', 'Rewind', 'Drift']) expect(about, t).toContain(`<dt>${t}</dt>`);
+    expect(about).toContain('What this release is, and is not');
+  });
+  it('the metaphor labels were replaced by plain ones, and the verdict panel leads with one plain sentence', () => {
+    const js = read('app.js');
+    for (const old of ['HANGING TRUE', 'OFF PLUMB', 'AUTHORITY · ENGINE', 'REALITY · VULTR', 'ANGLE OFF TRUE']) expect(js, old).not.toContain(old);
+    for (const now of ['NO DRIFT', 'WHAT POLICY SAYS', 'WHAT VULTR SHOWS', 'DRIFT FROM POLICY', 'plainverdict']) expect(js, now).toContain(now);
+  });
+});
+
