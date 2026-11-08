@@ -1,0 +1,10 @@
+[
+  {
+    "host": "https://108-61-70-169.sslip.io",
+    "reason": "The first public hostname of the range. The gate evidence in evidence/ was recorded against it."
+  },
+  {
+    "host": "https://plumbline.108-61-70-169.sslip.io",
+    "reason": "A second name for the same Vultr VM (same Caddy proxy, same range-api process, same ledger), added on 2026-11-08. Evidence recorded at either name is about the same deployment."
+  }
+]

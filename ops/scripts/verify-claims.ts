@@ -39,6 +39,8 @@ export interface Ctx {
   /** ISO commit date of the newest commit touching any path, or null when git cannot say. */
   lastTouchIso(paths: string[]): string | null;
   declared: Set<string>;
+  /** Origins declared equivalent in evidence/declared-hosts.json (each with a reason): the same deployment under another name. */
+  declaredHosts?: Set<string>;
 }
 
 export const evidenceDigest = (doc: Record<string, unknown>): string => {
@@ -85,7 +87,8 @@ function provenanceErrors(doc: Record<string, any>, def: ClaimDef, ctx: Ctx, ori
   const errs: string[] = [];
   let baseOrigin = '';
   try { baseOrigin = new URL(String(doc.base)).origin; } catch { /* reported below */ }
-  if (baseOrigin !== origin) errs.push(`base ${String(doc.base)} is not the judged deployment ${origin}`);
+  const sameDeployment = baseOrigin !== origin && ctx.declaredHosts?.has(baseOrigin) === true && ctx.declaredHosts.has(origin);
+  if (baseOrigin !== origin && !sameDeployment) errs.push(`base ${String(doc.base)} is not the judged deployment ${origin}`);
   const ran = Date.parse(String(doc.ran_at));
   if (!Number.isFinite(ran)) return [...errs, 'ran_at is not a timestamp'];
   if (ran > ctx.now + FUTURE_SKEW_MS) errs.push('ran_at is in the future');
@@ -161,7 +164,10 @@ function liveCtx(app: string, env: NodeJS.ProcessEnv): Ctx {
   const readText = (rel: string): string | null => (existsSync(`${app}${rel}`) ? readFileSync(`${app}${rel}`, 'utf8') : null);
   const declared = new Set<string>();
   try { for (const d of JSON.parse(readText('evidence/declared-commits.json') ?? '[]') as { commit?: string; reason?: string }[]) if (d.commit && d.reason?.trim()) declared.add(d.commit); } catch { /* none declared */ }
+  const declaredHosts = new Set<string>();
+  try { for (const d of JSON.parse(readText('evidence/declared-hosts.json') ?? '[]') as { host?: string; reason?: string }[]) if (d.host && d.reason?.trim()) declaredHosts.add(new URL(d.host).origin); } catch { /* none declared */ }
   return {
+    declaredHosts,
     base: env.PLUMBLINE_URL ?? null, now: Date.now(), maxAgeMs: Number(env.PLUMBLINE_EVIDENCE_MAX_AGE_H ?? 48) * 3600_000, declared, readText,
     head: (() => { try { return git('rev-parse', 'HEAD'); } catch { return 'unknown'; } })(),
     lastTouchIso: (paths) => { try { return git('log', '-1', '--format=%cI', '--', ...paths) || null; } catch { return null; } },

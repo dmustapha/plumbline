@@ -138,3 +138,19 @@ describe('outputs', () => {
     expect(evidenceDigest(d)).toBe(evidenceDigest({ ...d, evidence_sha256: 'x' }));
   });
 });
+
+describe('declared host aliases', () => {
+  const A = 'https://1-2-3-4.sslip.io'; const B = 'https://name.1-2-3-4.sslip.io';
+  const hosts = (...h: string[]) => new Set(h);
+  const evidence = () => { const f: Record<string, string> = {}; put(f, 'gate-l1', doc('gate-l1')); return f; };
+  it('accepts evidence recorded at another name only when BOTH names are declared', () => {
+    expect(evaluateClaim(L1, ctxWith(evidence(), { base: B, declaredHosts: hosts(A, B) }))).toMatchObject({ status: 'CITABLE' });
+  });
+  it('rejects the alias when only one of the two names is declared', () => {
+    expect(evaluateClaim(L1, ctxWith(evidence(), { base: B, declaredHosts: hosts(B) })).status).toBe('WITHHELD');
+    expect(evaluateClaim(L1, ctxWith(evidence(), { base: B, declaredHosts: hosts(A) })).status).toBe('WITHHELD');
+  });
+  it('rejects an undeclared foreign host even when other names are declared', () => {
+    expect(evaluateClaim(L1, ctxWith(evidence(), { base: 'https://evil.example', declaredHosts: hosts(A, B) })).status).toBe('WITHHELD');
+  });
+});

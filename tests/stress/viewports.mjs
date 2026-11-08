@@ -4,7 +4,7 @@
 // playwright is not a project dependency: point PLAYWRIGHT at a global install (npm root -g)/playwright/index.mjs when it is not resolvable
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright');
 import { mkdirSync, writeFileSync } from 'node:fs';
-const BASE = process.env.PLUMBLINE_URL ?? 'https://108-61-70-169.sslip.io';
+const BASE = process.env.PLUMBLINE_URL ?? 'https://plumbline.108-61-70-169.sslip.io';
 const PAGES = (process.env.PAGES ?? '/,/verify,/replay,/status,/proof,/about').split(',');
 const VPS = [320, 768, 1024, 1440, 1920];
 const P0 = new Set(['/', '/range', '/verify']);

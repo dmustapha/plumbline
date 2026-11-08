@@ -127,10 +127,10 @@ curl -s https://plumbline.108-61-70-169.sslip.io/api/proof | head -c 400
 curl -s https://plumbline.108-61-70-169.sslip.io/api/verify | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['status'], d['counts'])"
 ```
 
-After the clone and install below, the claims ledger re-derives every citable claim from the evidence files. The gate evidence was recorded against the first hostname (`108-61-70-169.sslip.io`), which still serves the same range, so the command names it:
+After the clone and install below, the claims ledger re-derives every citable claim from the evidence files. The gate evidence was recorded at the range's first hostname (`108-61-70-169.sslip.io`). Both names are declared as one deployment in `evidence/declared-hosts.json`, so the ledger accepts either:
 
 ```bash
-PLUMBLINE_URL=https://108-61-70-169.sslip.io npm run verify-claims
+PLUMBLINE_URL=https://plumbline.108-61-70-169.sslip.io npm run verify-claims
 # {"citable":["CL-L1","CL-L2","CL-L3","CL-L4","CL-L5","CL-L6","CL-L7","CL-GV"],"withheld":[],"tampered":[]}
 ```
 
@@ -201,7 +201,7 @@ npm run typecheck
 **Tier 1: re-derive the claims.**
 
 ```bash
-PLUMBLINE_URL=https://108-61-70-169.sslip.io npm run verify-claims
+PLUMBLINE_URL=https://plumbline.108-61-70-169.sslip.io npm run verify-claims
 ```
 
 **Tier 2: the hosted range.** Open https://plumbline.108-61-70-169.sslip.io. No sign-up. Each visitor gets a session and a playground VPC. The range allows 3 attacks a minute per session and 4 live sessions per address.

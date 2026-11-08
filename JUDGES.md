@@ -7,7 +7,7 @@
 **One proof command** (re-derives all eight claims from the evidence files, from a clean clone):
 
 ```bash
-PLUMBLINE_URL=https://108-61-70-169.sslip.io npm run verify-claims
+PLUMBLINE_URL=https://plumbline.108-61-70-169.sslip.io npm run verify-claims
 ```
 
 | Look at | Where |

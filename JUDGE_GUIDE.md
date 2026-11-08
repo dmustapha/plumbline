@@ -11,5 +11,5 @@ If the range says `SESSIONS_PER_IP_LIVE`, your address already holds 4 live sess
 Verify every claim from a clean clone:
 
 ```bash
-PLUMBLINE_URL=https://108-61-70-169.sslip.io npm run verify-claims
+PLUMBLINE_URL=https://plumbline.108-61-70-169.sslip.io npm run verify-claims
 ```

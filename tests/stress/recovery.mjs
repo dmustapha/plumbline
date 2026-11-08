@@ -3,7 +3,7 @@
 // Usage: PLAYWRIGHT=/opt/homebrew/lib/node_modules/playwright/index.mjs node tests/stress/recovery.mjs   (live attacks: 3 in total)
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright');
 import { writeFileSync } from 'node:fs';
-const BASE = process.env.PLUMBLINE_URL ?? 'https://108-61-70-169.sslip.io';
+const BASE = process.env.PLUMBLINE_URL ?? 'https://plumbline.108-61-70-169.sslip.io';
 const browser = await chromium.launch();
 const res = [];
 // one context for every scenario: the session cookie is shared, so the whole run holds ONE live session (the per-IP live cap is 4)
