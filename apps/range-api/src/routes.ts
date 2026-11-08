@@ -182,7 +182,12 @@ function registerProof(app: FastifyInstance, d: ApiDeps): void {
     }
   };
   app.get('/api/verify', async (_r, reply) => { const r = await verifier('/api/verify', 'GET'); return reply.code(r.status).send(r.json); });
-  app.post('/api/verify/run', async (_r, reply) => { const r = await verifier('/api/verify/run', 'POST'); return reply.code(r.status).send(r.json); });
+  // a run already in progress (for example the keep-fresh timer's) is not an error for the visitor: answer with the current report
+  app.post('/api/verify/run', async (_r, reply) => {
+    const r = await verifier('/api/verify/run', 'POST');
+    if (r.status === 409) { const cur = await verifier('/api/verify', 'GET'); return reply.code(cur.status).send(cur.json); }
+    return reply.code(r.status).send(r.json);
+  });
 }
 
 function registerStream(app: FastifyInstance, d: ApiDeps): void {

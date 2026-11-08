@@ -442,7 +442,7 @@ function liveRows(live) {
   if (vp) {
     const others = vp.filter((v) => isPlay(v.description) && v.description !== mine); const rest = vp.filter((v) => !isPlay(v.description) || v.description === mine);
     add('vpc', { ok: true, data: rest }, (v) => compact ? nm(v.description) : v.description, (v) => compact ? (v.description === mine ? 'YOURS' : v.region) : `${v.region}${v.description === mine ? ' · YOURS' : ''}`);
-    if (others.length) rows.push({ kind: 'vpc', x: { id: 'others' }, name: `${others.length} visitor playground${others.length > 1 ? 's' : ''}`, detail: compact ? others[0].region : 'plumbline-s*-vault · ' + others[0].region, cls: '', auth: 'PLAYGROUNDS', sub: 'agent scope · churn is authorized' });
+    if (others.length) rows.push({ kind: 'vpc', x: { id: 'others' }, name: compact ? `${others.length} visitor VPC${others.length > 1 ? 's' : ''}` : `${others.length} visitor playground${others.length > 1 ? 's' : ''}`, detail: compact ? others[0].region : 'plumbline-s*-vault · ' + others[0].region, cls: '', auth: 'PLAYGROUNDS', sub: 'agent scope · churn is authorized' });
   } else add('vpc', live.vpcs, (v) => v.description, (v) => v.region);
   add('firewall', live.firewalls, (f) => f.description, (f) => f.id.slice(0, 8));
   add('registry', live.registries, (r) => r.name, (r) => compact ? r.region : (r.urn || r.region));
@@ -577,8 +577,8 @@ function drawPayoff(c, v, n, fresh) {
 // the closer's caption follows the number: it only says "hangs true" when the verifier said GREEN with zero breaches
 function closerCaption(v, n, fresh) {
   if (n === null) return 'breaches: not reported · the verifier has no usable report, so the line claims nothing';
-  if (n > 0) return `breach${n === 1 ? '' : 'es'} · the line is off plumb · the verifier names the resource in the live Vultr account`;
-  if (v.status === 'GREEN' && fresh) return 'breaches · the line hangs true · reconciled against the live Vultr account';
+  if (n > 0) return `breach${n === 1 ? '' : 'es'} · drift detected · the verifier names the resource in the live Vultr account`;
+  if (v.status === 'GREEN' && fresh) return 'breaches · no drift · reconciled against the live Vultr account';
   return 'breaches · last report ' + fmt(v.status) + ', ' + age(reportAge(v)) + ' old · the line does not claim true until a fresh read';
 }
 function drawCloser(v, n, fresh) {
@@ -639,7 +639,7 @@ async function refreshTruth(runVerify) {
 
 function trustPanel() {
   return h('div', { class: 'panel' }, h('h3', {}, 'Trust root: what this proves and does NOT prove'),
-    h('p', { class: 'mut' }, 'Proves: the verdict comes from a coded policy engine outside the model, and the live Vultr account is re-fetched after every attack. The model obeys on purpose (compliant-operator mode): the engine is the defense.'),
+    h('p', { class: 'mut' }, 'Proves: the verdict comes from a coded policy engine outside the model, and the live Vultr account is re-fetched after every attack. The demo model is told to obey (compliant-operator mode), so you are testing the policy engine, not how cautious the model is.'),
     h('p', { class: 'mut' }, 'The verifier is a second host, in a second region, with its own read‑only key. It reads the account itself; it does not trust this page, the broker, or the ledger alone.'),
     h('p', { class: 'mut', id: 'trust-verifier' }, 'Second host: not queried on this page (open the range or reconcile).'),
     h('p', { class: 'mut' }, 'Does NOT prove: that the model resists attacks, that spend equals Vultr\'s invoice (it is BROKER ARITHMETIC), that the sandbox is unescapable (hardened container), or that create-then-delete between two verifier polls is caught.'));
@@ -708,7 +708,7 @@ function spendSub(spent, cap) {
   if (!known(spent) || !known(cap)) return 'spent ' + (known(spent) ? '$' + spent.toFixed(4) : 'not reported') + ' of ' + (known(cap) ? '$' + cap.toFixed(2) : 'a cap that is not reported');
   if (cap <= 0) return spent > 0 ? `OVERRUN: spent $${spent.toFixed(4)} against a $0.00 cap` : 'the cap is $0.00: nothing can be spent';
   if (spent >= cap) return `OVERRUN: spent $${spent.toFixed(4)}, ${((spent / cap) * 100).toFixed(0)}% of the stop`;
-  return `spent $${spent.toFixed(4)} · the bob rises toward the stop; it cannot pass it`;
+  return `spent $${spent.toFixed(4)} · the level rises toward the limit; the agent cannot pass it`;
 }
 function spendStop(lbl, spentRaw, capRaw) {
   const spent = known(spentRaw) ? Number(spentRaw) : null; const cap = known(capRaw) ? Number(capRaw) : null;
@@ -971,12 +971,12 @@ function diagramSvg() {
   const node = (cls, y, l, sub, w) => { const grp = sv('g', { class: 'node ' + cls }); grp.append(sv('rect', { class: 'box ' + (cls === 'n3' ? 'locked' : 'hot'), x: X + 26, y: y - 26, width: w || 250, height: 52, rx: 8 })); grp.append(sv('text', { class: 'lbl', x: X + 40, y: y - 4 }, document.createTextNode(l))); grp.append(sv('text', { class: 'sub', x: X + 40, y: y + 14 }, document.createTextNode(sub))); return grp; };
   g.append(sv('circle', { cx: X, cy: 40, r: 9, class: 'box hot' })); g.append(node('n3', 40, 'the verifier · second host, second region', 'anchors the line: re-reads Vultr with its own key', 300));
   g.append(sv('circle', { cx: X, cy: 185, r: 6, style: 'fill:var(--accent)' })); g.append(node('n2', 185, 'the policy engine · rules as data', 'the cord: ALLOW · ESCALATE · DENY + rule id, outside the model', 300));
-  g.append(sv('path', { class: 'node n3', d: `M${X} 318 L${X + 22} 352 L${X} 400 L${X - 22} 352 Z`, style: 'fill:var(--true);filter:drop-shadow(0 0 14px var(--true-50))' })); g.append(node('n3', 360, 'plumbline-prod-db · protected', 'the bob: never moved, read live by the second host', 300));
+  g.append(sv('path', { class: 'node n3', d: `M${X} 318 L${X + 22} 352 L${X} 400 L${X - 22} 352 Z`, style: 'fill:var(--true);filter:drop-shadow(0 0 14px var(--true-50))' })); g.append(node('n3', 360, 'plumbline-prod-db · protected', 'prod-db: never moved, read live by the second host', 300));
   // the attack: from the right, into the cord, cut
   const att = sv('g', { class: 'node n1' });
   att.append(sv('rect', { class: 'box', x: 20, y: 150, width: 130, height: 70, rx: 8 })); att.append(sv('text', { class: 'lbl', x: 34, y: 176 }, document.createTextNode('the agent'))); att.append(sv('text', { class: 'sub', x: 34, y: 194 }, document.createTextNode('sandbox · no key'))); att.append(sv('text', { class: 'sub', x: 34, y: 208 }, document.createTextNode('"delete prod-db"')));
   att.append(sv('path', { class: 'wire flow', d: `M150 185 L${X - 10} 185` })); att.append(sv('path', { class: 'wire cut', d: `M${X + 4} 196 L${X + 26} 232` }));
-  att.append(sv('text', { class: 'verdict', x: 24, y: 262 }, document.createTextNode('DENY · protect-tagged-destroy'))); att.append(sv('text', { class: 'sub', x: 24, y: 280 }, document.createTextNode('the cord does not move · the bob stays where it was')));
+  att.append(sv('text', { class: 'verdict', x: 24, y: 262 }, document.createTextNode('DENY · protect-tagged-destroy'))); att.append(sv('text', { class: 'sub', x: 24, y: 280 }, document.createTextNode('the policy holds · prod-db stays where it was')));
   g.append(att);
   return g;
 }

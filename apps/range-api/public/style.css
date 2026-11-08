@@ -270,7 +270,7 @@ html[data-m="amber"] .plumb::before { background: radial-gradient(90px 170px at 
 .verify-top { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr); gap: var(--s-5); align-items: stretch; } .verify-top > .panel + .panel { margin-top: 0; }
 .verify-top .statrow { grid-template-columns: repeat(2, minmax(0, 1fr)); } @media (max-width: 1000px) { .verify-top { grid-template-columns: 1fr; } }
 .stops { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s-6); margin-top: var(--s-4); }
-.stop { position: relative; height: 150px; padding-left: 56px; }
+.stop { position: relative; min-height: 150px; padding-left: 56px; padding-bottom: var(--s-3); }
 .stop .rail { position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: var(--hairline-hi); border-radius: var(--r-tick); }
 .stop .cap { position: absolute; left: 8px; top: 0; width: 26px; height: 3px; background: var(--accent-hi); box-shadow: 0 0 10px var(--accent); }
 .stop .fill { position: absolute; left: 20px; bottom: 0; width: 2px; background: var(--accent); border-radius: var(--r-tick); transition: height .9s var(--ease-out); }
@@ -425,7 +425,7 @@ button[aria-disabled="true"], .btn[aria-disabled="true"] { opacity: .45; cursor:
 /* "locked" is a property, not a verdict: chalk, not green */
 .pr.prot .n::before { color: var(--accent-hi); } .pr.hit.safe { background: var(--acc-08); }
 .stage .hd { flex-wrap: wrap; row-gap: 4px; }
-.stop { height: 104px; } .stop .val { color: var(--text); }
+.stop { min-height: 104px; } .stop .val { color: var(--text); }
 /* the trust-root drawer is a footnote, not a card */
 #trust .panel { background: none; border: 0; box-shadow: none; padding: 0; }
 @media (hover: hover) { #trust .panel:hover { transform: none; } }
@@ -464,3 +464,7 @@ textarea.code { white-space: pre; overflow-x: auto; }
 
 /* definition lists on the safety model page */
 dl { margin: 0; } dt { font: 600 var(--t-small) var(--f-mono); color: var(--text); margin-top: var(--s-4); } dd { margin: var(--s-1) 0 0; color: var(--muted); }
+
+/* a one-line plain-words intro at the top of each page */
+main > .plainline { max-width: 72ch; margin: 0 0 var(--s-4); color: var(--muted); font-size: var(--t-small); }
+ main > .plainline b { color: var(--text); font-weight: 600; }

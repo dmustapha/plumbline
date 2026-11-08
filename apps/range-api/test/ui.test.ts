@@ -1,6 +1,7 @@
 // File: apps/range-api/test/ui.test.ts
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { Script } from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 const dir = new URL('../public', import.meta.url).pathname;
@@ -145,6 +146,35 @@ describe('product framing for the real users (platform leads first)', () => {
     const js = read('app.js');
     for (const old of ['HANGING TRUE', 'OFF PLUMB', 'AUTHORITY · ENGINE', 'REALITY · VULTR', 'ANGLE OFF TRUE']) expect(js, old).not.toContain(old);
     for (const now of ['NO DRIFT', 'WHAT POLICY SAYS', 'WHAT VULTR SHOWS', 'DRIFT FROM POLICY', 'plainverdict']) expect(js, now).toContain(now);
+  });
+});
+
+describe('plain words on every page and no leftover metaphor copy', () => {
+  it('every working page opens with a plain-words line', () => {
+    for (const f of ['status', 'bond', 'policy', 'rewind', 'proof', 'verify', 'replay']) expect(read(`${f}.html`), f).toContain('class="plainline"');
+  });
+  it('no user-facing page says the line hangs true, the bob, or off plumb (comments excepted)', () => {
+    for (const f of html) expect(read(f), f).not.toMatch(/hangs true|off plumb/i);
+    const code = read('app.js').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n').replace(/\/\/ .*$/gm, '');
+    for (const bad of ['the line hangs true', 'the line is off plumb', 'the bob rises', 'the bob stays', 'the bob:']) expect(code, bad).not.toContain(bad);
+  });
+  it('/run covers adoption: prerequisites, how an agent plugs in, supported clouds, support, and that the strip is the demo', () => {
+    const run = read('run.html');
+    for (const t of ['Read this first', 'Before you start', 'How your agent plugs in', 'Only the Vultr adapter exists', 'Questions and support']) expect(run, t).toContain(t);
+  });
+  it('the safety model defines compliant-operator mode and rung/gate in plain words', () => {
+    const about = read('about.html');
+    expect(about).toContain('<dt>Compliant-operator mode</dt>');
+    expect(about).toContain('<dt>Rung and gate</dt>');
+  });
+});
+
+describe('the shipped script is valid JavaScript', () => {
+  it('app.js parses (a syntax error blanks every page)', () => {
+    expect(() => new Script(read('app.js'), { filename: 'app.js' })).not.toThrow();
+  });
+  it('every inline script in every page parses', () => {
+    for (const f of html) for (const m of read(f).matchAll(/<script>([\s\S]*?)<\/script>/g)) expect(() => new Script(m[1] as string, { filename: f }), f).not.toThrow();
   });
 });
 
