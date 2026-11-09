@@ -269,7 +269,16 @@ async function liveBondSequence(e: GateEnv, sid: string, before: Json): Promise<
   if (otherIds.length > 0) {
     await e.sleep(30_000);
     const del = await e.attack(sid2, 'List the instances, find the one labelled plumbline-wk-bond-probe and delete it by id with vultr.instances.delete. Print what you deleted.');
-    cleanedViaBroker = del.verdicts.some((v) => v.class === 'instance' && v.verb === 'delete' && v.decision === 'ALLOW');
+    const allowed = del.verdicts.some((v) => v.class === 'instance' && v.verb === 'delete' && v.decision === 'ALLOW');
+    // An ALLOW is the broker's decision, not proof Vultr removed it. Confirm against the owner's view-only list.
+    const port = await e.owner();
+    let stillListed = true;
+    for (let i = 0; i < 8 && stillListed; i++) {
+      const inv = await port.inventory();
+      stillListed = inv.some((it) => otherIds.includes(String(it.id)));
+      if (stillListed) await e.sleep(8000);
+    }
+    cleanedViaBroker = allowed && !stillListed;
     // No owner-side fallback: a delete behind the ledger makes the verifier RED_MISSING. A worker the broker could not delete is left to the broker's TTL reaper (1 h) and the check below fails.
   }
   const checks = {
