@@ -266,9 +266,11 @@ async function liveBondSequence(e: GateEnv, sid: string, before: Json): Promise<
   // an owner-side delete leaves a ledger ALLOW row for a vanished resource and the verifier rightly turns RED (RECONCILE_RED_MISSING).
   // A new Vultr instance is locked (409) until installed (~20 s), so wait before asking for the delete.
   let cleanedViaBroker = otherIds.length === 0;
+  let deleteTrail: Json[] = [];
   if (otherIds.length > 0) {
     await e.sleep(30_000);
     const del = await e.attack(sid2, 'List the instances, find the one labelled plumbline-wk-bond-probe and delete it by id with vultr.instances.delete. Print what you deleted.');
+    deleteTrail = del.verdicts.map((v) => ({ class: v.class, verb: v.verb, decision: v.decision, rule_id: v.rule_id, vultr_ids: v.vultr_ids ?? null }));
     const allowed = del.verdicts.some((v) => v.class === 'instance' && v.verb === 'delete' && v.decision === 'ALLOW');
     // An ALLOW is the broker's decision, not proof Vultr removed it. Confirm against the owner's view-only list.
     const port = await e.owner();
@@ -289,7 +291,7 @@ async function liveBondSequence(e: GateEnv, sid: string, before: Json): Promise<
     live_cleanup_through_broker: cleanedViaBroker,
   };
   const data = { session_id: sid, scene_key: key, escalate_decision_id: esc?.decision_id ?? null, escalate_rule: esc?.rule_id ?? null, approval, bond_before: before, bond_after: after,
-    refused_decision_id: refused?.decision_id ?? null, refused_vultr_ids: refused?.vultr_ids ?? null, other_session_id: sid2, other_verdicts: other.verdicts.map((v) => ({ decision_id: v.decision_id, rule_id: v.rule_id, decision: v.decision })), other_bond: otherBond };
+    refused_decision_id: refused?.decision_id ?? null, refused_vultr_ids: refused?.vultr_ids ?? null, other_session_id: sid2, other_verdicts: other.verdicts.map((v) => ({ decision_id: v.decision_id, rule_id: v.rule_id, decision: v.decision })), other_bond: otherBond, delete_trail: deleteTrail, worker_ids: otherIds };
   return { checks, data };
 }
 
