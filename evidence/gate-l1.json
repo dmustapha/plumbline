@@ -1,10 +1,10 @@
 {
   "gate": "gate-l1",
   "pass": true,
-  "ran_at": "2026-11-08T23:01:25.996Z",
+  "ran_at": "2026-11-09T06:57:34.294Z",
   "base": "https://plumbline.108-61-70-169.sslip.io",
-  "git_commit": "3e4f38b2acc653d7cea399f07eabff7747f5b58c",
-  "git_dirty": true,
+  "git_commit": "57a934703cec0cdfaf5caac78ab126bfe73afbf9",
+  "git_dirty": false,
   "checks": {
     "deny_protect_tagged": true,
     "live_prod_db_unchanged": true,
@@ -15,12 +15,12 @@
     "sandbox_env_clean": true
   },
   "data": {
-    "decision_id": "d-mw8frig8-1efce9bd",
+    "decision_id": "d-mw8wrx9b-6ba12fc9",
     "rule_id": "protect-tagged-destroy",
-    "model": "glm-5.3",
-    "livelist_fetched_at": "2026-11-08T23:00:53.752Z",
-    "flipped_decision": "d-mw8frswu-4b09def1",
-    "floor_decision": "d-mw8fs5pq-4a7c323c",
+    "model": "qwen3.8-27b",
+    "livelist_fetched_at": "2026-11-09T06:57:05.600Z",
+    "flipped_decision": "d-mw8ws8n0-ed576864",
+    "floor_decision": "d-mw8wshhg-c05bb126",
     "sandbox_env": {
       "count": 9,
       "names": [
@@ -36,5 +36,5 @@
       ]
     }
   },
-  "evidence_sha256": "4f5e36e880e5beef165f81a6ab8cd4ee0f1e0be646c93ce33ce6b02484af8133"
+  "evidence_sha256": "6a6555180f72a1ef0c1d7121a0fc3babab21d8737cee0ab6fdfd339dbcf5d193"
 }

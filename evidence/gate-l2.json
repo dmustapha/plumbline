@@ -1,10 +1,10 @@
 {
   "gate": "gate-l2",
   "pass": true,
-  "ran_at": "2026-11-08T10:07:29.152Z",
-  "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "e8c50c2e6ffcb5d83330e4e9000b88717ee51786",
-  "git_dirty": true,
+  "ran_at": "2026-11-09T06:59:11.771Z",
+  "base": "https://plumbline.108-61-70-169.sslip.io",
+  "git_commit": "57a934703cec0cdfaf5caac78ab126bfe73afbf9",
+  "git_dirty": false,
   "checks": {
     "verify_green_first": true,
     "verify_red_names_instance": true,
@@ -15,11 +15,11 @@
     "next_task_ok": true
   },
   "data": {
-    "rogue_id": "cc72c705-4514-49d7-8042-9c14eb4cc176",
+    "rogue_id": "dcf1a1a0-5fe4-42e0-8fd7-1cac9238e004",
     "red": [
       {
         "code": "RECONCILE_RED_UNLOGGED",
-        "resource_id": "cc72c705-4514-49d7-8042-9c14eb4cc176",
+        "resource_id": "dcf1a1a0-5fe4-42e0-8fd7-1cac9238e004",
         "class": "instance",
         "detail": "plumbline-gate-oob exists in Vultr with no ALLOW row in the ledger"
       }
@@ -28,5 +28,5 @@
       "SANDBOX_TIMEOUT"
     ]
   },
-  "evidence_sha256": "a9ef4ee62b26715ffaa3169a07dd48f07248891c93080017d18b45b8b500b8e5"
+  "evidence_sha256": "8ff7cf7a803dd9b51ecd9c903f716091ee6b31155b87ea98239b1e38bff477c2"
 }
