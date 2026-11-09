@@ -4,7 +4,7 @@ _Last updated after the lablab submission (2026-11-08). The numbers below are re
 ## Status
 - [x] Range built and deployed on two Vultr VMs: broker and range in ewr (https://plumbline.108-61-70-169.sslip.io), verifier and watchdog in ord (https://66-42-126-97.sslip.io/api/verify).
 - [x] Gates L1 to L7 pass live and write `evidence/gate-lN.json`. `PLUMBLINE_URL=https://plumbline.108-61-70-169.sslip.io npm run verify-claims` lists which claims are citable at the current commit; at the submitted commit all eight (CL-L1 to CL-L7 and CL-GV) are.
-- [x] Offline suite: `npm test` (1189 passed, 13 skipped, 82 files, no credentials). `npm run typecheck` is clean.
+- [x] Offline suite: `npm test` (1190 passed, 13 skipped, 82 files, no credentials). `npm run typecheck` is clean.
 - [x] gVisor (runsc) isolation verified live; `evidence/probe-first-hour.txt` carries the line `GVISOR OK`.
 - [x] Public repo, hosted demo video, slides PDF and the lablab entry exist (links in `submission/links.md`).
 

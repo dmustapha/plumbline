@@ -25,6 +25,8 @@ CHAIN_RULES=(
   "-i $BRIDGE -o $BRIDGE -d $GATE_IP -p tcp --dport $GATE_PORT -j ACCEPT"
   "-i $BRIDGE -o $BRIDGE -j DROP"
   "-s $SUBNET ! -d $SUBNET -m comment --comment plb-egress -j DROP"
+  # DH-3: the relay is dual-homed on docker0 only to reach the broker on the host (INPUT, not FORWARD). It gets no route to the internet.
+  "-s 172.17.0.0/16 ! -d 172.17.0.0/16 -m comment --comment plb-relay-egress -j DROP"
 )
 
 check() {

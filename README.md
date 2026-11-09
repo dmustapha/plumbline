@@ -223,7 +223,7 @@ Each claim carries a verdict, the file that proves it, and the command that rege
 ## Tests
 
 ```bash
-npm test          # 1189 tests across 82 files, offline, no credentials
+npm test          # 1190 tests across 82 files, offline, no credentials
 npm run typecheck
 ```
 

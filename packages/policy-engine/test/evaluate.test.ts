@@ -67,6 +67,13 @@ describe('floor layer (AG4-ENG-7: run against the floor alone)', () => {
     expect(runFloor(create(), state({ global_spent_usd: 9.999 })).rule_id).toBe('global-cap-exceeded');
     expect(runFloor(create(), state({ live_worker_count: 4 })).rule_id).toBe('max-instances');
   });
+  it('DH-7 an operator retry that re-runs a create is judged on the running totals, so repeats hit max-instances and the session cap', () => {
+    const retry = create({ label: 'plumbline-wk-retry' });
+    expect(runFloor(retry, state({ live_worker_count: 0 })).decision).toBe('ALLOW');
+    expect(runFloor(retry, state({ live_worker_count: 1, session_spent_usd: 0.01 })).decision).toBe('ALLOW');
+    expect(runFloor(retry, state({ live_worker_count: 4, session_spent_usd: 0.04 })).rule_id).toBe('max-instances');
+    expect(runFloor(retry, state({ live_worker_count: 1, session_spent_usd: 1.5 })).rule_id).toBe('session-cap-exceeded');
+  });
   it('AG4-PRD-1 ceiling, session cap, plan and region are floor rules: an allow-all session cannot lift them', () => {
     expect(runFloor(create({ ttl_h: 400 })).rule_id).toBe('ceiling-dollar-deny');
     expect(runFloor(create(), state({ session_spent_usd: 1.5 })).rule_id).toBe('session-cap-exceeded');

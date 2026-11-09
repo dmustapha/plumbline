@@ -62,7 +62,7 @@ export class LeaseEmitter {
         body: JSON.stringify({ ts, nonce, ttl_s: this.#ttlS }),
         signal: AbortSignal.timeout(3000),
       });
-      if (res.ok) this.#lastOk = ts;
+      if (res.ok) { this.#lastOk = ts; this.#lastError = ''; }
       else this.#lastError = `HTTP ${res.status}`;
       return res.ok;
     } catch (e) {

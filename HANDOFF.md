@@ -7,7 +7,7 @@
 ```
 git clone https://github.com/dmustapha/plumbline && cd plumbline && npm ci && npm test
 ```
-Expected output: `1189 passed` (1189 tests across 82 files, offline, no credentials). `npm run typecheck` also passes per the README.
+Expected output: `1190 passed` (1190 tests across 82 files, offline, no credentials). `npm run typecheck` also passes per the README.
 
 ## Demo walkthrough
 Follow the Try It steps in [submission/HACKATHON-README.md](submission/HACKATHON-README.md). The Verify in 60s block there mirrors the README section "Verify in 60 seconds".
