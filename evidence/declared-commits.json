@@ -58,5 +58,9 @@
   {
     "commit": "3e4f38b2acc653d7cea399f07eabff7747f5b58c",
     "reason": "Gate l1 was re-run on the deployed range at this commit after the docs-only commit debe3a9 touched a test title and an env example. The tree was dirty only through CLAIMS.md and evidence/claims-regenerated.json (written by verify-claims itself) and a moved submission/cover.png, none of which are code paths. Commits after it change only evidence/ (verify: git diff --name-only 3e4f38b..HEAD lists nothing outside evidence/)."
+  },
+  {
+    "commit": "57a934703cec0cdfaf5caac78ab126bfe73afbf9",
+    "reason": "Gates l1, l2 and l3 were re-run on the deployed range at this commit with a clean tree (git_dirty false) after the relay egress rule and the lease last_error fix were deployed to the broker VM. Commits after it change only evidence/ (verify: git diff --name-only 57a9347..HEAD lists nothing outside evidence/)."
   }
 ]
