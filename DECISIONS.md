@@ -130,7 +130,7 @@ Written by hackathon-forge Phase 2 (2026-11-06). Rulings R1 to R9 are transcribe
 
 ## ADR-019: Submission handling
 - Context: the lablab screening form values are pending and approval is by external email; submission is an irreversible publish.
-- Decision: Dami sends the form values; the assistant fills the form in Dami's logged-in browser and STOPS before submit; Dami approves the two consents and the final click. No repo creation, Discord post or lablab submission without Dami's explicit OK.
+- Decision: The owner enters the form values, approves the two consents and clicks submit; tooling may draft the copy but never submits. No repo creation, Discord post or lablab submission without Dami's explicit OK.
 - Rejected: Dami filling everything himself (slower), and Claude submitting autonomously (irreversible publish).
 - Consequence: the package phase prepares `submission/` but publishes nothing; `SUBMISSION_STATUS.md` records the external approval as pending.
 - Where: Section 22; `SUBMISSION_STATUS.md`.

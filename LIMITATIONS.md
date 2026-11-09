@@ -25,6 +25,5 @@ Design-time scope boundary for the Vultr Agent Rush submission (Blast Radius Zer
 - Rung features whose gate does not pass by Nov 7 2026 20:00 UTC (watchdog live beat, ACL tiers, breadth, Rewind, bond). Reason: the safety rule excludes them from the demo rather than rushing them (R7).
 - Sub-delegation tree, browser pattern, managed database, Standard-tier Object Storage, any paid service beyond the approved $6 Archival subscription. Reason: deferred or not approved (OPEN-DECISIONS D1, D-OBJ).
 - Any leash or Backstop code. Reason: concern 15 override condition (clean new repo).
-- The demo script, narration, slides and video. Reason: deferred by Dami (R10) with a binding deliberation before the demo phase.
 - Login, accounts, multi-tenant isolation beyond the per-session policy copy and budget. Reason: anonymous access is the product (R5); out of scope for a hackathon range.
 - Production-grade availability (HA, backups of the ledger, multi-region broker). Reason: cost and time; the replay path and the kill-switch are the degradation story.

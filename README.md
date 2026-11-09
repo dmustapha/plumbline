@@ -215,7 +215,7 @@ Each claim carries a verdict, the file that proves it, and the command that rege
 | Live attacks, each canned scene repeated 5 times | 30 of 30 ran to a recorded outcome | `evidence/stress/live-reliability-30.jsonl` |
 | Dead-hand destroy time after the broker is killed | 58 s | `evidence/gate-l3.json` |
 | Object restore round trip | 929 ms | `evidence/gate-l6.json` |
-| Relay probes (absolute URI, CONNECT, traversal, request smuggling, direct egress, DNS) | 24 probes, all blocked | `evidence/stress/relay-probe.txt` |
+| Relay probes (absolute URI, CONNECT, traversal, request smuggling, direct egress, DNS) | 22 probes: 20 attack probes all blocked, 2 allowed-route controls (200 and 401) | `evidence/stress/relay-probe.txt` |
 | Independent S3 listing against the range's own Rewind panel | AGREE | `evidence/stress/s3-independent.txt` |
 | Engine no-op ablation | 147 of 420 tests fail when the policy engine is stubbed | `tests/ablation/policy-engine_noop.log` |
 | Pages checked at 5 widths in dark and light themes | 0 axe violations, 0 overflow | `evidence/stress/viewports.json`, `evidence/stress/viewports-light.json` |
@@ -290,7 +290,7 @@ docs/            interfaces, domain guide, acceptance-criteria traceability, str
 
 | Layer | Technology |
 |---|---|
-| Language | TypeScript on Node 24 with `tsx`, no build step. About 9,400 lines of source and 82 test files. |
+| Language | TypeScript on Node 24 with `tsx`, no build step. About 9,100 lines of source and 82 test files. |
 | Web | Fastify, server-sent events, static HTML with one script and per-page CSP hashes |
 | Policy | YAML policy data, a pure evaluator, Ed25519-signed production changes |
 | Storage | SQLite with append-only triggers for the decision ledger |

@@ -10,6 +10,6 @@ Track: Blast Radius Zero (Vultr Agent Rush, lablab.build). Paths below were foun
 | Serverless Inference, nemotron-3.5-content-safety (safety advisor) | `packages/vultr-adapter/src/vsi.ts` line 9 | Advisory only. The coded policy engine decides, not the model. |
 | VPC | `packages/vultr-adapter/src/resources.ts` (`/vpcs`) | Playgrounds are VPCs, capped at 4 per region because the account allows 5 per location. |
 | Firewall groups | `packages/vultr-adapter/src/resources.ts`, `packages/vultr-adapter/src/tiers.ts` (`/firewalls`) | Create and delete go through the engine (gate L5). |
-| Object Storage versioning | `packages/vultr-adapter/src/s3.ts` (`PutBucketVersioningCommand`), `packages/rewind` | The only reversible class. Restore round trip 1300 ms in gate L6. VM deletion is not reversible. |
+| Object Storage versioning | `packages/vultr-adapter/src/s3.ts` (`PutBucketVersioningCommand`), `packages/rewind` | The only reversible class. Restore round trip 929 ms in the committed gate L6 evidence. VM deletion is not reversible. |
 | API sub-user keys with IP allow-list | `packages/vultr-adapter/src/users.ts` (`createServiceUser`, `ipAllow`), `packages/vultr-adapter/src/tiers.ts` | Vultr has no per-resource ACL scoping; the engine is the fine-grained control and the key tier is defense in depth. |
 | Plans rate card | `packages/vultr-adapter/src/plans.ts` (`GET /plans`) | Prices a request before it runs. Spend shown is broker arithmetic, not Vultr's invoice. |
