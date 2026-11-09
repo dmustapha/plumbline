@@ -62,5 +62,9 @@
   {
     "commit": "57a934703cec0cdfaf5caac78ab126bfe73afbf9",
     "reason": "Gates l1, l2 and l3 were re-run on the deployed range at this commit with a clean tree (git_dirty false) after the relay egress rule and the lease last_error fix were deployed to the broker VM. Commits after it change only evidence/ (verify: git diff --name-only 57a9347..HEAD lists nothing outside evidence/)."
+  },
+  {
+    "commit": "bf1dc12ae3d32e7af7b916df39742092fa79a83a",
+    "reason": "Gate l7 was re-run on the deployed range at this commit with a clean tree (git_dirty false) after the gate began retrying the broker delete and confirming removal against the owner's view-only list. The commit after it changes only evidence/."
   }
 ]
