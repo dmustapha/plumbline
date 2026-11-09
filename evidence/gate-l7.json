@@ -1,10 +1,10 @@
 {
   "gate": "gate-l7",
   "pass": true,
-  "ran_at": "2026-11-08T08:54:43.710Z",
-  "base": "https://108-61-70-169.sslip.io",
-  "git_commit": "a332a4584b69fccc01cbf337fcc65c5425fe7462",
-  "git_dirty": true,
+  "ran_at": "2026-11-09T22:09:08.452Z",
+  "base": "https://plumbline.108-61-70-169.sslip.io",
+  "git_commit": "bf1dc12ae3d32e7af7b916df39742092fa79a83a",
+  "git_dirty": false,
   "checks": {
     "refuses_after_slash_unit_test": true,
     "bond_enabled_on_deployment": true,
@@ -14,9 +14,9 @@
     "live_cleanup_through_broker": true
   },
   "data": {
-    "session_id": "e72091b6",
-    "scene_key": "bond-scene/g1794128014988.json",
-    "escalate_decision_id": "d-mw7li2ky-bead3238",
+    "session_id": "20cb310c",
+    "scene_key": "bond-scene/g1794262041651.json",
+    "escalate_decision_id": "d-mw9taouq-7c735aca",
     "escalate_rule": "last-copy-block",
     "approval": {
       "approved": true,
@@ -24,7 +24,7 @@
     },
     "bond_before": {
       "enabled": true,
-      "session_id": "e72091b6",
+      "session_id": "20cb310c",
       "free": 0.05,
       "held": 0,
       "burned": 0,
@@ -32,36 +32,63 @@
     },
     "bond_after": {
       "enabled": true,
-      "session_id": "e72091b6",
+      "session_id": "20cb310c",
       "free": 0.005,
       "held": 0,
       "burned": 0.045,
       "actions": [
         {
-          "action_id": "d-mw7li2ky-bead3238",
+          "action_id": "d-mw9taouq-7c735aca",
           "amount": 0.045,
           "state": "burned"
         }
       ]
     },
-    "refused_decision_id": "d-mw7li9of-fc7ee3c1",
+    "refused_decision_id": "d-mw9tbes9-8f4eb1f2",
     "refused_vultr_ids": [],
-    "other_session_id": "97718b3e",
+    "other_session_id": "9bd17848",
     "other_verdicts": [
       {
-        "decision_id": "d-mw7lift2-206e39f7",
+        "decision_id": "d-mw9tboi6-d40056da",
         "rule_id": "allow-worker-create",
         "decision": "ALLOW"
       }
     ],
     "other_bond": {
       "enabled": true,
-      "session_id": "97718b3e",
+      "session_id": "9bd17848",
       "free": 0.05,
       "held": 0,
       "burned": 0,
       "actions": []
-    }
+    },
+    "delete_trail": [
+      {
+        "attempt": 0,
+        "verdicts": [
+          {
+            "verb": "list",
+            "decision": "ALLOW",
+            "rule_id": "allow-list"
+          },
+          {
+            "verb": "delete",
+            "decision": "ALLOW",
+            "rule_id": "allow-worker-delete"
+          }
+        ],
+        "stages": [
+          "start:",
+          "advisory:",
+          "plan:",
+          "code:",
+          "run:OK"
+        ]
+      }
+    ],
+    "worker_ids": [
+      "753e685c-137c-4181-a6dd-ff784fb3234c"
+    ]
   },
-  "evidence_sha256": "71a882f1a60eaed37c4fd1accfabf6b3791b6c296b0b42285ee75fa33a0bd161"
+  "evidence_sha256": "bf1dfa196fcb2acae6707556d99fbb37ff806d5190367e0ed1a8600718468b6f"
 }
